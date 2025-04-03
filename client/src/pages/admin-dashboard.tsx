@@ -494,7 +494,7 @@ export default function AdminDashboard() {
                       </CardHeader>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
-                      <CardContent className="pt-6 pb-6">
+                      <CardContent className="pt-6 pb-10">
                         <Tabs defaultValue="day" className="w-full">
                           <TabsList className="grid w-full grid-cols-2 mb-6">
                             <TabsTrigger value="day">
@@ -517,7 +517,7 @@ export default function AdminDashboard() {
                                 <p>No data available</p>
                               </div>
                             ) : (
-                              <div className="h-[300px] w-full">
+                              <div className="h-[350px] w-full pb-6">
                                 <DayOfWeekChart data={analyticsData.byDayOfWeek} />
                               </div>
                             )}
@@ -533,7 +533,7 @@ export default function AdminDashboard() {
                                 <p>No data available</p>
                               </div>
                             ) : (
-                              <div className="h-[300px] w-full">
+                              <div className="h-[350px] w-full pb-6">
                                 <HourlyDistributionChart data={analyticsData.byHour} />
                               </div>
                             )}
