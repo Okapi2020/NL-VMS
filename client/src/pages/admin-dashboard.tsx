@@ -252,20 +252,6 @@ export default function AdminDashboard() {
           </a>
           <a
             href="#"
-            onClick={(e) => { e.preventDefault(); setActiveView("trash"); }}
-            className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-              activeView === "trash" 
-                ? "bg-primary-50 text-primary-700" 
-                : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-            }`}
-          >
-            <Trash2 className={`mr-3 h-5 w-5 ${
-              activeView === "trash" ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
-            }`} />
-            Recycle Bin
-          </a>
-          <a
-            href="#"
             onClick={(e) => { e.preventDefault(); setActiveView("settings"); }}
             className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
               activeView === "settings" 
@@ -287,6 +273,23 @@ export default function AdminDashboard() {
             <ExternalLink className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
             Visit Check-In Portal
           </a>
+          <div className="pt-4 mt-4 border-t border-gray-200">
+            <a
+              href="#"
+              onClick={(e) => { e.preventDefault(); setActiveView("trash"); }}
+              className={`group flex items-center justify-center p-2 text-sm font-medium rounded-md ${
+                activeView === "trash" 
+                  ? "bg-primary-50 text-primary-700" 
+                  : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+              }`}
+              title="Recycle Bin"
+            >
+              <Trash2 className={`h-5 w-5 ${
+                activeView === "trash" ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
+              }`} />
+              <span className="sr-only">Recycle Bin</span>
+            </a>
+          </div>
           <Button
             variant="ghost"
             className="w-full justify-start group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 hover:text-gray-900"
