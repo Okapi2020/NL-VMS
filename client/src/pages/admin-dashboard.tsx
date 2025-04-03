@@ -45,6 +45,7 @@ export default function AdminDashboard() {
   const [trashItemsPerPage, setTrashItemsPerPage] = useState(10);
   const [selectedVisitors, setSelectedVisitors] = useState<number[]>([]);
   const [isProcessingBulk, setIsProcessingBulk] = useState(false);
+  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(true);
 
   // Define types for our API responses
   type VisitWithVisitor = { 
@@ -472,28 +473,28 @@ export default function AdminDashboard() {
 
               {/* Analytics Cards */}
               <div className="mt-8 mb-12">
-                <Collapsible>
+                <Collapsible open={isAnalyticsOpen} onOpenChange={setIsAnalyticsOpen}>
                   <Card className="w-full">
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <CardTitle className="text-lg">
-                            Analytics Overview
-                          </CardTitle>
-                          <CardDescription>
-                            Visitor traffic patterns and peak times
-                          </CardDescription>
-                        </div>
-                        <CollapsibleTrigger asChild>
+                    <CollapsibleTrigger asChild>
+                      <CardHeader className="pb-2 cursor-pointer hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle className="text-lg">
+                              Analytics Overview
+                            </CardTitle>
+                            <CardDescription>
+                              Visitor traffic patterns and peak times
+                            </CardDescription>
+                          </div>
                           <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
-                            <ChevronDown className="h-4 w-4" />
+                            <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isAnalyticsOpen ? "" : "transform rotate-180"}`} />
                             <span className="sr-only">Toggle analytics panel</span>
                           </Button>
-                        </CollapsibleTrigger>
-                      </div>
-                    </CardHeader>
+                        </div>
+                      </CardHeader>
+                    </CollapsibleTrigger>
                     <CollapsibleContent>
-                      <CardContent className="pt-0">
+                      <CardContent className="pt-0 pb-6">
                         <Tabs defaultValue="day" className="w-full space-y-4">
                           <TabsList className="grid w-full grid-cols-2 mb-4">
                             <TabsTrigger value="day">
