@@ -66,12 +66,23 @@ export const visitorFormSchema = z.object({
     .min(2, "First name is required")
     .refine(name => /^[a-zA-Z.\-']+$/.test(name.trim()), {
       message: "Name should contain only letters and basic characters"
+    })
+    .refine(name => !name.trim().includes(' '), {
+      message: "First name should not contain spaces (enter only one name)"
     }),
-  middleName: z.string().optional(),
+  middleName: z.string()
+    .optional()
+    .transform(val => (!val || val.trim() === '') ? undefined : val)
+    .refine(name => !name || !name.trim().includes(' '), {
+      message: "Middle name should not contain spaces (enter only one name)"
+    }),
   lastName: z.string()
     .min(2, "Last name is required")
     .refine(name => /^[a-zA-Z.\-']+$/.test(name.trim()), {
       message: "Name should contain only letters and basic characters"
+    })
+    .refine(name => !name.trim().includes(' '), {
+      message: "Last name should not contain spaces (enter only one name)"
     }),
   yearOfBirth: z.number()
     .min(1900, "Please enter a valid year")
@@ -148,10 +159,32 @@ export type UpdateVisitorVerification = z.infer<typeof updateVisitorVerification
 
 export const updateVisitorSchema = z.object({
   id: z.number(),
-  fullName: z.string().min(2, "Full name must be at least 2 characters"),
-  yearOfBirth: z.number().min(1900, "Year of birth must be after 1900").max(new Date().getFullYear(), "Year of birth cannot be in the future"),
+  fullName: z.string()
+    .min(2, "Full name must be at least 2 characters")
+    .refine(name => {
+      // Split the full name by spaces and check if each part contains only allowed characters
+      const nameParts = name.trim().split(/\s+/);
+      return nameParts.every(part => /^[a-zA-Z.\-']+$/.test(part));
+    }, {
+      message: "Names should contain only letters and basic characters"
+    }),
+  yearOfBirth: z.number()
+    .min(1900, "Year of birth must be after 1900")
+    .max(new Date().getFullYear(), "Year of birth cannot be in the future"),
   email: z.string().email("Invalid email format").optional().nullable(),
-  phoneNumber: z.string().min(7, "Phone number must be at least 7 characters"),
+  phoneNumber: z.string()
+    .min(7, "Phone number must be at least 7 characters")
+    .refine(
+      phone => {
+        // Remove all non-digit characters for validation
+        const digits = phone.replace(/\D/g, '');
+        // Phone should have exactly 10 digits
+        return digits.length === 10;
+      },
+      {
+        message: "Phone number must be exactly 10 digits"
+      }
+    ),
 });
 
 export type UpdateVisitor = z.infer<typeof updateVisitorSchema>;
