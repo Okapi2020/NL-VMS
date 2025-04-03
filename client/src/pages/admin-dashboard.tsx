@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminVisitorsTable } from "@/components/admin-visitors-table";
 import { AdminVisitHistory } from "@/components/admin-visit-history";
 import { AdminSettings } from "@/components/admin-settings";
+import { AnalyticsDashboard } from "@/components/analytics";
 import { exportToCSV } from "@/lib/utils";
 import { Visit, Visitor } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -24,6 +25,7 @@ import {
   Trash2,
   RefreshCw,
   Trash,
+  BarChart,
 } from "lucide-react";
 
 export default function AdminDashboard() {
@@ -254,6 +256,20 @@ export default function AdminDashboard() {
           </a>
           <a
             href="#"
+            onClick={(e) => { e.preventDefault(); setActiveView("analytics"); }}
+            className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+              activeView === "analytics" 
+                ? "bg-primary-50 text-primary-700" 
+                : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+            }`}
+          >
+            <BarChart className={`mr-3 h-5 w-5 ${
+              activeView === "analytics" ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
+            }`} />
+            Analytics
+          </a>
+          <a
+            href="#"
             onClick={(e) => { e.preventDefault(); setActiveView("reports"); }}
             className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
               activeView === "reports" 
@@ -328,6 +344,7 @@ export default function AdminDashboard() {
               <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
                 {activeView === "dashboard" && "Dashboard"}
                 {activeView === "visitors" && "Visitors"}
+                {activeView === "analytics" && "Analytics"}
                 {activeView === "reports" && "Reports"}
                 {activeView === "trash" && "Recycle Bin"}
                 {activeView === "settings" && "Settings"}
@@ -462,6 +479,21 @@ export default function AdminDashboard() {
                     visitHistory={visitHistory} 
                     isLoading={isLoadingVisitHistory} 
                   />
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Analytics View */}
+          {activeView === "analytics" && (
+            <div className="mt-6">
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="text-lg font-medium mb-4">Visitor Analytics</h3>
+                  <p className="text-gray-500 mb-4">Analyze visitor traffic and patterns over time.</p>
+                  
+                  {/* Analytics Dashboard Component */}
+                  <AnalyticsDashboard />
                 </CardContent>
               </Card>
             </div>
