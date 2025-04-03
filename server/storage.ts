@@ -1,5 +1,5 @@
 import { admins, type Admin, type InsertAdmin } from "@shared/schema";
-import { visitors, type Visitor, type InsertVisitor } from "@shared/schema";
+import { visitors, type Visitor, type InsertVisitor, type UpdateVisitorVerification } from "@shared/schema";
 import { visits, type Visit, type InsertVisit, type UpdateVisit } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull } from "drizzle-orm";
@@ -20,6 +20,7 @@ export interface IStorage {
   getVisitorByEmail(email: string): Promise<Visitor | undefined>;
   createVisitor(visitor: InsertVisitor): Promise<Visitor>;
   getAllVisitors(): Promise<Visitor[]>;
+  updateVisitorVerification(update: UpdateVisitorVerification): Promise<Visitor | undefined>;
   
   // Visit methods
   createVisit(visit: InsertVisit): Promise<Visit>;
@@ -92,6 +93,15 @@ export class DatabaseStorage implements IStorage {
   
   async getAllVisitors(): Promise<Visitor[]> {
     return await db.select().from(visitors).orderBy(desc(visitors.id));
+  }
+  
+  async updateVisitorVerification(update: UpdateVisitorVerification): Promise<Visitor | undefined> {
+    const [updatedVisitor] = await db
+      .update(visitors)
+      .set({ verified: update.verified })
+      .where(eq(visitors.id, update.id))
+      .returning();
+    return updatedVisitor;
   }
   
   // Visit methods

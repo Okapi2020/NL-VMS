@@ -11,6 +11,9 @@ import { formatDate, formatTimeOnly, formatDuration, formatBadgeId } from "@/lib
 import { Visit, Visitor } from "@shared/schema";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Search, 
   SlidersHorizontal,
@@ -40,12 +43,55 @@ type AdminVisitHistoryProps = {
 };
 
 export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistoryProps) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [processingVerificationIds, setProcessingVerificationIds] = useState<Set<number>>(new Set());
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [sortField, setSortField] = useState<"name" | "checkIn" | "checkOut" | "duration">("checkIn");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "completed">("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  
+  const verifyVisitorMutation = useMutation({
+    mutationFn: async ({ visitorId, verified }: { visitorId: number, verified: boolean }) => {
+      const res = await apiRequest("POST", "/api/admin/verify-visitor", { visitorId, verified });
+      return await res.json();
+    },
+    onMutate: ({ visitorId }) => {
+      setProcessingVerificationIds(prev => new Set(prev).add(visitorId));
+    },
+    onSuccess: (_, { verified }) => {
+      toast({
+        title: "Success",
+        description: `Visitor ${verified ? "verified" : "unverified"} successfully`,
+      });
+      // Refresh both current visitors and visit history
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update verification status: " + error.message,
+        variant: "destructive",
+      });
+    },
+    onSettled: (_, __, { visitorId }) => {
+      setProcessingVerificationIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(visitorId);
+        return newSet;
+      });
+    }
+  });
+
+  const handleVerifyToggle = (visitorId: number, currentStatus: boolean) => {
+    verifyVisitorMutation.mutate({ 
+      visitorId, 
+      verified: !currentStatus 
+    });
+  };
 
   if (isLoading) {
     return <div className="py-4 text-center">Loading visit history...</div>;
@@ -349,11 +395,20 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                     )}
                   </TableCell>
                   <TableCell className="text-center">
-                    {visitor.id % 2 === 0 ? ( // Just a simple pattern for demo, replace with actual verification logic
-                      <ShieldCheck className="h-5 w-5 text-green-500 mx-auto" />
-                    ) : (
-                      <span className="text-xs text-gray-500">Not verified</span>
-                    )}
+                    <Button
+                      variant="ghost"
+                      className={`p-1 rounded-full ${visitor.verified ? "bg-green-50" : "bg-gray-50"}`}
+                      onClick={() => handleVerifyToggle(visitor.id, visitor.verified)}
+                      disabled={processingVerificationIds.has(visitor.id)}
+                    >
+                      {processingVerificationIds.has(visitor.id) ? (
+                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                      ) : visitor.verified ? (
+                        <ShieldCheck className="h-5 w-5 text-green-500" />
+                      ) : (
+                        <ShieldCheck className="h-5 w-5 text-gray-300" />
+                      )}
+                    </Button>
                   </TableCell>
                   <TableCell>
                     {visit.checkOutTime ? (

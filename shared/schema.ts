@@ -22,6 +22,7 @@ export const visitors = pgTable("visitors", {
   yearOfBirth: integer("year_of_birth").notNull(),
   email: varchar("email", { length: 255 }),
   phoneNumber: varchar("phone_number", { length: 50 }).notNull(),
+  verified: boolean("verified").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -90,3 +91,11 @@ export const updateVisitSchema = z.object({
 });
 
 export type UpdateVisit = z.infer<typeof updateVisitSchema>;
+
+// Schema for updating visitor verification status
+export const updateVisitorVerificationSchema = z.object({
+  id: z.number(),
+  verified: z.boolean(),
+});
+
+export type UpdateVisitorVerification = z.infer<typeof updateVisitorVerificationSchema>;

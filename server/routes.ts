@@ -2,7 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
-import { visitorFormSchema, updateVisitSchema } from "@shared/schema";
+import { visitorFormSchema, updateVisitSchema, updateVisitorVerificationSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 
@@ -116,6 +116,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Admin endpoints
   
+  // Verify a visitor (removed duplicate implementation)
+  
   // Get all current (active) visitors with their visit details
   app.get("/api/admin/current-visitors", ensureAuthenticated, async (req, res) => {
     try {
@@ -155,6 +157,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       res.status(200).json(updatedVisit);
+    } catch (error) {
+      return handleZodError(error, res);
+    }
+  });
+  
+  // Admin update visitor verification status
+  app.post("/api/admin/verify-visitor", ensureAuthenticated, async (req, res) => {
+    try {
+      const verificationData = updateVisitorVerificationSchema.parse({
+        id: req.body.visitorId,
+        verified: req.body.verified,
+      });
+      
+      const updatedVisitor = await storage.updateVisitorVerification(verificationData);
+      
+      if (!updatedVisitor) {
+        return res.status(404).json({ message: "Visitor not found" });
+      }
+      
+      res.status(200).json(updatedVisitor);
     } catch (error) {
       return handleZodError(error, res);
     }

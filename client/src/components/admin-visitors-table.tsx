@@ -25,6 +25,7 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [processingIds, setProcessingIds] = useState<Set<number>>(new Set());
+  const [processingVerificationIds, setProcessingVerificationIds] = useState<Set<number>>(new Set());
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState<"name" | "checkIn" | "duration">("checkIn");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -62,6 +63,46 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
       });
     }
   });
+
+  const verifyVisitorMutation = useMutation({
+    mutationFn: async ({ visitorId, verified }: { visitorId: number, verified: boolean }) => {
+      const res = await apiRequest("POST", "/api/admin/verify-visitor", { visitorId, verified });
+      return await res.json();
+    },
+    onMutate: ({ visitorId }) => {
+      setProcessingVerificationIds(prev => new Set(prev).add(visitorId));
+    },
+    onSuccess: (_, { verified }) => {
+      toast({
+        title: "Success",
+        description: `Visitor ${verified ? "verified" : "unverified"} successfully`,
+      });
+      // Refresh both current visitors and visit history
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update verification status: " + error.message,
+        variant: "destructive",
+      });
+    },
+    onSettled: (_, __, { visitorId }) => {
+      setProcessingVerificationIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(visitorId);
+        return newSet;
+      });
+    }
+  });
+
+  const handleVerifyToggle = (visitorId: number, currentStatus: boolean) => {
+    verifyVisitorMutation.mutate({ 
+      visitorId, 
+      verified: !currentStatus 
+    });
+  };
 
   const handleCheckOut = (visitId: number) => {
     if (confirm("Are you sure you want to check out this visitor?")) {
@@ -240,11 +281,20 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
                   <TableCell className="font-mono text-xs text-blue-600 font-medium">{formatBadgeId(visitor.id)}</TableCell>
                   <TableCell>{formatTimeOnly(visit.checkInTime)}</TableCell>
                   <TableCell className="text-center">
-                    {visitor.id % 2 === 0 ? ( // Just a simple pattern for demo, replace with actual verification logic
-                      <ShieldCheck className="h-5 w-5 text-green-500 mx-auto" />
-                    ) : (
-                      <span className="text-xs text-gray-500">Not verified</span>
-                    )}
+                    <Button
+                      variant="ghost"
+                      className={`p-1 rounded-full ${visitor.verified ? "bg-green-50" : "bg-gray-50"}`}
+                      onClick={() => handleVerifyToggle(visitor.id, visitor.verified)}
+                      disabled={processingVerificationIds.has(visitor.id)}
+                    >
+                      {processingVerificationIds.has(visitor.id) ? (
+                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                      ) : visitor.verified ? (
+                        <ShieldCheck className="h-5 w-5 text-green-500" />
+                      ) : (
+                        <ShieldCheck className="h-5 w-5 text-gray-300" />
+                      )}
+                    </Button>
                   </TableCell>
                   <TableCell>{calculateDuration(visit.checkInTime)}</TableCell>
                   <TableCell className="text-right">
