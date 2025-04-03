@@ -16,13 +16,7 @@ import {
   FormMessage
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
 
 type VisitorCheckInFormProps = {
   onSuccess: (visitor: Visitor, visit: Visit) => void;
@@ -30,7 +24,6 @@ type VisitorCheckInFormProps = {
 
 export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
   const [ageValue, setAgeValue] = useState<string>("Age will be calculated automatically");
-  const [showOtherPurpose, setShowOtherPurpose] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<VisitorFormValues>({
@@ -41,8 +34,6 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
       email: "",
       phoneNumber: "",
       company: "",
-      purpose: "",
-      otherPurpose: "",
       host: "",
     },
   });
@@ -76,10 +67,6 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
     } else {
       setAgeValue("Invalid year");
     }
-  };
-
-  const handlePurposeChange = (value: string) => {
-    setShowOtherPurpose(value === "other");
   };
 
   const onSubmit = (data: VisitorFormValues) => {
@@ -141,8 +128,8 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
           </div>
         </div>
       ),
-      validate: () => {
-        const result = form.trigger(["fullName", "yearOfBirth"]);
+      validate: async () => {
+        const result = await form.trigger(["fullName", "yearOfBirth"]);
         return result;
       }
     },
@@ -203,66 +190,6 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
               </FormItem>
             )}
           />
-        </div>
-      ),
-      validate: () => {
-        return form.trigger(["phoneNumber"]);
-      }
-    },
-    {
-      id: "visit-purpose",
-      title: "Visit Purpose",
-      content: (
-        <div className="space-y-4">
-          <FormField
-            control={form.control}
-            name="purpose"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Purpose of Visit</FormLabel>
-                <Select 
-                  onValueChange={(value) => {
-                    field.onChange(value);
-                    handlePurposeChange(value);
-                  }}
-                  value={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a purpose" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="meeting">Meeting</SelectItem>
-                    <SelectItem value="interview">Interview</SelectItem>
-                    <SelectItem value="delivery">Delivery</SelectItem>
-                    <SelectItem value="maintenance">Maintenance</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {showOtherPurpose && (
-            <FormField
-              control={form.control}
-              name="otherPurpose"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Please specify</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Specify purpose" 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
           
           <FormField
             control={form.control}
@@ -282,13 +209,52 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
           />
         </div>
       ),
-      validate: () => {
-        const fields = ["purpose", "host"];
-        if (form.getValues("purpose") === "other") {
-          fields.push("otherPurpose");
-        }
-        return form.trigger(fields);
+      validate: async () => {
+        return await form.trigger(["phoneNumber", "host"]);
       }
+    },
+    {
+      id: "review-info",
+      title: "Review Information",
+      content: (
+        <div className="space-y-6">
+          <h3 className="text-lg font-medium">Please review your information</h3>
+          <Card className="bg-muted/50">
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="text-sm font-semibold text-muted-foreground">Full Name</h4>
+                  <p className="mt-1">{form.getValues("fullName")}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-muted-foreground">Age</h4>
+                  <p className="mt-1">{ageValue}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-muted-foreground">Email</h4>
+                  <p className="mt-1">{form.getValues("email") || "—"}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-muted-foreground">Phone</h4>
+                  <p className="mt-1">{form.getValues("phoneNumber")}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-muted-foreground">Company</h4>
+                  <p className="mt-1">{form.getValues("company") || "—"}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-muted-foreground">Host</h4>
+                  <p className="mt-1">{form.getValues("host")}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <p className="text-sm text-muted-foreground">
+            By clicking "Check In", you confirm that the information above is correct.
+          </p>
+        </div>
+      ),
+      validate: () => true
     }
   ];
 

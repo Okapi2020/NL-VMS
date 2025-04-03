@@ -5,7 +5,7 @@ type Step = {
   id: string;
   title: string;
   content: ReactNode;
-  validate?: () => boolean;
+  validate?: () => boolean | Promise<boolean>;
 };
 
 type MultiStepFormProps = {
@@ -26,9 +26,10 @@ export function MultiStepForm({
   const isFirstStep = currentStepIndex === 0;
   const isLastStep = currentStepIndex === steps.length - 1;
 
-  const next = () => {
-    if (currentStep.validate && !currentStep.validate()) {
-      return;
+  const next = async () => {
+    if (currentStep.validate) {
+      const isValid = await currentStep.validate();
+      if (!isValid) return;
     }
     
     if (isLastStep) {

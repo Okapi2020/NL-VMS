@@ -53,8 +53,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create a new visit record
       const visit = await storage.createVisit({
         visitorId: visitor.id,
-        purpose: formData.purpose,
-        otherPurpose: formData.purpose === "other" ? formData.otherPurpose : null,
         host: formData.host,
       });
       

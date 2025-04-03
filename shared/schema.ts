@@ -42,8 +42,6 @@ export const insertVisitorSchema = createInsertSchema(visitors).pick({
 export const visits = pgTable("visits", {
   id: serial("id").primaryKey(),
   visitorId: integer("visitor_id").notNull(),
-  purpose: varchar("purpose", { length: 100 }).notNull(),
-  otherPurpose: varchar("other_purpose", { length: 255 }),
   host: varchar("host", { length: 255 }).notNull(),
   checkInTime: timestamp("check_in_time").defaultNow().notNull(),
   checkOutTime: timestamp("check_out_time"),
@@ -59,8 +57,6 @@ export const visitsRelations = relations(visits, ({ one }) => ({
 
 export const insertVisitSchema = createInsertSchema(visits).pick({
   visitorId: true,
-  purpose: true,
-  otherPurpose: true,
   host: true,
 });
 
@@ -73,8 +69,6 @@ export const visitorFormSchema = z.object({
   email: z.string().email("Please enter a valid email").optional().or(z.literal("")),
   phoneNumber: z.string().min(1, "Phone number is required"),
   company: z.string().optional().or(z.literal("")),
-  purpose: z.string().min(1, "Please select a purpose"),
-  otherPurpose: z.string().optional().or(z.literal("")),
   host: z.string().min(1, "Host is required"),
 });
 
