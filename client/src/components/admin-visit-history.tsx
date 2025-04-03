@@ -189,7 +189,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
       // Refresh data
       queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/deleted-visitors"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/trash"] });
     },
     onError: (error) => {
       toast({
@@ -387,7 +387,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
               
               // If we're about to show deleted visitors, check if there are any first
               try {
-                const res = await apiRequest("GET", "/api/admin/deleted-visitors");
+                const res = await apiRequest("GET", "/api/admin/trash");
                 const deletedVisitors = await res.json();
                 
                 if (deletedVisitors.length === 0) {
@@ -626,7 +626,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                     // Empty bin functionality
                     if (window.confirm("Are you sure you want to permanently delete ALL items in the trash bin? This action cannot be undone.")) {
                       setIsProcessingBulk(true);
-                      apiRequest("DELETE", "/api/admin/empty-trash")
+                      apiRequest("DELETE", "/api/admin/empty-bin")
                         .then(res => res.json())
                         .then(() => {
                           toast({
