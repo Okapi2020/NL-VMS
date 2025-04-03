@@ -12,6 +12,7 @@ import { ExportData } from "./export-data";
 import { AnalyticsData } from "./types";
 import { getQueryFn } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 export function AnalyticsDashboard() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
@@ -37,22 +38,38 @@ export function AnalyticsDashboard() {
 
   const { toast } = useToast();
 
+  const { user } = useAuth();
+
   // Query to fetch analytics data
   const { data, isLoading, refetch } = useQuery<AnalyticsData>({
     queryKey: ['/api/analytics/data', dateRange],
-    queryFn: getQueryFn({
-      path: () => {
-        const params = getQueryParams();
-        return `/api/analytics/data${params ? `?${params}` : ''}`;
-      },
-      onError: (error) => {
+    enabled: !!user, // Only run query if user is logged in
+    queryFn: async ({ queryKey }) => {
+      const params = getQueryParams();
+      const url = `/api/analytics/data${params ? `?${params}` : ''}`;
+      
+      try {
+        const res = await fetch(url, {
+          credentials: 'include', // Important for sending cookies with the request
+          headers: {
+            'Accept': 'application/json',
+          }
+        });
+        
+        if (!res.ok) {
+          throw new Error(`Error ${res.status}: ${res.statusText}`);
+        }
+        
+        return await res.json();
+      } catch (error: any) {
         toast({
           title: "Error",
           description: `Failed to fetch analytics data: ${error.message}`,
           variant: "destructive",
         });
+        throw error;
       }
-    })
+    }
   });
 
   // Refetch data when date range changes

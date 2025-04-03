@@ -16,9 +16,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 export function ExportData() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
   // Function to convert visits data to CSV format
@@ -125,7 +127,7 @@ export function ExportData() {
         </p>
         <Button 
           onClick={() => exportMutation.mutate()}
-          disabled={exportMutation.isPending}
+          disabled={exportMutation.isPending || !user}
         >
           {exportMutation.isPending ? (
             <>
