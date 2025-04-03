@@ -54,6 +54,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post("/api/settings", ensureAuthenticated, async (req, res) => {
     try {
+      if (!req.body) {
+        console.error("Settings update error: Empty request body");
+        return res.status(400).json({ message: "Empty request body" });
+      }
+      
+      // Better logging for troubleshooting
+      console.log("Settings update request received:", { 
+        hasAppName: !!req.body.appName,
+        logoUrlLength: req.body.logoUrl ? req.body.logoUrl.length : 0 
+      });
+      
       // Update settings
       const updatedSettings = await storage.updateSettings({
         appName: req.body.appName,
@@ -64,10 +75,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: "Failed to update settings" });
       }
       
+      console.log("Settings updated successfully");
       res.status(200).json(updatedSettings);
     } catch (error) {
       console.error("Error updating settings:", error);
-      res.status(500).json({ message: "Failed to update application settings" });
+      res.status(500).json({ 
+        message: "Failed to update application settings", 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
     }
   });
 

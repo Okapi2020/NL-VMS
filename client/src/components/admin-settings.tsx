@@ -91,18 +91,53 @@ export function AdminSettings() {
       return;
     }
     
+    // Check file size (limit to 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please select an image smaller than 2MB",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setUploading(true);
     
     try {
-      // Here you would normally upload to a CDN or storage service
-      // For this example, we'll convert to base64 and store directly
+      // Convert to base64 and store directly
       const reader = new FileReader();
+      
       reader.onloadend = () => {
-        const base64 = reader.result as string;
-        setLogoPreview(base64);
-        form.setValue("logoUrl", base64);
+        try {
+          const base64 = reader.result as string;
+          // Validate that the result is a proper base64 string
+          if (typeof base64 === 'string' && base64.startsWith('data:image/')) {
+            setLogoPreview(base64);
+            form.setValue("logoUrl", base64);
+          } else {
+            throw new Error("Invalid image format");
+          }
+        } catch (validationError) {
+          console.error("Image validation error:", validationError);
+          toast({
+            title: "Invalid image",
+            description: "The selected file couldn't be processed. Please try another image.",
+            variant: "destructive",
+          });
+        } finally {
+          setUploading(false);
+        }
+      };
+      
+      reader.onerror = () => {
+        toast({
+          title: "Upload failed",
+          description: "Failed to read the image file",
+          variant: "destructive",
+        });
         setUploading(false);
       };
+      
       reader.readAsDataURL(file);
     } catch (error) {
       console.error("Error uploading logo:", error);
