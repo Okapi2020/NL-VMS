@@ -6,7 +6,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Visitor, Visit } from "@shared/schema";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 
 type VisitorCheckedInProps = {
   visitor: Visitor;
@@ -16,17 +16,34 @@ type VisitorCheckedInProps = {
 
 export function VisitorCheckedIn({ visitor, visit, onCheckOut }: VisitorCheckedInProps) {
   const { toast } = useToast();
+  const [, navigate] = useLocation();
 
   const checkOutMutation = useMutation({
     mutationFn: async () => {
       const res = await apiRequest("POST", "/api/visitors/check-out", { visitId: visit.id });
       return await res.json();
     },
-    onSuccess: () => {
+    onSuccess: (updatedVisit) => {
       toast({
         title: "Check-out successful",
         description: "You have been checked out successfully. Thank you for your visit!",
       });
+      
+      try {
+        // Save visit and visitor data to localStorage for the thank you page
+        localStorage.setItem("checkoutVisitor", JSON.stringify(visitor));
+        localStorage.setItem("checkoutVisit", JSON.stringify({
+          ...visit,
+          checkOutTime: updatedVisit.checkOutTime,
+          active: false
+        }));
+        
+        // Navigate to thank you page
+        navigate("/thank-you");
+      } catch (error) {
+        console.error("Error saving checkout data:", error);
+      }
+      
       onCheckOut();
     },
     onError: (error: Error) => {

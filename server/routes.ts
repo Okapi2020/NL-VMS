@@ -12,6 +12,7 @@ import {
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { seedDatabase } from "./seed";
+import { WebSocketServer, WebSocket } from 'ws';
 
 // Middleware to ensure user is authenticated
 const ensureAuthenticated = (req: Request, res: Response, next: NextFunction) => {
@@ -94,7 +95,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create a new visit record
       const visit = await storage.createVisit({
         visitorId: visitor.id,
+        purpose: formData.purpose || null,
       });
+      
+      // Broadcast the check-in notification via WebSocket
+      if (global.broadcastCheckIn) {
+        global.broadcastCheckIn(visitor, formData.purpose || undefined);
+      }
       
       res.status(201).json({ visitor, visit });
     } catch (error) {
@@ -474,6 +481,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // We'll import the seed from the migration script instead
 
   const httpServer = createServer(app);
+  
+  // Set up WebSocket server for real-time notifications
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  // Track connected clients
+  const clients = new Set<WebSocket>();
+  
+  wss.on('connection', (ws) => {
+    console.log('WebSocket client connected');
+    clients.add(ws);
+    
+    // Send initial connection confirmation
+    ws.send(JSON.stringify({ 
+      type: 'connection', 
+      message: 'Connected to visitor management system notifications' 
+    }));
+    
+    // Handle client disconnect
+    ws.on('close', () => {
+      console.log('WebSocket client disconnected');
+      clients.delete(ws);
+    });
+    
+    // Handle client messages
+    ws.on('message', (message) => {
+      console.log('Received message from client:', message.toString());
+    });
+  });
+  
+  // Add a function to the global scope to broadcast check-in notifications
+  // This will be called from the visitor check-in endpoint
+  global.broadcastCheckIn = (visitor: Visitor, purpose?: string) => {
+    clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({
+          type: 'check-in',
+          visitor: {
+            id: visitor.id,
+            fullName: visitor.fullName,
+            phoneNumber: visitor.phoneNumber,
+            verified: visitor.verified
+          },
+          purpose: purpose || 'Not specified',
+          timestamp: new Date().toISOString()
+        }));
+      }
+    });
+  };
 
   return httpServer;
 }

@@ -42,6 +42,7 @@ export const insertVisitorSchema = createInsertSchema(visitors).pick({
 export const visits = pgTable("visits", {
   id: serial("id").primaryKey(),
   visitorId: integer("visitor_id").notNull(),
+  purpose: varchar("purpose", { length: 255 }),
   checkInTime: timestamp("check_in_time").defaultNow().notNull(),
   checkOutTime: timestamp("check_out_time"),
   active: boolean("active").default(true).notNull(),
@@ -56,6 +57,7 @@ export const visitsRelations = relations(visits, ({ one }) => ({
 
 export const insertVisitSchema = createInsertSchema(visits).pick({
   visitorId: true,
+  purpose: true,
 });
 
 // Create schemas for form validation
@@ -66,6 +68,7 @@ export const visitorFormSchema = z.object({
     .max(new Date().getFullYear(), "Year cannot be in the future"),
   email: z.string().email("Please enter a valid email").optional().or(z.literal("")),
   phoneNumber: z.string().min(1, "Phone number is required"),
+  purpose: z.string().min(1, "Purpose of visit is required").optional(),
 });
 
 export type Admin = typeof admins.$inferSelect;

@@ -28,7 +28,8 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
   // Create separate state for step 2 to avoid overlapping values
   const [contactDetailsValues, setContactDetailsValues] = useState({
     email: "",
-    phoneNumber: ""
+    phoneNumber: "",
+    purpose: ""
   });
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
@@ -40,6 +41,7 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
       yearOfBirth: undefined,
       email: "",
       phoneNumber: "",
+      purpose: "",
     },
   });
 
@@ -66,7 +68,7 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
       // Save data in session first
       onSuccess(data.visitor, data.visit);
       form.reset();
-      setContactDetailsValues({ email: "", phoneNumber: "" });
+      setContactDetailsValues({ email: "", phoneNumber: "", purpose: "" });
       
       // Redirect to welcome page after successful check-in
       setTimeout(() => {
@@ -204,10 +206,29 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
               </FormItem>
             )}
           />
+          
+          <FormField
+            control={form.control}
+            name="purpose"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Purpose of Visit</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="Meeting, Interview, Delivery, etc." 
+                    value={contactDetailsValues.purpose}
+                    onChange={(e) => handleContactDetailsChange("purpose", e.target.value)}
+                    onBlur={field.onBlur}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
       ),
       validate: async () => {
-        return await form.trigger(["phoneNumber"]);
+        return await form.trigger(["phoneNumber", "purpose"]);
       }
     },
     {
