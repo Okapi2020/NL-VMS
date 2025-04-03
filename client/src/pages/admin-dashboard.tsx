@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,6 +30,12 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("current");
   const [activeView, setActiveView] = useState("dashboard");
+  
+  // Pagination state
+  const [trashPage, setTrashPage] = useState(1);
+  const [trashItemsPerPage, setTrashItemsPerPage] = useState(10);
+  const [selectedVisitors, setSelectedVisitors] = useState<number[]>([]);
+  const [isProcessingBulk, setIsProcessingBulk] = useState(false);
 
   // Define types for our API responses
   type VisitWithVisitor = { 
@@ -150,6 +156,17 @@ export default function AdminDashboard() {
       });
     }
   });
+
+  // Calculate paginated data for trash bin
+  const paginatedDeletedVisitors = deletedVisitors.slice(
+    (trashPage - 1) * trashItemsPerPage, 
+    trashPage * trashItemsPerPage
+  );
+
+  // Reset selected visitors when changing views
+  useEffect(() => {
+    setSelectedVisitors([]);
+  }, [activeView]);
 
   const handleExportData = () => {
     // Export visit history data
@@ -486,18 +503,103 @@ export default function AdminDashboard() {
                       <h3 className="text-lg font-medium">Recycle Bin</h3>
                       <p className="text-gray-500">Manage deleted visitor records</p>
                     </div>
-                    <Button
-                      variant="destructive"
-                      onClick={() => {
-                        if (window.confirm("Are you sure you want to permanently delete ALL items in the recycle bin? This action cannot be undone.")) {
-                          emptyBinMutation.mutate();
-                        }
-                      }}
-                      disabled={emptyBinMutation.isPending || deletedVisitors.length === 0}
-                    >
-                      <Trash className="mr-2 h-4 w-4" />
-                      Empty Bin
-                    </Button>
+                    <div className="space-x-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (selectedVisitors.length > 0) {
+                            setSelectedVisitors([]);
+                          } else {
+                            // Select all visible visitors
+                            setSelectedVisitors(paginatedDeletedVisitors.map(visitor => visitor.id));
+                          }
+                        }}
+                        disabled={isLoadingDeletedVisitors || deletedVisitors.length === 0}
+                        size="sm"
+                      >
+                        {selectedVisitors.length > 0 ? "Deselect All" : "Select All"}
+                      </Button>
+                      <Button
+                        variant="default"
+                        onClick={() => {
+                          if (selectedVisitors.length > 0 && window.confirm("Are you sure you want to restore all selected visitors?")) {
+                            // Restore all selected visitors
+                            setIsProcessingBulk(true);
+                            Promise.all(
+                              selectedVisitors.map(id => 
+                                apiRequest("POST", `/api/admin/restore-visitor/${id}`)
+                                  .then(res => res.json())
+                              )
+                            )
+                            .then(() => {
+                              toast({
+                                title: "Success",
+                                description: `${selectedVisitors.length} visitor(s) restored successfully`,
+                              });
+                              setSelectedVisitors([]);
+                              refetchTrash();
+                              queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
+                            })
+                            .catch(error => {
+                              toast({
+                                title: "Error",
+                                description: `Failed to restore visitors: ${error.message}`,
+                                variant: "destructive",
+                              });
+                            })
+                            .finally(() => setIsProcessingBulk(false));
+                          }
+                        }}
+                        disabled={isProcessingBulk || selectedVisitors.length === 0}
+                        size="sm"
+                      >
+                        <RefreshCw className="mr-1 h-3 w-3" />
+                        Restore Selected
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={() => {
+                          if (selectedVisitors.length > 0) {
+                            if (window.confirm(`Are you sure you want to permanently delete ${selectedVisitors.length} selected visitor(s)? This action cannot be undone.`)) {
+                              setIsProcessingBulk(true);
+                              Promise.all(
+                                selectedVisitors.map(id => 
+                                  apiRequest("DELETE", `/api/admin/permanently-delete/${id}`)
+                                    .then(res => res.json())
+                                )
+                              )
+                              .then(() => {
+                                toast({
+                                  title: "Success",
+                                  description: `${selectedVisitors.length} visitor(s) permanently deleted`,
+                                });
+                                setSelectedVisitors([]);
+                                refetchTrash();
+                              })
+                              .catch(error => {
+                                toast({
+                                  title: "Error",
+                                  description: `Failed to delete visitors: ${error.message}`,
+                                  variant: "destructive",
+                                });
+                              })
+                              .finally(() => setIsProcessingBulk(false));
+                            }
+                          } else if (deletedVisitors.length > 0) {
+                            if (window.confirm("Are you sure you want to permanently delete ALL items in the recycle bin? This action cannot be undone.")) {
+                              emptyBinMutation.mutate();
+                            }
+                          }
+                        }}
+                        disabled={isProcessingBulk || (selectedVisitors.length === 0 && deletedVisitors.length === 0)}
+                        size="sm"
+                      >
+                        <Trash className="mr-1 h-3 w-3" />
+                        {selectedVisitors.length > 0 
+                          ? `Delete Selected (${selectedVisitors.length})` 
+                          : "Empty Bin"}
+                      </Button>
+                    </div>
                   </div>
                   
                   {isLoadingDeletedVisitors ? (
@@ -510,65 +612,132 @@ export default function AdminDashboard() {
                       <p>Recycle bin is empty</p>
                     </div>
                   ) : (
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Name
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Email
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Phone
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Actions
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {deletedVisitors.map((visitor) => (
-                            <tr key={visitor.id}>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm font-medium text-gray-900">{visitor.fullName}</div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-gray-500">{visitor.email || "N/A"}</div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-gray-500">{visitor.phoneNumber}</div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                                <Button 
-                                  onClick={() => restoreVisitorMutation.mutate(visitor.id)}
-                                  disabled={restoreVisitorMutation.isPending}
-                                  size="sm"
-                                  variant="outline"
-                                >
-                                  <RefreshCw className="mr-1 h-3 w-3" />
-                                  Restore
-                                </Button>
-                                <Button 
-                                  onClick={() => {
-                                    if (window.confirm(`Are you sure you want to permanently delete ${visitor.fullName}? This action cannot be undone.`)) {
-                                      permanentlyDeleteMutation.mutate(visitor.id);
-                                    }
-                                  }}
-                                  disabled={permanentlyDeleteMutation.isPending}
-                                  size="sm"
-                                  variant="destructive"
-                                >
-                                  <Trash className="mr-1 h-3 w-3" />
-                                  Delete
-                                </Button>
-                              </td>
+                    <>
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <div className="flex items-center">
+                                  <input
+                                    type="checkbox"
+                                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                                    checked={paginatedDeletedVisitors.length > 0 && selectedVisitors.length === paginatedDeletedVisitors.length}
+                                    onChange={() => {
+                                      if (selectedVisitors.length === paginatedDeletedVisitors.length) {
+                                        setSelectedVisitors([]);
+                                      } else {
+                                        setSelectedVisitors(paginatedDeletedVisitors.map(visitor => visitor.id));
+                                      }
+                                    }}
+                                  />
+                                </div>
+                              </th>
+                              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Name
+                              </th>
+                              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Email
+                              </th>
+                              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Phone
+                              </th>
+                              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions
+                              </th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {paginatedDeletedVisitors.map((visitor) => (
+                              <tr key={visitor.id} className={selectedVisitors.includes(visitor.id) ? "bg-primary-50" : ""}>
+                                <td className="px-3 py-4 whitespace-nowrap">
+                                  <div className="flex items-center">
+                                    <input
+                                      type="checkbox"
+                                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                                      checked={selectedVisitors.includes(visitor.id)}
+                                      onChange={() => {
+                                        if (selectedVisitors.includes(visitor.id)) {
+                                          setSelectedVisitors(selectedVisitors.filter(id => id !== visitor.id));
+                                        } else {
+                                          setSelectedVisitors([...selectedVisitors, visitor.id]);
+                                        }
+                                      }}
+                                    />
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <div className="text-sm font-medium text-gray-900">{visitor.fullName}</div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <div className="text-sm text-gray-500">{visitor.email || "N/A"}</div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <div className="text-sm text-gray-500">{visitor.phoneNumber}</div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                  <Button 
+                                    onClick={() => restoreVisitorMutation.mutate(visitor.id)}
+                                    disabled={restoreVisitorMutation.isPending || isProcessingBulk}
+                                    size="sm"
+                                    variant="outline"
+                                  >
+                                    <RefreshCw className="mr-1 h-3 w-3" />
+                                    Restore
+                                  </Button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      
+                      {/* Pagination */}
+                      <div className="flex items-center justify-between mt-4">
+                        <div className="flex items-center">
+                          <span className="text-sm text-gray-700">
+                            Showing <span className="font-medium">{Math.min(deletedVisitors.length, (trashPage - 1) * trashItemsPerPage + 1)}</span> to{" "}
+                            <span className="font-medium">{Math.min(deletedVisitors.length, trashPage * trashItemsPerPage)}</span> of{" "}
+                            <span className="font-medium">{deletedVisitors.length}</span> results
+                          </span>
+                          
+                          <select
+                            className="ml-4 text-sm text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                            value={trashItemsPerPage}
+                            onChange={(e) => {
+                              setTrashItemsPerPage(Number(e.target.value));
+                              setTrashPage(1); // Reset to first page when changing items per page
+                            }}
+                          >
+                            {[10, 20, 30, 50, 100].map((value) => (
+                              <option key={value} value={value}>
+                                {value} per page
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        
+                        <div className="flex space-x-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setTrashPage(p => Math.max(1, p - 1))}
+                            disabled={trashPage === 1}
+                          >
+                            Previous
+                          </Button>
+                          
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setTrashPage(p => Math.min(Math.ceil(deletedVisitors.length / trashItemsPerPage), p + 1))}
+                            disabled={trashPage >= Math.ceil(deletedVisitors.length / trashItemsPerPage)}
+                          >
+                            Next
+                          </Button>
+                        </div>
+                      </div>
+                    </>
                   )}
                 </CardContent>
               </Card>
