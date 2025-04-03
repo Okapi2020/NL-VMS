@@ -10,6 +10,8 @@ import { DayOfWeekChart } from "./day-of-week-chart";
 import { AnalyticsSummary } from "./analytics-summary";
 import { ExportData } from "./export-data";
 import { AnalyticsData } from "./types";
+import { getQueryFn } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export function AnalyticsDashboard() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
@@ -33,17 +35,24 @@ export function AnalyticsDashboard() {
     return params.toString();
   };
 
+  const { toast } = useToast();
+
   // Query to fetch analytics data
   const { data, isLoading, refetch } = useQuery<AnalyticsData>({
     queryKey: ['/api/analytics/data', dateRange],
-    queryFn: async () => {
-      const params = getQueryParams();
-      const res = await fetch(`/api/analytics/data${params ? `?${params}` : ''}`);
-      if (!res.ok) {
-        throw new Error('Failed to fetch analytics data');
+    queryFn: getQueryFn({
+      path: () => {
+        const params = getQueryParams();
+        return `/api/analytics/data${params ? `?${params}` : ''}`;
+      },
+      onError: (error) => {
+        toast({
+          title: "Error",
+          description: `Failed to fetch analytics data: ${error.message}`,
+          variant: "destructive",
+        });
       }
-      return res.json();
-    }
+    })
   });
 
   // Refetch data when date range changes
