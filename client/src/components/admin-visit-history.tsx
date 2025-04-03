@@ -275,75 +275,98 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
   }
 
   // Filter visits based on search term, status, and date range
-  const filteredVisits = visitHistory.filter(({ visitor, visit }) => {
-    // Generate badge ID for searching
-    const badgeId = formatBadgeId(visitor.id).toLowerCase();
-    
-    const matchesSearch = 
-      visitor.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (visitor.email && visitor.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      visitor.phoneNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      badgeId.includes(searchTerm.toLowerCase()) ||
-      formatDate(visit.checkInTime).toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = 
-      filterStatus === "all" ||
-      (filterStatus === "active" && visit.active) ||
-      (filterStatus === "completed" && !visit.active);
-    
-    // Check if visit date is within selected date range
-    let matchesDateRange = true;
-    if (dateRange && dateRange.from) {
-      const visitDate = new Date(visit.checkInTime);
-      const fromDate = new Date(dateRange.from);
-      fromDate.setHours(0, 0, 0, 0);
-      
-      if (dateRange.to) {
-        const toDate = new Date(dateRange.to);
-        toDate.setHours(23, 59, 59, 999);
-        matchesDateRange = visitDate >= fromDate && visitDate <= toDate;
-      } else {
-        // If only from date is selected, match the exact day
-        const nextDay = new Date(fromDate);
-        nextDay.setDate(nextDay.getDate() + 1);
-        matchesDateRange = visitDate >= fromDate && visitDate < nextDay;
+  const filteredVisits = visitHistory.filter(item => {
+    try {
+      // Ensure item and its properties exist - defensive programming
+      if (!item || !item.visitor || !item.visit) {
+        return false;
       }
+      
+      const { visitor, visit } = item;
+      
+      // Generate badge ID for searching
+      const badgeId = formatBadgeId(visitor.id).toLowerCase();
+      const searchTermLower = searchTerm.toLowerCase();
+      
+      const matchesSearch = searchTerm === '' || 
+        visitor.fullName.toLowerCase().includes(searchTermLower) ||
+        (visitor.email && visitor.email.toLowerCase().includes(searchTermLower)) ||
+        visitor.phoneNumber.toLowerCase().includes(searchTermLower) ||
+        badgeId.includes(searchTermLower) ||
+        formatDate(visit.checkInTime).toLowerCase().includes(searchTermLower);
+      
+      const matchesStatus = 
+        filterStatus === "all" ||
+        (filterStatus === "active" && visit.active) ||
+        (filterStatus === "completed" && !visit.active);
+      
+      // Check if visit date is within selected date range
+      let matchesDateRange = true;
+      if (dateRange && dateRange.from) {
+        const visitDate = new Date(visit.checkInTime);
+        const fromDate = new Date(dateRange.from);
+        fromDate.setHours(0, 0, 0, 0);
+        
+        if (dateRange.to) {
+          const toDate = new Date(dateRange.to);
+          toDate.setHours(23, 59, 59, 999);
+          matchesDateRange = visitDate >= fromDate && visitDate <= toDate;
+        } else {
+          // If only from date is selected, match the exact day
+          const nextDay = new Date(fromDate);
+          nextDay.setDate(nextDay.getDate() + 1);
+          matchesDateRange = visitDate >= fromDate && visitDate < nextDay;
+        }
+      }
+      
+      // Check deleted status
+      const matchesDeletedStatus = showDeletedVisitors ? visitor.deleted : !visitor.deleted;
+      
+      return matchesSearch && matchesStatus && matchesDateRange && matchesDeletedStatus;
+    } catch (error) {
+      console.error("Error during filtering:", error);
+      return false;
     }
-    
-    // Check deleted status
-    const matchesDeletedStatus = showDeletedVisitors ? visitor.deleted : !visitor.deleted;
-    
-    return matchesSearch && matchesStatus && matchesDateRange && matchesDeletedStatus;
   });
 
   // Sort the filtered visits
   const sortedVisits = [...filteredVisits].sort((a, b) => {
+    // Add defensive checks to prevent errors with null/undefined values
+    if (!a || !b || !a.visitor || !b.visitor || !a.visit || !b.visit) {
+      return 0;
+    }
+
     let comparison = 0;
     
-    switch (sortField) {
-      case "name":
-        comparison = a.visitor.fullName.localeCompare(b.visitor.fullName);
-        break;
-      case "checkIn":
-        comparison = new Date(a.visit.checkInTime).getTime() - new Date(b.visit.checkInTime).getTime();
-        break;
-      case "checkOut":
-        // Handle case when one or both checkOut times are null
-        if (!a.visit.checkOutTime && !b.visit.checkOutTime) comparison = 0;
-        else if (!a.visit.checkOutTime) comparison = 1;
-        else if (!b.visit.checkOutTime) comparison = -1;
-        else comparison = new Date(a.visit.checkOutTime).getTime() - new Date(b.visit.checkOutTime).getTime();
-        break;
-      case "duration":
-        // Calculate durations for comparison
-        const aDuration = a.visit.checkOutTime 
-          ? new Date(a.visit.checkOutTime).getTime() - new Date(a.visit.checkInTime).getTime() 
-          : 0;
-        const bDuration = b.visit.checkOutTime 
-          ? new Date(b.visit.checkOutTime).getTime() - new Date(b.visit.checkInTime).getTime() 
-          : 0;
-        comparison = aDuration - bDuration;
-        break;
+    try {
+      switch (sortField) {
+        case "name":
+          comparison = a.visitor.fullName.localeCompare(b.visitor.fullName);
+          break;
+        case "checkIn":
+          comparison = new Date(a.visit.checkInTime).getTime() - new Date(b.visit.checkInTime).getTime();
+          break;
+        case "checkOut":
+          // Handle case when one or both checkOut times are null
+          if (!a.visit.checkOutTime && !b.visit.checkOutTime) comparison = 0;
+          else if (!a.visit.checkOutTime) comparison = 1;
+          else if (!b.visit.checkOutTime) comparison = -1;
+          else comparison = new Date(a.visit.checkOutTime).getTime() - new Date(b.visit.checkOutTime).getTime();
+          break;
+        case "duration":
+          // Calculate durations for comparison
+          const aDuration = a.visit.checkOutTime 
+            ? new Date(a.visit.checkOutTime).getTime() - new Date(a.visit.checkInTime).getTime() 
+            : 0;
+          const bDuration = b.visit.checkOutTime 
+            ? new Date(b.visit.checkOutTime).getTime() - new Date(b.visit.checkInTime).getTime() 
+            : 0;
+          comparison = aDuration - bDuration;
+          break;
+      }
+    } catch (error) {
+      console.error("Error during sorting:", error);
+      return 0;
     }
     
     return sortDirection === "asc" ? comparison : -comparison;
@@ -710,10 +733,15 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
         {/* Pagination */}
         <div className="flex items-center gap-2">
           <Select
-            value={itemsPerPage.toString()}
+            value={(itemsPerPage || 10).toString()}
             onValueChange={(value) => {
-              setItemsPerPage(parseInt(value));
-              setPage(1); // Reset to first page when changing items per page
+              try {
+                setItemsPerPage(parseInt(value));
+                setPage(1); // Reset to first page when changing items per page
+              } catch (error) {
+                console.error("Error setting items per page:", error);
+                setItemsPerPage(10);
+              }
             }}
           >
             <SelectTrigger className="h-9 w-[100px]">
@@ -732,20 +760,20 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
             <Button
               variant="outline"
               size="icon"
-              onClick={() => setPage(Math.max(1, page - 1))}
-              disabled={page === 1}
+              onClick={() => setPage(Math.max(1, (page || 1) - 1))}
+              disabled={(page || 0) <= 1}
               className="h-9 w-9 rounded-r-none"
             >
               &lt;
             </Button>
             <div className="border-y px-3 flex items-center text-sm">
-              <span className="text-gray-500">Page {page} of {Math.max(1, totalPages)}</span>
+              <span className="text-gray-500">Page {page || 1} of {Math.max(1, totalPages || 1)}</span>
             </div>
             <Button
               variant="outline"
               size="icon"
-              onClick={() => setPage(Math.min(totalPages, page + 1))}
-              disabled={page === totalPages || totalPages === 0}
+              onClick={() => setPage(Math.min((totalPages || 1), (page || 1) + 1))}
+              disabled={(page || 0) >= (totalPages || 0) || (totalPages || 0) === 0}
               className="h-9 w-9 rounded-l-none"
             >
               &gt;
@@ -756,9 +784,9 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
       
       {/* Results count */}
       <div className="text-sm text-gray-500 mb-2">
-        Showing {paginatedVisits.length} of {sortedVisits.length} visits
-        {showDeletedVisitors && " (Trash Bin)"}
-        {selectedVisitors.length > 0 && ` • ${selectedVisitors.length} selected`}
+        Showing {paginatedVisits?.length || 0} of {sortedVisits?.length || 0} visits
+        {showDeletedVisitors ? " (Trash Bin)" : ""}
+        {selectedVisitors?.length > 0 ? ` • ${selectedVisitors.length} selected` : ""}
       </div>
 
       {/* Table */}
@@ -768,12 +796,21 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
             <TableRow>
               <TableHead className="w-[40px]">
                 <Checkbox
-                  checked={paginatedVisits.length > 0 && selectedVisitors.length === paginatedVisits.length}
+                  checked={(paginatedVisits?.length || 0) > 0 && (selectedVisitors?.length || 0) === (paginatedVisits?.length || 0)}
                   onCheckedChange={(checked: boolean) => {
-                    if (selectedVisitors.length === paginatedVisits.length) {
+                    try {
+                      if ((selectedVisitors?.length || 0) === (paginatedVisits?.length || 0)) {
+                        setSelectedVisitors([]);
+                      } else if (paginatedVisits && paginatedVisits.length > 0) {
+                        // Make sure we have a valid visitor.id for every item
+                        const validIds = paginatedVisits
+                          .filter(item => item && item.visitor && typeof item.visitor.id === 'number')
+                          .map(item => item.visitor.id);
+                        setSelectedVisitors(validIds);
+                      }
+                    } catch (error) {
+                      console.error("Error handling checkbox change:", error);
                       setSelectedVisitors([]);
-                    } else {
-                      setSelectedVisitors(paginatedVisits.map(item => item.visitor.id));
                     }
                   }}
                   aria-label="Select all"
@@ -858,20 +895,24 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedVisits.length > 0 ? (
+            {(sortedVisits?.length || 0) > 0 && Array.isArray(paginatedVisits) ? (
               paginatedVisits.map(({ visitor, visit }) => (
                 <TableRow 
                   key={visit.id} 
-                  className={`${visitor.deleted ? "bg-gray-50" : ""} ${selectedVisitors.includes(visitor.id) ? "bg-primary-50" : ""}`}
+                  className={`${visitor.deleted ? "bg-gray-50" : ""} ${Array.isArray(selectedVisitors) && selectedVisitors.includes(visitor.id) ? "bg-primary-50" : ""}`}
                 >
                   <TableCell>
                     <Checkbox
-                      checked={selectedVisitors.includes(visitor.id)}
+                      checked={Array.isArray(selectedVisitors) && selectedVisitors.includes(visitor.id)}
                       onCheckedChange={(checked: boolean) => {
-                        if (checked) {
-                          setSelectedVisitors([...selectedVisitors, visitor.id]);
-                        } else {
-                          setSelectedVisitors(selectedVisitors.filter(id => id !== visitor.id));
+                        try {
+                          if (checked) {
+                            setSelectedVisitors([...(selectedVisitors || []), visitor.id]);
+                          } else {
+                            setSelectedVisitors((selectedVisitors || []).filter(id => id !== visitor.id));
+                          }
+                        } catch (error) {
+                          console.error("Error handling individual checkbox change:", error);
                         }
                       }}
                       aria-label={`Select ${visitor.fullName}`}
