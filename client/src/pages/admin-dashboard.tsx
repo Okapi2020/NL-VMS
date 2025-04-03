@@ -546,7 +546,7 @@ export default function AdminDashboard() {
               </div>
 
               {/* Visitor List Tabs */}
-              <div className="mt-8 border-t border-gray-200 pt-4">
+              <div className="mt-2 border-t border-gray-200 pt-4">
                 <Card>
                   <CardContent className="p-6">
                     <Tabs defaultValue="current" onValueChange={setActiveTab}>
