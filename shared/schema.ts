@@ -23,6 +23,7 @@ export const visitors = pgTable("visitors", {
   email: varchar("email", { length: 255 }),
   phoneNumber: varchar("phone_number", { length: 50 }).notNull(),
   verified: boolean("verified").default(false).notNull(),
+  deleted: boolean("deleted").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -99,3 +100,13 @@ export const updateVisitorVerificationSchema = z.object({
 });
 
 export type UpdateVisitorVerification = z.infer<typeof updateVisitorVerificationSchema>;
+
+export const updateVisitorSchema = z.object({
+  id: z.number(),
+  fullName: z.string().min(2, "Full name must be at least 2 characters"),
+  yearOfBirth: z.number().min(1900, "Year of birth must be after 1900").max(new Date().getFullYear(), "Year of birth cannot be in the future"),
+  email: z.string().email("Invalid email format").optional().nullable(),
+  phoneNumber: z.string().min(7, "Phone number must be at least 7 characters"),
+});
+
+export type UpdateVisitor = z.infer<typeof updateVisitorSchema>;

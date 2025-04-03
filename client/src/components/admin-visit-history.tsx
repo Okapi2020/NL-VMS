@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -14,6 +14,9 @@ import { Button } from "@/components/ui/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { 
   Search, 
   SlidersHorizontal,
@@ -25,8 +28,29 @@ import {
   XCircle,
   Tag,
   Phone,
-  ShieldCheck
+  ShieldCheck,
+  Pencil,
+  Trash2,
+  ArchiveRestore
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
@@ -52,6 +76,124 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "completed">("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedVisitor, setSelectedVisitor] = useState<Visitor | null>(null);
+  const [showDeletedVisitors, setShowDeletedVisitors] = useState(false);
+  
+  // Form schema for editing visitor
+  const editVisitorSchema = z.object({
+    id: z.number(),
+    fullName: z.string().min(2, "Full name must be at least 2 characters"),
+    yearOfBirth: z.number().min(1900, "Year of birth must be after 1900").max(new Date().getFullYear(), "Year of birth cannot be in the future"),
+    email: z.string().email("Invalid email format").nullable().optional(),
+    phoneNumber: z.string().min(7, "Phone number must be at least 7 characters"),
+  });
+
+  type EditVisitorFormValues = z.infer<typeof editVisitorSchema>;
+  
+  // Edit form
+  const form = useForm<EditVisitorFormValues>({
+    resolver: zodResolver(editVisitorSchema),
+    defaultValues: selectedVisitor ? {
+      id: selectedVisitor.id,
+      fullName: selectedVisitor.fullName,
+      yearOfBirth: selectedVisitor.yearOfBirth,
+      email: selectedVisitor.email,
+      phoneNumber: selectedVisitor.phoneNumber
+    } : undefined
+  });
+  
+  // Update form values when selectedVisitor changes
+  useEffect(() => {
+    if (selectedVisitor) {
+      form.reset({
+        id: selectedVisitor.id,
+        fullName: selectedVisitor.fullName,
+        yearOfBirth: selectedVisitor.yearOfBirth,
+        email: selectedVisitor.email,
+        phoneNumber: selectedVisitor.phoneNumber
+      });
+    }
+  }, [selectedVisitor, form]);
+  
+  // Edit visitor mutation
+  const editVisitorMutation = useMutation({
+    mutationFn: async (visitorData: EditVisitorFormValues) => {
+      const res = await apiRequest("PUT", "/api/admin/update-visitor", visitorData);
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Visitor information updated successfully",
+      });
+      // Close the dialog
+      setIsEditDialogOpen(false);
+      // Refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update visitor: " + error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Delete visitor mutation
+  const deleteVisitorMutation = useMutation({
+    mutationFn: async (visitorId: number) => {
+      const res = await apiRequest("DELETE", `/api/admin/delete-visitor/${visitorId}`);
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Success",
+        description: data.message || "Visitor deleted successfully",
+      });
+      // Refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete visitor: " + error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Restore visitor mutation
+  const restoreVisitorMutation = useMutation({
+    mutationFn: async (visitorId: number) => {
+      const res = await apiRequest("POST", `/api/admin/restore-visitor/${visitorId}`);
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Success",
+        description: data.message || "Visitor restored successfully",
+      });
+      // Refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/deleted-visitors"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to restore visitor: " + error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  const onSubmit = (data: EditVisitorFormValues) => {
+    editVisitorMutation.mutate(data);
+  };
   
   const verifyVisitorMutation = useMutation({
     mutationFn: async ({ visitorId, verified }: { visitorId: number, verified: boolean }) => {
@@ -137,7 +279,10 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
       }
     }
     
-    return matchesSearch && matchesStatus && matchesDateRange;
+    // Check deleted status
+    const matchesDeletedStatus = showDeletedVisitors ? visitor.deleted : !visitor.deleted;
+    
+    return matchesSearch && matchesStatus && matchesDateRange && matchesDeletedStatus;
   });
 
   // Sort the filtered visits
@@ -207,6 +352,15 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
           >
             <SlidersHorizontal className="mr-2 h-4 w-4" />
             Filters
+          </Button>
+          
+          <Button
+            variant={showDeletedVisitors ? "default" : "outline"}
+            onClick={() => setShowDeletedVisitors(!showDeletedVisitors)}
+            className={showDeletedVisitors ? "bg-amber-600 hover:bg-amber-700" : ""}
+          >
+            <ArchiveRestore className="mr-2 h-4 w-4" />
+            {showDeletedVisitors ? "Showing Trash Bin" : "Show Trash Bin"}
           </Button>
         </div>
 
@@ -282,6 +436,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
       {/* Results count */}
       <div className="text-sm text-gray-500 mb-2">
         Showing {sortedVisits.length} of {visitHistory.length} visits
+        {showDeletedVisitors && " (Trash Bin)"}
       </div>
 
       {/* Table */}
@@ -364,12 +519,13 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                   )}
                 </div>
               </TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {sortedVisits.length > 0 ? (
               sortedVisits.map(({ visitor, visit }) => (
-                <TableRow key={visit.id}>
+                <TableRow key={visit.id} className={visitor.deleted ? "bg-gray-50" : ""}>
                   <TableCell>
                     <div className="font-medium">{visitor.fullName}</div>
                   </TableCell>
@@ -399,7 +555,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                       variant="ghost"
                       className={`p-1 rounded-full ${visitor.verified ? "bg-green-50" : "bg-gray-50"}`}
                       onClick={() => handleVerifyToggle(visitor.id, visitor.verified)}
-                      disabled={processingVerificationIds.has(visitor.id)}
+                      disabled={processingVerificationIds.has(visitor.id) || visitor.deleted}
                     >
                       {processingVerificationIds.has(visitor.id) ? (
                         <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -417,18 +573,172 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                       "N/A"
                     )}
                   </TableCell>
+                  <TableCell>
+                    <div className="flex justify-end space-x-2 items-center">
+                      {visitor.deleted ? (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-green-600"
+                          onClick={() => {
+                            if (confirm(`Are you sure you want to restore ${visitor.fullName}?`)) {
+                              restoreVisitorMutation.mutate(visitor.id);
+                            }
+                          }}
+                          title="Restore visitor"
+                        >
+                          <ArchiveRestore className="h-4 w-4" />
+                        </Button>
+                      ) : (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-blue-600"
+                            onClick={() => {
+                              setSelectedVisitor(visitor);
+                              setIsEditDialogOpen(true);
+                            }}
+                            title="Edit visitor"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-red-600"
+                            onClick={() => {
+                              if (confirm(`Are you sure you want to delete ${visitor.fullName}? This will move the visitor to the trash bin.`)) {
+                                deleteVisitorMutation.mutate(visitor.id);
+                              }
+                            }}
+                            title="Delete visitor"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-4 text-gray-500">
-                  No visits match your search or filters
+                <TableCell colSpan={9} className="text-center py-4 text-gray-500">
+                  {showDeletedVisitors 
+                    ? "Trash bin is empty" 
+                    : "No visits match your search or filters"}
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Visitor Information</DialogTitle>
+            <DialogDescription>
+              Update the visitor's information. Click save when you're done.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-2">
+              <FormField
+                control={form.control}
+                name="fullName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Full Name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="yearOfBirth"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Year of Birth</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        placeholder="Year of Birth" 
+                        {...field}
+                        onChange={(e) => {
+                          const value = e.target.value ? parseInt(e.target.value) : "";
+                          field.onChange(value);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email (Optional)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="email" 
+                        placeholder="Email" 
+                        {...field}
+                        value={field.value || ""}
+                        onChange={(e) => {
+                          field.onChange(e.target.value || null);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="phoneNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Phone Number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <DialogFooter className="sm:justify-between mt-6">
+                <DialogClose asChild>
+                  <Button type="button" variant="outline">Cancel</Button>
+                </DialogClose>
+                <Button 
+                  type="submit" 
+                  disabled={editVisitorMutation.isPending || !form.formState.isDirty}
+                >
+                  {editVisitorMutation.isPending ? (
+                    <>
+                      <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-background border-t-transparent"></div>
+                      Saving...
+                    </>
+                  ) : "Save Changes"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

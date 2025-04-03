@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -9,17 +9,62 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { formatTimeOnly, formatDuration, formatBadgeId } from "@/lib/utils";
-import { Visit, Visitor } from "@shared/schema";
+import { Visit, Visitor, UpdateVisitor } from "@shared/schema";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
-import { Search, UserRound, Clock, CalendarClock, ChevronDown, ChevronUp, Tag, Phone, ShieldCheck } from "lucide-react";
+import { 
+  Search, 
+  UserRound, 
+  Clock, 
+  CalendarClock, 
+  ChevronDown, 
+  ChevronUp, 
+  Tag, 
+  Phone, 
+  ShieldCheck, 
+  Pencil, 
+  Trash2,
+  X
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
 type AdminVisitorsTableProps = {
   visits: { visit: Visit; visitor: Visitor }[];
   isLoading: boolean;
 };
+
+// Form schema for editing visitor
+const editVisitorSchema = z.object({
+  id: z.number(),
+  fullName: z.string().min(2, "Full name must be at least 2 characters"),
+  yearOfBirth: z.number().min(1900, "Year of birth must be after 1900").max(new Date().getFullYear(), "Year of birth cannot be in the future"),
+  email: z.string().email("Invalid email format").nullable().optional(),
+  phoneNumber: z.string().min(7, "Phone number must be at least 7 characters"),
+});
+
+type EditVisitorFormValues = z.infer<typeof editVisitorSchema>;
 
 export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProps) {
   const { toast } = useToast();
@@ -29,6 +74,8 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState<"name" | "checkIn" | "duration">("checkIn");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedVisitor, setSelectedVisitor] = useState<Visitor | null>(null);
 
   const checkOutMutation = useMutation({
     mutationFn: async (visitId: number) => {
@@ -104,6 +151,98 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
     });
   };
 
+  // Edit visitor mutation
+  const editVisitorMutation = useMutation({
+    mutationFn: async (visitorData: EditVisitorFormValues) => {
+      const res = await apiRequest("PUT", "/api/admin/update-visitor", visitorData);
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Visitor information updated successfully",
+      });
+      // Close the dialog
+      setIsEditDialogOpen(false);
+      // Refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update visitor: " + error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Delete visitor mutation
+  const deleteVisitorMutation = useMutation({
+    mutationFn: async (visitorId: number) => {
+      const res = await apiRequest("DELETE", `/api/admin/delete-visitor/${visitorId}`);
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Success",
+        description: data.message || "Visitor deleted successfully",
+      });
+      // Refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete visitor: " + error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Handle edit visitor
+  const handleEditVisitor = (visitor: Visitor) => {
+    setSelectedVisitor(visitor);
+    setIsEditDialogOpen(true);
+  };
+  
+  // Handle delete visitor
+  const handleDeleteVisitor = (visitorId: number, fullName: string) => {
+    if (confirm(`Are you sure you want to delete ${fullName}? This cannot be undone.`)) {
+      deleteVisitorMutation.mutate(visitorId);
+    }
+  };
+  
+  // Edit form
+  const form = useForm<EditVisitorFormValues>({
+    resolver: zodResolver(editVisitorSchema),
+    defaultValues: selectedVisitor ? {
+      id: selectedVisitor.id,
+      fullName: selectedVisitor.fullName,
+      yearOfBirth: selectedVisitor.yearOfBirth,
+      email: selectedVisitor.email,
+      phoneNumber: selectedVisitor.phoneNumber
+    } : undefined
+  });
+  
+  // Update form values when selectedVisitor changes
+  useEffect(() => {
+    if (selectedVisitor) {
+      form.reset({
+        id: selectedVisitor.id,
+        fullName: selectedVisitor.fullName,
+        yearOfBirth: selectedVisitor.yearOfBirth,
+        email: selectedVisitor.email,
+        phoneNumber: selectedVisitor.phoneNumber
+      });
+    }
+  }, [selectedVisitor, form]);
+  
+  const onSubmit = (data: EditVisitorFormValues) => {
+    editVisitorMutation.mutate(data);
+  };
+  
   const handleCheckOut = (visitId: number) => {
     if (confirm("Are you sure you want to check out this visitor?")) {
       checkOutMutation.mutate(visitId);
@@ -297,15 +436,35 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
                     </Button>
                   </TableCell>
                   <TableCell>{calculateDuration(visit.checkInTime)}</TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      className="text-primary-600 hover:text-primary-900"
-                      onClick={() => handleCheckOut(visit.id)}
-                      disabled={processingIds.has(visit.id)}
-                    >
-                      {processingIds.has(visit.id) ? "Processing..." : "Check out"}
-                    </Button>
+                  <TableCell>
+                    <div className="flex justify-end space-x-2 items-center">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-blue-600"
+                        onClick={() => handleEditVisitor(visitor)}
+                        title="Edit visitor"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-red-600"
+                        onClick={() => handleDeleteVisitor(visitor.id, visitor.fullName)}
+                        title="Delete visitor"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleCheckOut(visit.id)}
+                        disabled={processingIds.has(visit.id)}
+                        className="text-primary-600 hover:text-primary-900"
+                      >
+                        {processingIds.has(visit.id) ? "Processing..." : "Check out"}
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -319,6 +478,106 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
           </TableBody>
         </Table>
       </div>
+      
+      {/* Edit Visitor Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Visitor</DialogTitle>
+            <DialogDescription>
+              Make changes to the visitor information below
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="fullName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John Smith" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="yearOfBirth"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Year of Birth</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        placeholder="1980" 
+                        {...field} 
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || new Date().getFullYear())}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email Address (Optional)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="john@example.com" 
+                        type="email" 
+                        {...field} 
+                        value={field.value || ""} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="phoneNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="+1 123 456 7890" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <DialogFooter className="sm:justify-between">
+                <DialogClose asChild>
+                  <Button type="button" variant="outline">
+                    Cancel
+                  </Button>
+                </DialogClose>
+                <Button 
+                  type="submit" 
+                  disabled={editVisitorMutation.isPending}
+                  className="min-w-[100px]"
+                >
+                  {editVisitorMutation.isPending ? 
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent mx-auto" /> : 
+                    "Save Changes"
+                  }
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

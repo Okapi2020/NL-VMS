@@ -1,9 +1,16 @@
 import { admins, type Admin, type InsertAdmin } from "@shared/schema";
-import { visitors, type Visitor, type InsertVisitor, type UpdateVisitorVerification } from "@shared/schema";
+import { 
+  visitors, 
+  type Visitor, 
+  type InsertVisitor, 
+  type UpdateVisitorVerification,
+  type UpdateVisitor
+} from "@shared/schema";
 import { visits, type Visit, type InsertVisit, type UpdateVisit } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull } from "drizzle-orm";
 import session from "express-session";
+type SessionStore = session.Store;
 import connectPg from "connect-pg-simple";
 import { neon } from "@neondatabase/serverless";
 
@@ -20,7 +27,11 @@ export interface IStorage {
   getVisitorByEmail(email: string): Promise<Visitor | undefined>;
   createVisitor(visitor: InsertVisitor): Promise<Visitor>;
   getAllVisitors(): Promise<Visitor[]>;
+  getDeletedVisitors(): Promise<Visitor[]>;
   updateVisitorVerification(update: UpdateVisitorVerification): Promise<Visitor | undefined>;
+  updateVisitor(visitor: UpdateVisitor): Promise<Visitor | undefined>;
+  deleteVisitor(id: number): Promise<boolean>;
+  restoreVisitor(id: number): Promise<Visitor | undefined>;
   
   // Visit methods
   createVisit(visit: InsertVisit): Promise<Visit>;
@@ -34,11 +45,11 @@ export interface IStorage {
   getVisitHistoryWithVisitors(limit?: number): Promise<{ visit: Visit, visitor: Visitor }[]>;
   
   // Session store
-  sessionStore: session.SessionStore;
+  sessionStore: session.Store;
 }
 
 export class DatabaseStorage implements IStorage {
-  sessionStore: session.SessionStore;
+  sessionStore: session.Store;
   
   constructor() {
     const sql = neon(process.env.DATABASE_URL!);
@@ -92,7 +103,19 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getAllVisitors(): Promise<Visitor[]> {
-    return await db.select().from(visitors).orderBy(desc(visitors.id));
+    return await db
+      .select()
+      .from(visitors)
+      .where(eq(visitors.deleted, false))
+      .orderBy(desc(visitors.id));
+  }
+  
+  async getDeletedVisitors(): Promise<Visitor[]> {
+    return await db
+      .select()
+      .from(visitors)
+      .where(eq(visitors.deleted, true))
+      .orderBy(desc(visitors.id));
   }
   
   async updateVisitorVerification(update: UpdateVisitorVerification): Promise<Visitor | undefined> {
@@ -102,6 +125,68 @@ export class DatabaseStorage implements IStorage {
       .where(eq(visitors.id, update.id))
       .returning();
     return updatedVisitor;
+  }
+  
+  async updateVisitor(visitor: UpdateVisitor): Promise<Visitor | undefined> {
+    const [updatedVisitor] = await db
+      .update(visitors)
+      .set({
+        fullName: visitor.fullName,
+        yearOfBirth: visitor.yearOfBirth,
+        email: visitor.email,
+        phoneNumber: visitor.phoneNumber
+      })
+      .where(eq(visitors.id, visitor.id))
+      .returning();
+    return updatedVisitor;
+  }
+  
+  async deleteVisitor(id: number): Promise<boolean> {
+    try {
+      // First check for any active visits
+      const activeVisits = await db
+        .select()
+        .from(visits)
+        .where(
+          and(
+            eq(visits.visitorId, id),
+            eq(visits.active, true)
+          )
+        );
+      
+      if (activeVisits.length > 0) {
+        // Cannot delete visitor with active visits
+        return false;
+      }
+      
+      // Soft delete the visitor by setting the deleted flag
+      const deleted = await db
+        .update(visitors)
+        .set({ deleted: true })
+        .where(eq(visitors.id, id))
+        .returning();
+      
+      return deleted.length > 0;
+    } catch (error) {
+      console.error("Error deleting visitor:", error);
+      return false;
+    }
+  }
+  
+  async restoreVisitor(id: number): Promise<Visitor | undefined> {
+    try {
+      // Restore the visitor by setting the deleted flag to false
+      const [restoredVisitor] = await db
+        .update(visitors)
+        .set({ deleted: false })
+        .where(eq(visitors.id, id))
+        .returning();
+      
+      return restoredVisitor;
+    } catch (error) {
+      console.error("Error restoring visitor:", error);
+      return undefined;
+    }
   }
   
   // Visit methods

@@ -2,9 +2,15 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
-import { visitorFormSchema, updateVisitSchema, updateVisitorVerificationSchema } from "@shared/schema";
+import { 
+  visitorFormSchema, 
+  updateVisitSchema, 
+  updateVisitorVerificationSchema,
+  updateVisitorSchema
+} from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { seedDatabase } from "./seed";
 
 // Middleware to ensure user is authenticated
 const ensureAuthenticated = (req: Request, res: Response, next: NextFunction) => {
@@ -181,6 +187,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return handleZodError(error, res);
     }
   });
+  
+  // Admin update visitor information
+  app.put("/api/admin/update-visitor", ensureAuthenticated, async (req, res) => {
+    try {
+      const visitorData = updateVisitorSchema.parse(req.body);
+      
+      // Check if visitor exists
+      const existingVisitor = await storage.getVisitor(visitorData.id);
+      if (!existingVisitor) {
+        return res.status(404).json({ message: "Visitor not found" });
+      }
+      
+      // Update visitor
+      const updatedVisitor = await storage.updateVisitor(visitorData);
+      
+      if (!updatedVisitor) {
+        return res.status(500).json({ message: "Failed to update visitor" });
+      }
+      
+      res.status(200).json(updatedVisitor);
+    } catch (error) {
+      return handleZodError(error, res);
+    }
+  });
+  
+  // Admin soft delete visitor (move to trash)
+  app.delete("/api/admin/delete-visitor/:id", ensureAuthenticated, async (req, res) => {
+    try {
+      const visitorId = parseInt(req.params.id);
+      
+      if (isNaN(visitorId)) {
+        return res.status(400).json({ message: "Invalid visitor ID" });
+      }
+      
+      // Check if visitor exists
+      const existingVisitor = await storage.getVisitor(visitorId);
+      if (!existingVisitor) {
+        return res.status(404).json({ message: "Visitor not found" });
+      }
+      
+      // Soft delete visitor (move to trash)
+      const success = await storage.deleteVisitor(visitorId);
+      
+      if (!success) {
+        return res.status(400).json({ 
+          message: "Cannot delete visitor. Ensure they have no active visits." 
+        });
+      }
+      
+      res.status(200).json({ success: true, message: "Visitor moved to trash" });
+    } catch (error) {
+      console.error("Delete visitor error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Get deleted visitors (trash bin)
+  app.get("/api/admin/trash", ensureAuthenticated, async (req, res) => {
+    try {
+      const deletedVisitors = await storage.getDeletedVisitors();
+      res.status(200).json(deletedVisitors);
+    } catch (error) {
+      console.error("Get trash error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Restore visitor from trash
+  app.post("/api/admin/restore-visitor/:id", ensureAuthenticated, async (req, res) => {
+    try {
+      const visitorId = parseInt(req.params.id);
+      
+      if (isNaN(visitorId)) {
+        return res.status(400).json({ message: "Invalid visitor ID" });
+      }
+      
+      const restoredVisitor = await storage.restoreVisitor(visitorId);
+      
+      if (!restoredVisitor) {
+        return res.status(404).json({ message: "Visitor not found in trash" });
+      }
+      
+      res.status(200).json({ 
+        success: true, 
+        message: "Visitor restored successfully",
+        visitor: restoredVisitor
+      });
+    } catch (error) {
+      console.error("Restore visitor error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
 
   // Get visitor stats for dashboard
   app.get("/api/admin/stats", ensureAuthenticated, async (req, res) => {
@@ -275,6 +373,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Get visits by visitor ID error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
+  });
+  
+  // Seed the database (development only)
+  app.get("/api/seed", async (req, res) => {
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(403).json({ message: "Seed operation not allowed in production" });
+    }
+    
+    try {
+      const count = req.query.count ? parseInt(req.query.count as string) : 50;
+      await seedDatabase(count);
+      res.status(200).json({ message: `Database seeded with ${count} visitors` });
+    } catch (error) {
+      console.error("Seed error:", error);
+      res.status(500).json({ message: "Error seeding database" });
+    }
+  });
+  
+  // Run seed on startup (if needed)
+  seedDatabase().then(() => {
+    console.log("Initial database seed check completed");
+  }).catch(error => {
+    console.error("Error during initial seed check:", error);
   });
 
   const httpServer = createServer(app);
