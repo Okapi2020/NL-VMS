@@ -8,6 +8,8 @@ import { AdminVisitorsTable } from "@/components/admin-visitors-table";
 import { AdminVisitHistory } from "@/components/admin-visit-history";
 import { exportToCSV } from "@/lib/utils";
 import { Visit, Visitor } from "@shared/schema";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import {
   UsersRound,
   UserRound,
@@ -18,10 +20,14 @@ import {
   LogOut,
   Download,
   ExternalLink,
+  Trash2,
+  RefreshCw,
+  Trash,
 } from "lucide-react";
 
 export default function AdminDashboard() {
   const { user, logoutMutation } = useAuth();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("current");
   const [activeView, setActiveView] = useState("dashboard");
 
@@ -65,6 +71,84 @@ export default function AdminDashboard() {
   } = useQuery<DashboardStats>({
     queryKey: ["/api/admin/stats"],
     refetchInterval: 60000, // Refresh every minute
+  });
+  
+  // Get deleted visitors (trash bin)
+  const {
+    data: deletedVisitors = [] as Visitor[],
+    isLoading: isLoadingDeletedVisitors,
+    refetch: refetchTrash
+  } = useQuery<Visitor[]>({
+    queryKey: ["/api/admin/trash"],
+    enabled: activeView === "trash"
+  });
+  
+  // Empty trash bin mutation
+  const emptyBinMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("DELETE", "/api/admin/empty-bin");
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Recycle bin emptied successfully",
+      });
+      refetchTrash();
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to empty recycle bin: ${error.message}`,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Permanently delete visitor mutation
+  const permanentlyDeleteMutation = useMutation({
+    mutationFn: async (visitorId: number) => {
+      const res = await apiRequest("DELETE", `/api/admin/permanently-delete/${visitorId}`);
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Visitor permanently deleted",
+      });
+      refetchTrash();
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to delete visitor: ${error.message}`,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Restore visitor mutation
+  const restoreVisitorMutation = useMutation({
+    mutationFn: async (visitorId: number) => {
+      const res = await apiRequest("POST", `/api/admin/restore-visitor/${visitorId}`);
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Visitor restored successfully",
+      });
+      refetchTrash();
+      // Also refresh our visit history to show the restored visitor
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to restore visitor: ${error.message}`,
+        variant: "destructive",
+      });
+    }
   });
 
   const handleExportData = () => {
@@ -151,6 +235,20 @@ export default function AdminDashboard() {
           </a>
           <a
             href="#"
+            onClick={(e) => { e.preventDefault(); setActiveView("trash"); }}
+            className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+              activeView === "trash" 
+                ? "bg-primary-50 text-primary-700" 
+                : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+            }`}
+          >
+            <Trash2 className={`mr-3 h-5 w-5 ${
+              activeView === "trash" ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
+            }`} />
+            Recycle Bin
+          </a>
+          <a
+            href="#"
             onClick={(e) => { e.preventDefault(); setActiveView("settings"); }}
             className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
               activeView === "settings" 
@@ -193,6 +291,7 @@ export default function AdminDashboard() {
                 {activeView === "dashboard" && "Dashboard"}
                 {activeView === "visitors" && "Visitors"}
                 {activeView === "reports" && "Reports"}
+                {activeView === "trash" && "Recycle Bin"}
                 {activeView === "settings" && "Settings"}
               </h2>
             </div>
@@ -372,6 +471,105 @@ export default function AdminDashboard() {
                       </Button>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Trash Bin View */}
+          {activeView === "trash" && (
+            <div className="mt-6">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <div>
+                      <h3 className="text-lg font-medium">Recycle Bin</h3>
+                      <p className="text-gray-500">Manage deleted visitor records</p>
+                    </div>
+                    <Button
+                      variant="destructive"
+                      onClick={() => {
+                        if (window.confirm("Are you sure you want to permanently delete ALL items in the recycle bin? This action cannot be undone.")) {
+                          emptyBinMutation.mutate();
+                        }
+                      }}
+                      disabled={emptyBinMutation.isPending || deletedVisitors.length === 0}
+                    >
+                      <Trash className="mr-2 h-4 w-4" />
+                      Empty Bin
+                    </Button>
+                  </div>
+                  
+                  {isLoadingDeletedVisitors ? (
+                    <div className="flex justify-center p-8">
+                      <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
+                    </div>
+                  ) : deletedVisitors.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <Trash2 className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                      <p>Recycle bin is empty</p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Name
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Email
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Phone
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Actions
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {deletedVisitors.map((visitor) => (
+                            <tr key={visitor.id}>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm font-medium text-gray-900">{visitor.fullName}</div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-500">{visitor.email || "N/A"}</div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-500">{visitor.phoneNumber}</div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                <Button 
+                                  onClick={() => restoreVisitorMutation.mutate(visitor.id)}
+                                  disabled={restoreVisitorMutation.isPending}
+                                  size="sm"
+                                  variant="outline"
+                                >
+                                  <RefreshCw className="mr-1 h-3 w-3" />
+                                  Restore
+                                </Button>
+                                <Button 
+                                  onClick={() => {
+                                    if (window.confirm(`Are you sure you want to permanently delete ${visitor.fullName}? This action cannot be undone.`)) {
+                                      permanentlyDeleteMutation.mutate(visitor.id);
+                                    }
+                                  }}
+                                  disabled={permanentlyDeleteMutation.isPending}
+                                  size="sm"
+                                  variant="destructive"
+                                >
+                                  <Trash className="mr-1 h-3 w-3" />
+                                  Delete
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>

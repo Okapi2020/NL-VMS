@@ -32,6 +32,8 @@ export interface IStorage {
   updateVisitor(visitor: UpdateVisitor): Promise<Visitor | undefined>;
   deleteVisitor(id: number): Promise<boolean>;
   restoreVisitor(id: number): Promise<Visitor | undefined>;
+  permanentlyDeleteVisitor(id: number): Promise<boolean>;
+  emptyRecycleBin(): Promise<boolean>;
   
   // Visit methods
   createVisit(visit: InsertVisit): Promise<Visit>;
@@ -186,6 +188,37 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error restoring visitor:", error);
       return undefined;
+    }
+  }
+  
+  async permanentlyDeleteVisitor(id: number): Promise<boolean> {
+    try {
+      // First delete all related visits
+      await db.delete(visits).where(eq(visits.visitorId, id));
+      
+      // Then delete the visitor
+      await db.delete(visitors).where(eq(visitors.id, id));
+      return true;
+    } catch (error) {
+      console.error("Error permanently deleting visitor:", error);
+      return false;
+    }
+  }
+
+  async emptyRecycleBin(): Promise<boolean> {
+    try {
+      // Get all deleted visitors
+      const deletedVisitors = await this.getDeletedVisitors();
+      
+      // Delete all their visits and then the visitors
+      for (const visitor of deletedVisitors) {
+        await this.permanentlyDeleteVisitor(visitor.id);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Error emptying recycle bin:", error);
+      return false;
     }
   }
   

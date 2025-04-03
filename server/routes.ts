@@ -279,6 +279,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Internal server error" });
     }
   });
+  
+  // Permanently delete a visitor
+  app.delete("/api/admin/permanently-delete/:id", ensureAuthenticated, async (req, res) => {
+    try {
+      const visitorId = parseInt(req.params.id);
+      
+      if (isNaN(visitorId)) {
+        return res.status(400).json({ message: "Invalid visitor ID" });
+      }
+      
+      const success = await storage.permanentlyDeleteVisitor(visitorId);
+      
+      if (!success) {
+        return res.status(500).json({ message: "Failed to permanently delete visitor" });
+      }
+      
+      res.status(200).json({ 
+        success: true, 
+        message: "Visitor permanently deleted"
+      });
+    } catch (error) {
+      console.error("Permanently delete visitor error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Empty recycle bin
+  app.delete("/api/admin/empty-bin", ensureAuthenticated, async (req, res) => {
+    try {
+      const success = await storage.emptyRecycleBin();
+      
+      if (!success) {
+        return res.status(500).json({ message: "Failed to empty recycle bin" });
+      }
+      
+      res.status(200).json({ 
+        success: true, 
+        message: "Recycle bin emptied successfully"
+      });
+    } catch (error) {
+      console.error("Empty recycle bin error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
 
   // Get visitor stats for dashboard
   app.get("/api/admin/stats", ensureAuthenticated, async (req, res) => {
