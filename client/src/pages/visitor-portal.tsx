@@ -71,23 +71,27 @@ export default function VisitorPortal() {
           <div className="flex justify-between h-16">
             <div className="flex">
               <div className="flex-shrink-0 flex items-center">
-                <svg
-                  className="h-8 w-8 text-primary-600"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                  />
-                </svg>
-                <span className="ml-2 text-lg font-semibold text-gray-900">
-                  Visitor Management System
-                </span>
+                <Link href="/">
+                  <a className="flex items-center">
+                    <svg
+                      className="h-8 w-8 text-primary-600"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                      />
+                    </svg>
+                    <span className="ml-2 text-lg font-semibold text-gray-900">
+                      Visitor Management System
+                    </span>
+                  </a>
+                </Link>
               </div>
             </div>
             <div className="flex items-center">
@@ -104,17 +108,15 @@ export default function VisitorPortal() {
       {/* Main Content */}
       <main className="py-6 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
-          {/* Welcome Card */}
-          <Card className="mb-8">
-            <CardContent className="px-4 py-5 sm:p-6">
-              <h1 className="text-2xl font-semibold text-gray-900 mb-2">
-                Welcome to Our Office
-              </h1>
-              <p className="text-gray-600">
-                Please check-in using the form below to register your visit.
-              </p>
-            </CardContent>
-          </Card>
+          {/* Page Title */}
+          <div className="mb-8 text-center">
+            <h1 className="text-3xl font-bold text-gray-900">
+              Visitor Check-in
+            </h1>
+            <p className="mt-2 text-gray-600">
+              Please fill out the form below to register your visit
+            </p>
+          </div>
 
           {/* Check-in Form or Checked-in Confirmation */}
           {checkedIn && visitor && visit ? (

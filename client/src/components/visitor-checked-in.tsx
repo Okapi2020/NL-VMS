@@ -6,6 +6,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Visitor, Visit } from "@shared/schema";
+import { Link } from "wouter";
 
 type VisitorCheckedInProps = {
   visitor: Visitor;
@@ -74,7 +75,7 @@ export function VisitorCheckedIn({ visitor, visit, onCheckOut }: VisitorCheckedI
           </div>
         </div>
 
-        <div className="mt-5">
+        <div className="mt-5 flex flex-col sm:flex-row gap-4 justify-center">
           <Button 
             onClick={handleCheckOut}
             className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
@@ -82,6 +83,12 @@ export function VisitorCheckedIn({ visitor, visit, onCheckOut }: VisitorCheckedI
           >
             {checkOutMutation.isPending ? "Processing..." : "Check Out"}
           </Button>
+          
+          <Link href="/">
+            <Button variant="outline" className="inline-flex items-center">
+              Back to Home
+            </Button>
+          </Link>
         </div>
       </CardContent>
     </Card>
