@@ -338,32 +338,61 @@ export class DatabaseStorage implements IStorage {
 
   // Settings methods
   async getSettings(): Promise<Settings | undefined> {
-    // Get the first settings record or undefined if none exist
-    const [settingsRecord] = await db.select().from(settings);
-    return settingsRecord;
+    try {
+      // Get the first settings record or undefined if none exist
+      const [settingsRecord] = await db.select().from(settings);
+      return settingsRecord;
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+      // If the table doesn't exist yet, we'll return undefined
+      if (error instanceof Error && error.message.includes("relation") && error.message.includes("does not exist")) {
+        console.log("Settings table doesn't exist yet. Will be created.");
+      }
+      return undefined;
+    }
   }
 
   async updateSettings(updateData: UpdateSettings): Promise<Settings | undefined> {
     try {
-      // First check if settings exist
-      const existingSettings = await this.getSettings();
-      
-      if (!existingSettings) {
-        // If no settings exist, create them
-        return this.createDefaultSettings(updateData);
+      // Check if settings table exists, if not, attempt to create it
+      try {
+        // First check if settings exist
+        const existingSettings = await this.getSettings();
+        
+        if (!existingSettings) {
+          // If no settings exist, create them
+          return this.createDefaultSettings(updateData);
+        }
+        
+        // Update existing settings
+        const [updatedSettings] = await db
+          .update(settings)
+          .set({
+            ...updateData,
+            updatedAt: new Date()
+          })
+          .where(eq(settings.id, existingSettings.id))
+          .returning();
+        
+        return updatedSettings;
+      } catch (innerError) {
+        // If the table doesn't exist, create it and then try again
+        if (innerError instanceof Error && innerError.message.includes("relation") && innerError.message.includes("does not exist")) {
+          console.log("Attempting to create settings table...");
+          await db.execute(sql`
+            CREATE TABLE IF NOT EXISTS settings (
+              id SERIAL PRIMARY KEY,
+              app_name VARCHAR(255) NOT NULL DEFAULT 'Visitor Management System',
+              logo_url TEXT,
+              updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+            );
+          `);
+          // Now try to create default settings
+          return this.createDefaultSettings(updateData);
+        } else {
+          throw innerError; // Re-throw if it's another type of error
+        }
       }
-      
-      // Update existing settings
-      const [updatedSettings] = await db
-        .update(settings)
-        .set({
-          ...updateData,
-          updatedAt: new Date()
-        })
-        .where(eq(settings.id, existingSettings.id))
-        .returning();
-      
-      return updatedSettings;
     } catch (error) {
       console.error("Error updating settings:", error);
       return undefined;
@@ -381,6 +410,7 @@ export class DatabaseStorage implements IStorage {
         })
         .returning();
       
+      console.log("Default settings created successfully");
       return createdSettings;
     } catch (error) {
       console.error("Error creating default settings:", error);

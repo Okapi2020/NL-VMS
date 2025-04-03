@@ -20,6 +20,23 @@ async function migrate() {
       END $$;
     `);
     
+    // Create settings table if it doesn't exist
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS settings (
+        id SERIAL PRIMARY KEY,
+        app_name VARCHAR(255) NOT NULL DEFAULT 'Visitor Management System',
+        logo_url TEXT,
+        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `);
+    
+    // Create initial settings record if none exists
+    await db.execute(sql`
+      INSERT INTO settings (app_name, logo_url)
+      SELECT 'Visitor Management System', NULL
+      WHERE NOT EXISTS (SELECT 1 FROM settings);
+    `);
+    
     console.log("Migration completed successfully!");
     
     // Run seed after migration is successful
