@@ -378,7 +378,34 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
           
           <Button
             variant={showDeletedVisitors ? "default" : "outline"}
-            onClick={() => setShowDeletedVisitors(!showDeletedVisitors)}
+            onClick={async () => {
+              // If we're already showing deleted visitors, just toggle back
+              if (showDeletedVisitors) {
+                setShowDeletedVisitors(false);
+                return;
+              }
+              
+              // If we're about to show deleted visitors, check if there are any first
+              try {
+                const res = await apiRequest("GET", "/api/admin/deleted-visitors");
+                const deletedVisitors = await res.json();
+                
+                if (deletedVisitors.length === 0) {
+                  toast({
+                    title: "Information",
+                    description: "The trash bin is empty.",
+                  });
+                } else {
+                  setShowDeletedVisitors(true);
+                }
+              } catch (error) {
+                toast({
+                  title: "Error",
+                  description: "Failed to check trash bin status",
+                  variant: "destructive",
+                });
+              }
+            }}
             className={showDeletedVisitors ? "bg-amber-600 hover:bg-amber-700" : ""}
           >
             <ArchiveRestore className="mr-2 h-4 w-4" />
