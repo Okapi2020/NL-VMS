@@ -189,11 +189,13 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
       
       // If we're in trash bin view, check if it's now empty
       const checkTrashStatus = async () => {
+        // Only check if we're in trash bin view
         if (showDeletedVisitors) {
           try {
             const res = await apiRequest("GET", "/api/admin/trash");
             const remaining = await res.json();
-            if (remaining.length === 0) {
+            // If trash is empty, switch back to regular view
+            if (Array.isArray(remaining) && remaining.length === 0) {
               setShowDeletedVisitors(false);
               setPage(1);
             }
@@ -599,7 +601,8 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                           try {
                             const res = await apiRequest("GET", "/api/admin/trash");
                             const remaining = await res.json();
-                            if (remaining.length === 0 && showDeletedVisitors) {
+                            // If trash is empty and we're in trash bin view, switch back to regular view
+                            if (Array.isArray(remaining) && remaining.length === 0 && showDeletedVisitors) {
                               setShowDeletedVisitors(false);
                               setPage(1);
                             }
