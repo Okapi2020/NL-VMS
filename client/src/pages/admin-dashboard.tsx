@@ -469,107 +469,61 @@ export default function AdminDashboard() {
               </div>
 
               {/* Analytics Cards */}
-              <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
-                {/* Day frequency card */}
+              <div className="mt-8">
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-lg flex items-center">
-                      <CalendarDays className="h-5 w-5 mr-2 text-primary-600" /> 
-                      Visit Frequency by Day
+                    <CardTitle className="text-lg">
+                      Analytics Overview
                     </CardTitle>
                     <CardDescription>
-                      How busy each day of the week is
+                      Visitor traffic patterns and peak times
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    {isLoadingAnalytics ? (
-                      <div className="flex justify-center p-8">
-                        <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
-                      </div>
-                    ) : !analyticsData?.byDayOfWeek?.length ? (
-                      <div className="text-center py-8 text-gray-500">
-                        <p>No data available</p>
-                      </div>
-                    ) : (
-                      <div className="h-52">
-                        <div className="space-y-2">
-                          {analyticsData.byDayOfWeek.map((item) => (
-                            <div key={item.day} className="flex items-center">
-                              <div className="w-12 text-sm text-gray-500">{item.day}</div>
-                              <div className="flex-1 ml-2">
-                                <div className="relative h-8">
-                                  <div className="absolute inset-0 bg-gray-100 rounded"></div>
-                                  <div 
-                                    className="absolute inset-y-0 left-0 bg-primary-500 rounded" 
-                                    style={{ 
-                                      width: `${item.count ? Math.max((item.count / Math.max(...analyticsData.byDayOfWeek.map(d => d.count))) * 100, 5) : 0}%` 
-                                    }}
-                                  ></div>
-                                  <div className="absolute inset-y-0 right-2 flex items-center">
-                                    <span className="text-sm font-medium">{item.count}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Peak time card */}
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg flex items-center">
-                      <TrendingUp className="h-5 w-5 mr-2 text-primary-600" /> 
-                      Peak Check-in Times
-                    </CardTitle>
-                    <CardDescription>
-                      Most popular hours for visitor check-ins
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {isLoadingAnalytics ? (
-                      <div className="flex justify-center p-8">
-                        <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
-                      </div>
-                    ) : !analyticsData?.byHour?.length ? (
-                      <div className="text-center py-8 text-gray-500">
-                        <p>No data available</p>
-                      </div>
-                    ) : (
-                      <div className="h-52 overflow-y-auto pr-2">
-                        <div className="space-y-2">
-                          {analyticsData.byHour
-                            .map(item => ({
-                              ...item,
-                              hour: `${item.hour}:00`,
-                              hourNum: parseInt(item.hour, 10)
-                            }))
-                            .sort((a, b) => a.hourNum - b.hourNum)
-                            .map((item) => (
-                              <div key={item.hour} className="flex items-center">
-                                <div className="w-16 text-sm text-gray-500">{item.hour}</div>
-                                <div className="flex-1 ml-2">
-                                  <div className="relative h-8">
-                                    <div className="absolute inset-0 bg-gray-100 rounded"></div>
-                                    <div 
-                                      className="absolute inset-y-0 left-0 bg-blue-500 rounded" 
-                                      style={{ 
-                                        width: `${item.count ? Math.max((item.count / Math.max(...analyticsData.byHour.map(h => h.count))) * 100, 5) : 0}%` 
-                                      }}
-                                    ></div>
-                                    <div className="absolute inset-y-0 right-2 flex items-center">
-                                      <span className="text-sm font-medium">{item.count}</span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                        </div>
-                      </div>
-                    )}
+                    <Tabs defaultValue="day" className="w-full">
+                      <TabsList className="grid w-full grid-cols-2 mb-4">
+                        <TabsTrigger value="day">
+                          <CalendarDays className="h-4 w-4 mr-2" /> 
+                          Day Frequency
+                        </TabsTrigger>
+                        <TabsTrigger value="hour">
+                          <TrendingUp className="h-4 w-4 mr-2" /> 
+                          Peak Hours
+                        </TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="day" className="mt-0">
+                        {isLoadingAnalytics ? (
+                          <div className="flex justify-center p-8">
+                            <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
+                          </div>
+                        ) : !analyticsData?.byDayOfWeek?.length ? (
+                          <div className="text-center py-8 text-gray-500">
+                            <p>No data available</p>
+                          </div>
+                        ) : (
+                          <div className="h-64">
+                            <DayOfWeekChart data={analyticsData.byDayOfWeek} />
+                          </div>
+                        )}
+                      </TabsContent>
+                      
+                      <TabsContent value="hour" className="mt-0">
+                        {isLoadingAnalytics ? (
+                          <div className="flex justify-center p-8">
+                            <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
+                          </div>
+                        ) : !analyticsData?.byHour?.length ? (
+                          <div className="text-center py-8 text-gray-500">
+                            <p>No data available</p>
+                          </div>
+                        ) : (
+                          <div className="h-64">
+                            <HourlyDistributionChart data={analyticsData.byHour} />
+                          </div>
+                        )}
+                      </TabsContent>
+                    </Tabs>
                   </CardContent>
                 </Card>
               </div>
