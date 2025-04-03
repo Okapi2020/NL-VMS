@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { LogIn, UserCheck, ShieldCheck, Loader2 } from "lucide-react";
 import { Settings } from "@shared/schema";
+import { LiveClock } from "@/components/live-clock";
 
 export default function WelcomePage() {
   // Query to fetch application settings
@@ -63,9 +64,14 @@ export default function WelcomePage() {
                 
                 <h2 className="text-2xl font-bold text-gray-900 mb-3">Welcome, Visitor!</h2>
                 
-                <p className="text-gray-500 mb-8">
+                <p className="text-gray-500 mb-4">
                   Thank you for visiting. Please check in by clicking the button below.
                 </p>
+                
+                {/* Live Clock Display */}
+                <div className="mb-6 bg-white/80 py-3 px-4 rounded-lg shadow-sm w-full">
+                  <LiveClock />
+                </div>
                 
                 <Link href="/visitor">
                   <Button size="lg" className="w-full text-lg py-6 font-medium">
