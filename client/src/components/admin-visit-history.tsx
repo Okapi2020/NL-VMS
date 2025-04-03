@@ -29,11 +29,9 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
         <TableHeader>
           <TableRow>
             <TableHead>Visitor</TableHead>
-            <TableHead>Host</TableHead>
             <TableHead>Check-in</TableHead>
             <TableHead>Check-out</TableHead>
             <TableHead>Duration</TableHead>
-            <TableHead>Purpose</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -43,7 +41,6 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                 <div className="font-medium">{visitor.fullName}</div>
                 <div className="text-sm text-gray-500">{visitor.email || "No email provided"}</div>
               </TableCell>
-              <TableCell>{visit.host}</TableCell>
               <TableCell>
                 <div className="text-sm">{formatTimeOnly(visit.checkInTime)}</div>
                 <div className="text-xs text-gray-500">
@@ -68,11 +65,6 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                 ) : (
                   "N/A"
                 )}
-              </TableCell>
-              <TableCell>
-                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                  {visit.purpose === "other" ? visit.otherPurpose : visit.purpose}
-                </span>
               </TableCell>
             </TableRow>
           ))}

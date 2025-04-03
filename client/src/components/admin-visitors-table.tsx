@@ -90,10 +90,8 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
         <TableHeader>
           <TableRow>
             <TableHead>Visitor</TableHead>
-            <TableHead>Host</TableHead>
             <TableHead>Check-in Time</TableHead>
             <TableHead>Duration</TableHead>
-            <TableHead>Purpose</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -104,14 +102,8 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
                 <div className="font-medium">{visitor.fullName}</div>
                 <div className="text-sm text-gray-500">{visitor.email || "No email provided"}</div>
               </TableCell>
-              <TableCell>{visit.host}</TableCell>
               <TableCell>{formatTimeOnly(visit.checkInTime)}</TableCell>
               <TableCell>{calculateDuration(visit.checkInTime)}</TableCell>
-              <TableCell>
-                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                  {visit.purpose === "other" ? visit.otherPurpose : visit.purpose}
-                </span>
-              </TableCell>
               <TableCell className="text-right">
                 <Button
                   variant="ghost"

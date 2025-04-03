@@ -37,6 +37,7 @@ export function MultiStepForm({
       return;
     }
     
+    // When moving to next step, clear any fields that might be displayed but not updated yet
     setCurrentStepIndex(i => i + 1);
   };
 

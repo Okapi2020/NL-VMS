@@ -24,6 +24,11 @@ type VisitorCheckInFormProps = {
 
 export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
   const [ageValue, setAgeValue] = useState<string>("Age will be calculated automatically");
+  // Create separate state for step 2 to avoid overlapping values
+  const [contactDetailsValues, setContactDetailsValues] = useState({
+    email: "",
+    phoneNumber: ""
+  });
   const { toast } = useToast();
 
   const form = useForm<VisitorFormValues>({
@@ -35,6 +40,16 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
       phoneNumber: "",
     },
   });
+
+  // Handle input changes for step 2
+  const handleContactDetailsChange = (field: string, value: string) => {
+    setContactDetailsValues(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    // Update form values
+    form.setValue(field as any, value);
+  };
 
   const checkInMutation = useMutation({
     mutationFn: async (formData: VisitorFormValues) => {
@@ -48,6 +63,7 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
       });
       onSuccess(data.visitor, data.visit);
       form.reset();
+      setContactDetailsValues({ email: "", phoneNumber: "" });
     },
     onError: (error: Error) => {
       toast({
@@ -68,7 +84,12 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
   };
 
   const onSubmit = (data: VisitorFormValues) => {
-    checkInMutation.mutate(data);
+    // Merge contact details with form data
+    const formData = {
+      ...data,
+      ...contactDetailsValues
+    };
+    checkInMutation.mutate(formData);
   };
 
   // Multi-step form configuration
@@ -146,7 +167,9 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
                   <Input 
                     type="email" 
                     placeholder="john.doe@example.com" 
-                    {...field} 
+                    value={contactDetailsValues.email}
+                    onChange={(e) => handleContactDetailsChange("email", e.target.value)}
+                    onBlur={field.onBlur}
                   />
                 </FormControl>
                 <FormMessage />
@@ -164,7 +187,9 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
                   <Input 
                     type="tel" 
                     placeholder="+1 (555) 123-4567" 
-                    {...field} 
+                    value={contactDetailsValues.phoneNumber}
+                    onChange={(e) => handleContactDetailsChange("phoneNumber", e.target.value)}
+                    onBlur={field.onBlur}
                   />
                 </FormControl>
                 <FormMessage />
@@ -196,11 +221,11 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold text-muted-foreground">Email</h4>
-                  <p className="mt-1">{form.getValues("email") || "—"}</p>
+                  <p className="mt-1">{contactDetailsValues.email || "—"}</p>
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold text-muted-foreground">Phone</h4>
-                  <p className="mt-1">{form.getValues("phoneNumber")}</p>
+                  <p className="mt-1">{contactDetailsValues.phoneNumber}</p>
                 </div>
               </div>
             </CardContent>

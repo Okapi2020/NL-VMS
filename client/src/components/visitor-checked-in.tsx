@@ -52,7 +52,7 @@ export function VisitorCheckedIn({ visitor, visit, onCheckOut }: VisitorCheckedI
 
         <h3 className="mt-3 text-lg font-medium text-gray-900">Successfully Checked In</h3>
         <p className="mt-2 text-sm text-gray-500">
-          Thank you for checking in. Your host has been notified of your arrival.
+          Thank you for checking in. You have been registered in the system.
         </p>
 
         <div className="mt-4 border-t border-gray-200 pt-4">
@@ -66,10 +66,7 @@ export function VisitorCheckedIn({ visitor, visit, onCheckOut }: VisitorCheckedI
               <span className="font-medium">Check-in time:</span>{" "}
               <span>{formatTimeOnly(visit.checkInTime)}</span>
             </div>
-            <div>
-              <span className="font-medium">Host:</span>{" "}
-              <span>{visit.host}</span>
-            </div>
+
             <div>
               <span className="font-medium">Visitor ID:</span>{" "}
               <span>VIS-{visit.id.toString().padStart(5, '0')}</span>
