@@ -453,6 +453,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const activeVisits = await storage.getActiveVisits();
       const visitHistory = await storage.getVisitHistory();
+      const allVisitors = await storage.getAllVisitors();
       
       // Get today's visitors
       const today = new Date();
@@ -477,15 +478,396 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const avgDurationMs = visitsWithDuration > 0 ? totalDuration / visitsWithDuration : 0;
       const avgDurationMinutes = Math.round(avgDurationMs / (1000 * 60));
       
+      // Get visits from last week for comparison
+      const lastWeek = new Date();
+      lastWeek.setDate(lastWeek.getDate() - 7);
+      lastWeek.setHours(0, 0, 0, 0);
+      
+      const lastWeekVisits = [...activeVisits, ...visitHistory].filter(
+        visit => new Date(visit.checkInTime) >= lastWeek && new Date(visit.checkInTime) < today
+      );
+
+      // Count unique visitors
+      const uniqueVisitorIdsToday = Array.from(new Set(todayVisits.map(visit => visit.visitorId)));
+      const uniqueVisitorsToday = uniqueVisitorIdsToday.length;
+      
+      // Peak visit hours calculation
+      const hourCounts = Array(24).fill(0);
+      visitHistory.forEach(visit => {
+        const hour = new Date(visit.checkInTime).getHours();
+        hourCounts[hour]++;
+      });
+      const peakHour = hourCounts.indexOf(Math.max(...hourCounts));
+      
+      // Calculate percentage change in visitors
+      const avgDailyLastWeek = lastWeekVisits.length / 7;
+      const percentChange = avgDailyLastWeek > 0 
+        ? Math.round((todayVisits.length / avgDailyLastWeek - 1) * 100) 
+        : 0;
+      
+      // Count returning visitors
+      const visitorVisitCounts: Record<number, number> = {};
+      visitHistory.forEach(visit => {
+        if (!visitorVisitCounts[visit.visitorId]) {
+          visitorVisitCounts[visit.visitorId] = 0;
+        }
+        visitorVisitCounts[visit.visitorId]++;
+      });
+      
+      const returningVisitors = Object.values(visitorVisitCounts).filter(count => Number(count) > 1).length;
+      const returningVisitorsPercentage = allVisitors.length > 0 
+        ? Math.round((returningVisitors / allVisitors.length) * 100) 
+        : 0;
+      
       const stats = {
         totalVisitorsToday: todayVisits.length,
         currentlyCheckedIn: activeVisits.length,
         averageVisitDuration: avgDurationMinutes,
+        uniqueVisitorsToday,
+        percentChangeFromAvg: percentChange,
+        totalRegisteredVisitors: allVisitors.length,
+        returningVisitors,
+        returningVisitorsPercentage,
+        peakHour,
+        totalVisitsAllTime: visitHistory.length + activeVisits.length,
       };
       
       res.status(200).json(stats);
     } catch (error) {
       console.error("Get stats error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Analytics and reporting endpoints
+  
+  // Advanced analytics endpoints
+  app.get("/api/analytics/data", ensureAuthenticated, async (req, res) => {
+    try {
+      // Extract query parameters
+      const { fromDate, toDate, interval = 'day' } = req.query;
+      
+      // Set default date range if none provided (last 30 days)
+      const end = toDate ? new Date(toDate as string) : new Date();
+      let start;
+      
+      if (fromDate) {
+        start = new Date(fromDate as string);
+      } else {
+        start = new Date();
+        start.setDate(start.getDate() - 30); // Default to last 30 days
+      }
+      
+      // Ensure end date includes the entire day
+      end.setHours(23, 59, 59, 999);
+      
+      // Validate dates
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        return res.status(400).json({ message: "Invalid date format" });
+      }
+      
+      // Fetch all visits 
+      const visitHistory = await storage.getVisitHistory(5000); // Increased limit for better analytics
+      const activeVisits = await storage.getActiveVisits();
+      const allVisits = [...visitHistory, ...activeVisits];
+      
+      // Filter visits in date range
+      const visitsInRange = allVisits.filter(visit => {
+        const visitDate = new Date(visit.checkInTime);
+        return visitDate >= start && visitDate <= end;
+      });
+      
+      // Group visits by interval
+      interface IntervalData {
+        count: number;
+        active: number;
+        completed: number;
+        avgDuration: number;
+        totalDuration: number;
+        completedVisits: number;
+      }
+      
+      let visitsByInterval: Record<string, IntervalData> = {};
+      const hourDistribution = Array(24).fill(0);
+      const dayOfWeekDistribution = Array(7).fill(0);
+      
+      visitsInRange.forEach(visit => {
+        const visitDate = new Date(visit.checkInTime);
+        let intervalKey;
+        
+        // Group by specified interval
+        switch(interval) {
+          case 'hour':
+            intervalKey = `${visitDate.getFullYear()}-${String(visitDate.getMonth() + 1).padStart(2, '0')}-${String(visitDate.getDate()).padStart(2, '0')} ${String(visitDate.getHours()).padStart(2, '0')}:00`;
+            break;
+          case 'day':
+            intervalKey = `${visitDate.getFullYear()}-${String(visitDate.getMonth() + 1).padStart(2, '0')}-${String(visitDate.getDate()).padStart(2, '0')}`;
+            break;
+          case 'week':
+            // Get the week number
+            const firstDayOfYear = new Date(visitDate.getFullYear(), 0, 1);
+            const dayOfYear = Math.floor((visitDate.getTime() - firstDayOfYear.getTime()) / (24 * 60 * 60 * 1000));
+            const weekNumber = Math.ceil((dayOfYear + firstDayOfYear.getDay() + 1) / 7);
+            intervalKey = `${visitDate.getFullYear()}-W${String(weekNumber).padStart(2, '0')}`;
+            break;
+          case 'month':
+            intervalKey = `${visitDate.getFullYear()}-${String(visitDate.getMonth() + 1).padStart(2, '0')}`;
+            break;
+          default:
+            intervalKey = `${visitDate.getFullYear()}-${String(visitDate.getMonth() + 1).padStart(2, '0')}-${String(visitDate.getDate()).padStart(2, '0')}`;
+        }
+        
+        // Initialize or increment count
+        if (!visitsByInterval[intervalKey]) {
+          visitsByInterval[intervalKey] = {
+            count: 0,
+            active: 0,
+            completed: 0,
+            avgDuration: 0,
+            totalDuration: 0,
+            completedVisits: 0
+          };
+        }
+        
+        visitsByInterval[intervalKey].count++;
+        
+        if (visit.active) {
+          visitsByInterval[intervalKey].active++;
+        } else {
+          visitsByInterval[intervalKey].completed++;
+          
+          if (visit.checkOutTime) {
+            const duration = new Date(visit.checkOutTime).getTime() - new Date(visit.checkInTime).getTime();
+            visitsByInterval[intervalKey].totalDuration += duration;
+            visitsByInterval[intervalKey].completedVisits++;
+          }
+        }
+        
+        // Update hour distribution
+        hourDistribution[visitDate.getHours()]++;
+        
+        // Update day of week distribution (0 = Sunday, 6 = Saturday)
+        dayOfWeekDistribution[visitDate.getDay()]++;
+      });
+      
+      // Calculate average duration for each interval and create a new object for each interval
+      const processedIntervals: Record<string, { 
+        count: number; 
+        active: number; 
+        completed: number; 
+        avgDuration: number;
+      }> = {};
+      
+      Object.keys(visitsByInterval).forEach(key => {
+        const interval = visitsByInterval[key];
+        let avgDuration = 0;
+        
+        if (interval.completedVisits > 0) {
+          avgDuration = Math.round(interval.totalDuration / interval.completedVisits / (1000 * 60)); // in minutes
+        }
+        
+        // Create a new object with only the properties we want
+        processedIntervals[key] = {
+          count: interval.count,
+          active: interval.active,
+          completed: interval.completed,
+          avgDuration: avgDuration
+        };
+      });
+      
+      // Prepare the time series data using processed intervals
+      const timeSeriesData = Object.entries(processedIntervals).map(([date, data]) => ({
+        date,
+        ...data
+      })).sort((a, b) => a.date.localeCompare(b.date));
+      
+      // Calculate summary statistics
+      const totalVisits = visitsInRange.length;
+      const uniqueVisitorIds = Array.from(new Set(visitsInRange.map(v => v.visitorId)));
+      const uniqueVisitors = uniqueVisitorIds.length;
+      const completedVisits = visitsInRange.filter(v => !v.active).length;
+      const activeVisitsCount = visitsInRange.filter(v => v.active).length;
+      
+      let totalDuration = 0;
+      let visitsWithDuration = 0;
+      
+      visitsInRange.forEach(visit => {
+        if (visit.checkOutTime) {
+          const duration = new Date(visit.checkOutTime).getTime() - new Date(visit.checkInTime).getTime();
+          totalDuration += duration;
+          visitsWithDuration++;
+        }
+      });
+      
+      const avgDurationMinutes = visitsWithDuration > 0 ? Math.round(totalDuration / visitsWithDuration / (1000 * 60)) : 0;
+      
+      // Format day of week distribution with labels
+      const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const dayOfWeekData = dayOfWeekDistribution.map((count, index) => ({
+        day: dayLabels[index],
+        count
+      }));
+      
+      // Format hour distribution
+      const hourData = hourDistribution.map((count, hour) => ({
+        hour: String(hour).padStart(2, '0'),
+        count
+      }));
+      
+      const analytics = {
+        summary: {
+          totalVisits,
+          uniqueVisitors,
+          completedVisits,
+          activeVisits: activeVisitsCount,
+          averageVisitDuration: avgDurationMinutes
+        },
+        timeSeries: timeSeriesData,
+        byHour: hourData,
+        byDayOfWeek: dayOfWeekData
+      };
+      
+      res.status(200).json(analytics);
+    } catch (error) {
+      console.error("Analytics error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Export visits data for analytics
+  app.get("/api/analytics/export", ensureAuthenticated, async (req, res) => {
+    try {
+      const { fromDate, toDate } = req.query;
+      
+      // Set default date range if none provided (last 30 days)
+      const end = toDate ? new Date(toDate as string) : new Date();
+      let start;
+      
+      if (fromDate) {
+        start = new Date(fromDate as string);
+      } else {
+        start = new Date();
+        start.setDate(start.getDate() - 30); // Default to last 30 days
+      }
+      
+      // Ensure end date includes the entire day
+      end.setHours(23, 59, 59, 999);
+      
+      // Validate dates
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        return res.status(400).json({ message: "Invalid date format" });
+      }
+      
+      // Fetch visit history and active visits
+      const visitHistory = await storage.getVisitHistory(5000);
+      const activeVisits = await storage.getActiveVisits();
+      const allVisits = [...visitHistory, ...activeVisits];
+      
+      // Filter visits in date range
+      const visitsInRange = allVisits.filter(visit => {
+        const visitDate = new Date(visit.checkInTime);
+        return visitDate >= start && visitDate <= end;
+      });
+      
+      // Create a map of visitor ID to visitor data for easier lookup
+      const visitorMap = new Map();
+      
+      // Get unique visitor IDs from the filtered visits
+      const visitorIds = Array.from(new Set(visitsInRange.map(v => v.visitorId)));
+      
+      // Fetch visitor data for each visitor ID
+      for (const id of visitorIds) {
+        const visitor = await storage.getVisitor(id);
+        if (visitor) {
+          visitorMap.set(id, visitor);
+        }
+      }
+      
+      // Format data for export
+      const exportData = visitsInRange.map(visit => {
+        const visitor = visitorMap.get(visit.visitorId);
+        const checkInTime = new Date(visit.checkInTime).toISOString();
+        const checkOutTime = visit.checkOutTime ? new Date(visit.checkOutTime).toISOString() : '';
+        
+        let visitDuration = '';
+        if (visit.checkOutTime) {
+          const durationMs = new Date(visit.checkOutTime).getTime() - new Date(visit.checkInTime).getTime();
+          const durationMinutes = Math.round(durationMs / (1000 * 60));
+          visitDuration = durationMinutes.toString();
+        }
+        
+        return {
+          VisitorName: visitor ? visitor.fullName : 'Unknown',
+          Email: visitor ? visitor.email || '' : '',
+          Phone: visitor ? visitor.phoneNumber || '' : '',
+          YearOfBirth: visitor ? visitor.yearOfBirth : 0,
+          CheckInTime: checkInTime,
+          CheckOutTime: checkOutTime,
+          VisitStatus: visit.active ? 'Active' : 'Completed',
+          VisitDuration: visitDuration
+        };
+      });
+      
+      res.status(200).json(exportData);
+    } catch (error) {
+      console.error("Export error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Export visits data
+  app.get("/api/admin/export", ensureAuthenticated, async (req, res) => {
+    try {
+      const { startDate, endDate, format = 'json' } = req.query;
+      
+      // Default to last 30 days if no dates provided
+      const end = endDate ? new Date(endDate as string) : new Date();
+      end.setHours(23, 59, 59, 999);
+      
+      const start = startDate ? new Date(startDate as string) : new Date();
+      if (!startDate) {
+        start.setDate(start.getDate() - 30); // Default to last 30 days
+        start.setHours(0, 0, 0, 0);
+      }
+      
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        return res.status(400).json({ message: "Invalid date format" });
+      }
+      
+      // Get visit history with visitors
+      const visitHistoryWithVisitors = await storage.getVisitHistoryWithVisitors(1000);
+      const activeVisitsWithVisitors = await storage.getActiveVisitsWithVisitors();
+      
+      // Combined and filter by date range
+      const allVisits = [...visitHistoryWithVisitors, ...activeVisitsWithVisitors].filter(({ visit }) => {
+        const visitDate = new Date(visit.checkInTime);
+        return visitDate >= start && visitDate <= end;
+      });
+      
+      // Format data for export
+      const formattedData = allVisits.map(({ visit, visitor }) => ({
+        VisitorName: visitor.fullName,
+        Email: visitor.email || "",
+        Phone: visitor.phoneNumber,
+        YearOfBirth: visitor.yearOfBirth,
+        CheckInTime: new Date(visit.checkInTime).toISOString(),
+        CheckOutTime: visit.checkOutTime ? new Date(visit.checkOutTime).toISOString() : "",
+        VisitStatus: visit.active ? "Active" : "Completed",
+        VisitDuration: visit.checkOutTime 
+          ? Math.round((new Date(visit.checkOutTime).getTime() - new Date(visit.checkInTime).getTime()) / (1000 * 60))
+          : ""
+      }));
+      
+      // Send response based on requested format
+      if (format === 'csv') {
+        // For a real CSV export, we would generate a CSV file here
+        // For now, we'll just send the JSON data
+        res.status(200).json(formattedData);
+      } else {
+        res.status(200).json(formattedData);
+      }
+    } catch (error) {
+      console.error("Export error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });

@@ -48,6 +48,13 @@ export default function AdminDashboard() {
     totalVisitorsToday: number;
     currentlyCheckedIn: number;
     averageVisitDuration: number;
+    uniqueVisitorsToday?: number;
+    percentChangeFromAvg?: number;
+    totalRegisteredVisitors?: number;
+    returningVisitors?: number;
+    returningVisitorsPercentage?: number;
+    peakHour?: number;
+    totalVisitsAllTime?: number;
   };
 
   // Get current visitors
