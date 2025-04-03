@@ -395,6 +395,8 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                     title: "Information",
                     description: "The trash bin is empty.",
                   });
+                  // Don't show trash bin if empty
+                  setShowDeletedVisitors(false);
                 } else {
                   setShowDeletedVisitors(true);
                 }
@@ -404,6 +406,8 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                   description: "Failed to check trash bin status",
                   variant: "destructive",
                 });
+                // Make sure we don't show trash bin on error
+                setShowDeletedVisitors(false);
               }
             }}
             className={showDeletedVisitors ? "bg-amber-600 hover:bg-amber-700" : ""}
