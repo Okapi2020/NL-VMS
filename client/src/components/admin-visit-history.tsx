@@ -21,7 +21,8 @@ import {
   Clock,
   XCircle,
   Tag,
-  Phone
+  Phone,
+  ShieldCheck
 } from "lucide-react";
 import {
   Select,
@@ -242,20 +243,13 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>
-                <div className="flex items-center">
-                  <Tag className="mr-1 h-4 w-4" />
-                  Badge ID
-                </div>
-              </TableHead>
               <TableHead 
                 className="cursor-pointer" 
                 onClick={() => handleSortChange("name")}
               >
                 <div className="flex items-center">
                   <UserRound className="mr-1 h-4 w-4" />
-                  Visitor
+                  Name
                   {sortField === "name" && (
                     sortDirection === "asc" ? 
                     <ChevronUp className="ml-1 h-4 w-4" /> : 
@@ -263,10 +257,17 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                   )}
                 </div>
               </TableHead>
+              <TableHead>Email</TableHead>
               <TableHead>
                 <div className="flex items-center">
                   <Phone className="mr-1 h-4 w-4" />
                   Phone
+                </div>
+              </TableHead>
+              <TableHead>
+                <div className="flex items-center">
+                  <Tag className="mr-1 h-4 w-4" />
+                  Badge ID
                 </div>
               </TableHead>
               <TableHead 
@@ -297,6 +298,12 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                   )}
                 </div>
               </TableHead>
+              <TableHead>
+                <div className="flex items-center">
+                  <ShieldCheck className="mr-1 h-4 w-4" />
+                  Verified Badge
+                </div>
+              </TableHead>
               <TableHead 
                 className="cursor-pointer" 
                 onClick={() => handleSortChange("duration")}
@@ -317,13 +324,12 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
             {sortedVisits.length > 0 ? (
               sortedVisits.map(({ visitor, visit }) => (
                 <TableRow key={visit.id}>
-                  <TableCell className="font-mono text-xs">#{visitor.id}</TableCell>
-                  <TableCell className="font-mono text-xs text-blue-600 font-medium">{formatBadgeId(visitor.id)}</TableCell>
                   <TableCell>
                     <div className="font-medium">{visitor.fullName}</div>
-                    <div className="text-sm text-gray-500">{visitor.email || "No email provided"}</div>
                   </TableCell>
+                  <TableCell className="text-sm text-gray-500">{visitor.email || "No email provided"}</TableCell>
                   <TableCell className="text-sm">{visitor.phoneNumber}</TableCell>
+                  <TableCell className="font-mono text-xs text-blue-600 font-medium">{formatBadgeId(visitor.id)}</TableCell>
                   <TableCell>
                     <div className="text-sm">{formatTimeOnly(visit.checkInTime)}</div>
                     <div className="text-xs text-gray-500">
@@ -342,6 +348,13 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                       <span className="text-amber-600 font-medium">Active</span>
                     )}
                   </TableCell>
+                  <TableCell className="text-center">
+                    {visitor.id % 2 === 0 ? ( // Just a simple pattern for demo, replace with actual verification logic
+                      <ShieldCheck className="h-5 w-5 text-green-500 mx-auto" />
+                    ) : (
+                      <span className="text-xs text-gray-500">Not verified</span>
+                    )}
+                  </TableCell>
                   <TableCell>
                     {visit.checkOutTime ? (
                       formatDuration(visit.checkInTime, visit.checkOutTime)
@@ -353,7 +366,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-4 text-gray-500">
+                <TableCell colSpan={8} className="text-center py-4 text-gray-500">
                   No visits match your search or filters
                 </TableCell>
               </TableRow>

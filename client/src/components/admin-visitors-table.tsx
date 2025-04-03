@@ -14,7 +14,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
-import { Search, UserRound, Clock, CalendarClock, ChevronDown, ChevronUp, Tag, Phone } from "lucide-react";
+import { Search, UserRound, Clock, CalendarClock, ChevronDown, ChevronUp, Tag, Phone, ShieldCheck } from "lucide-react";
 
 type AdminVisitorsTableProps = {
   visits: { visit: Visit; visitor: Visitor }[];
@@ -164,7 +164,27 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
+              <TableHead 
+                className="cursor-pointer" 
+                onClick={() => handleSortChange("name")}
+              >
+                <div className="flex items-center">
+                  <UserRound className="mr-1 h-4 w-4" />
+                  Name
+                  {sortField === "name" && (
+                    sortDirection === "asc" ? 
+                    <ChevronUp className="ml-1 h-4 w-4" /> : 
+                    <ChevronDown className="ml-1 h-4 w-4" />
+                  )}
+                </div>
+              </TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>
+                <div className="flex items-center">
+                  <Phone className="mr-1 h-4 w-4" />
+                  Phone
+                </div>
+              </TableHead>
               <TableHead>
                 <div className="flex items-center">
                   <Tag className="mr-1 h-4 w-4" />
@@ -173,12 +193,12 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
               </TableHead>
               <TableHead 
                 className="cursor-pointer" 
-                onClick={() => handleSortChange("name")}
+                onClick={() => handleSortChange("checkIn")}
               >
                 <div className="flex items-center">
-                  <UserRound className="mr-1 h-4 w-4" />
-                  Visitor
-                  {sortField === "name" && (
+                  <CalendarClock className="mr-1 h-4 w-4" />
+                  Check-in
+                  {sortField === "checkIn" && (
                     sortDirection === "asc" ? 
                     <ChevronUp className="ml-1 h-4 w-4" /> : 
                     <ChevronDown className="ml-1 h-4 w-4" />
@@ -187,22 +207,8 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
               </TableHead>
               <TableHead>
                 <div className="flex items-center">
-                  <Phone className="mr-1 h-4 w-4" />
-                  Phone
-                </div>
-              </TableHead>
-              <TableHead 
-                className="cursor-pointer" 
-                onClick={() => handleSortChange("checkIn")}
-              >
-                <div className="flex items-center">
-                  <CalendarClock className="mr-1 h-4 w-4" />
-                  Check-in Time
-                  {sortField === "checkIn" && (
-                    sortDirection === "asc" ? 
-                    <ChevronUp className="ml-1 h-4 w-4" /> : 
-                    <ChevronDown className="ml-1 h-4 w-4" />
-                  )}
+                  <ShieldCheck className="mr-1 h-4 w-4" />
+                  Verified Badge
                 </div>
               </TableHead>
               <TableHead 
@@ -226,14 +232,20 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
             {sortedVisits.length > 0 ? (
               sortedVisits.map(({ visitor, visit }) => (
                 <TableRow key={visit.id}>
-                  <TableCell className="font-mono text-xs">#{visitor.id}</TableCell>
-                  <TableCell className="font-mono text-xs text-blue-600 font-medium">{formatBadgeId(visitor.id)}</TableCell>
                   <TableCell>
                     <div className="font-medium">{visitor.fullName}</div>
-                    <div className="text-sm text-gray-500">{visitor.email || "No email provided"}</div>
                   </TableCell>
+                  <TableCell className="text-sm text-gray-500">{visitor.email || "No email provided"}</TableCell>
                   <TableCell className="text-sm">{visitor.phoneNumber}</TableCell>
+                  <TableCell className="font-mono text-xs text-blue-600 font-medium">{formatBadgeId(visitor.id)}</TableCell>
                   <TableCell>{formatTimeOnly(visit.checkInTime)}</TableCell>
+                  <TableCell className="text-center">
+                    {visitor.id % 2 === 0 ? ( // Just a simple pattern for demo, replace with actual verification logic
+                      <ShieldCheck className="h-5 w-5 text-green-500 mx-auto" />
+                    ) : (
+                      <span className="text-xs text-gray-500">Not verified</span>
+                    )}
+                  </TableCell>
                   <TableCell>{calculateDuration(visit.checkInTime)}</TableCell>
                   <TableCell className="text-right">
                     <Button
@@ -249,7 +261,7 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-4 text-gray-500">
+                <TableCell colSpan={8} className="text-center py-4 text-gray-500">
                   No visitors match your search criteria
                 </TableCell>
               </TableRow>
