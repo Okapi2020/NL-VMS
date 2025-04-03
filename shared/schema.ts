@@ -22,7 +22,6 @@ export const visitors = pgTable("visitors", {
   yearOfBirth: integer("year_of_birth").notNull(),
   email: varchar("email", { length: 255 }),
   phoneNumber: varchar("phone_number", { length: 50 }).notNull(),
-  company: varchar("company", { length: 255 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -35,14 +34,12 @@ export const insertVisitorSchema = createInsertSchema(visitors).pick({
   yearOfBirth: true,
   email: true,
   phoneNumber: true,
-  company: true,
 });
 
 // Visits schema
 export const visits = pgTable("visits", {
   id: serial("id").primaryKey(),
   visitorId: integer("visitor_id").notNull(),
-  host: varchar("host", { length: 255 }).notNull(),
   checkInTime: timestamp("check_in_time").defaultNow().notNull(),
   checkOutTime: timestamp("check_out_time"),
   active: boolean("active").default(true).notNull(),
@@ -57,7 +54,6 @@ export const visitsRelations = relations(visits, ({ one }) => ({
 
 export const insertVisitSchema = createInsertSchema(visits).pick({
   visitorId: true,
-  host: true,
 });
 
 // Create schemas for form validation
@@ -68,8 +64,6 @@ export const visitorFormSchema = z.object({
     .max(new Date().getFullYear(), "Year cannot be in the future"),
   email: z.string().email("Please enter a valid email").optional().or(z.literal("")),
   phoneNumber: z.string().min(1, "Phone number is required"),
-  company: z.string().optional().or(z.literal("")),
-  host: z.string().min(1, "Host is required"),
 });
 
 export type Admin = typeof admins.$inferSelect;

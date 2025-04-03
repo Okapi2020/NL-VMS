@@ -33,8 +33,6 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
       yearOfBirth: undefined,
       email: "",
       phoneNumber: "",
-      company: "",
-      host: "",
     },
   });
 
@@ -173,44 +171,10 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
               </FormItem>
             )}
           />
-          
-          <FormField
-            control={form.control}
-            name="company"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Company (Optional)</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="Acme Inc." 
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="host"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Person to Visit</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="Name of person you're visiting" 
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
         </div>
       ),
       validate: async () => {
-        return await form.trigger(["phoneNumber", "host"]);
+        return await form.trigger(["phoneNumber"]);
       }
     },
     {
@@ -237,14 +201,6 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
                 <div>
                   <h4 className="text-sm font-semibold text-muted-foreground">Phone</h4>
                   <p className="mt-1">{form.getValues("phoneNumber")}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold text-muted-foreground">Company</h4>
-                  <p className="mt-1">{form.getValues("company") || "—"}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold text-muted-foreground">Host</h4>
-                  <p className="mt-1">{form.getValues("host")}</p>
                 </div>
               </div>
             </CardContent>

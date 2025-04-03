@@ -46,14 +46,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           yearOfBirth: formData.yearOfBirth,
           email: formData.email || null,
           phoneNumber: formData.phoneNumber,
-          company: formData.company || null,
         });
       }
       
       // Create a new visit record
       const visit = await storage.createVisit({
         visitorId: visitor.id,
-        host: formData.host,
       });
       
       res.status(201).json({ visitor, visit });
