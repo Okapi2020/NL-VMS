@@ -186,10 +186,30 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
         title: "Success",
         description: data.message || "Visitor restored successfully",
       });
+      
+      // If we're in trash bin view, check if it's now empty
+      const checkTrashStatus = async () => {
+        if (showDeletedVisitors) {
+          try {
+            const res = await apiRequest("GET", "/api/admin/trash");
+            const remaining = await res.json();
+            if (remaining.length === 0) {
+              setShowDeletedVisitors(false);
+              setPage(1);
+            }
+          } catch (error) {
+            console.error("Error checking trash status:", error);
+          }
+        }
+      };
+      
       // Refresh data
       queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/trash"] });
+      
+      // Check trash status after data refreshes
+      setTimeout(checkTrashStatus, 300);
     },
     onError: (error) => {
       toast({
@@ -382,6 +402,10 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
               // If we're already showing deleted visitors, just toggle back
               if (showDeletedVisitors) {
                 setShowDeletedVisitors(false);
+                // Reset selected visitors when switching views to prevent state issues
+                setSelectedVisitors([]);
+                // Reset to first page
+                setPage(1);
                 return;
               }
               
@@ -570,10 +594,25 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                           description: `${selectedVisitors.length} visitor(s) restored successfully`,
                         });
                         setSelectedVisitors([]);
+                        // If we're restoring all items in trash bin, switch back to normal view
+                        const checkTrashStatus = async () => {
+                          try {
+                            const res = await apiRequest("GET", "/api/admin/trash");
+                            const remaining = await res.json();
+                            if (remaining.length === 0 && showDeletedVisitors) {
+                              setShowDeletedVisitors(false);
+                              setPage(1);
+                            }
+                          } catch (error) {
+                            console.error("Error checking trash status:", error);
+                          }
+                        };
                         // Refresh data
                         queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
                         queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
                         queryClient.invalidateQueries({ queryKey: ["/api/admin/trash"] });
+                        // Check if trash is now empty after data refresh
+                        setTimeout(checkTrashStatus, 300);
                       })
                       .catch(error => {
                         toast({
@@ -639,6 +678,9 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                           });
                           // Refresh data
                           queryClient.invalidateQueries({ queryKey: ["/api/admin/trash"] });
+                          // Automatically go back to normal view since trash bin is now empty
+                          setShowDeletedVisitors(false);
+                          setPage(1);
                         })
                         .catch(error => {
                           toast({
