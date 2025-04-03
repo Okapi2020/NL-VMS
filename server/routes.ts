@@ -391,12 +391,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Run seed on startup (if needed)
-  seedDatabase().then(() => {
-    console.log("Initial database seed check completed");
-  }).catch(error => {
-    console.error("Error during initial seed check:", error);
-  });
+  // We'll import the seed from the migration script instead
 
   const httpServer = createServer(app);
 
