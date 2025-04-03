@@ -1,7 +1,8 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatTimeOnly, formatBadgeId } from "@/lib/utils";
-import { Check, Tag, Phone } from "lucide-react";
+import { Check, Tag, Phone, Timer } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +18,8 @@ type VisitorCheckedInProps = {
 export function VisitorCheckedIn({ visitor, visit, onCheckOut }: VisitorCheckedInProps) {
   const { toast } = useToast();
   const [, navigate] = useLocation();
+  const [countdown, setCountdown] = useState(30); // 30 seconds countdown
+  const [autoRedirect, setAutoRedirect] = useState(true); // Control whether auto-redirect is enabled
 
   const checkOutMutation = useMutation({
     mutationFn: async () => {
