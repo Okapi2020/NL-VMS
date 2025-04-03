@@ -474,9 +474,9 @@ export default function AdminDashboard() {
               {/* Analytics Cards */}
               <div className="mt-8 mb-12">
                 <Collapsible open={isAnalyticsOpen} onOpenChange={setIsAnalyticsOpen}>
-                  <Card className="w-full">
+                  <Card className="w-full overflow-hidden">
                     <CollapsibleTrigger asChild>
-                      <CardHeader className="pb-2 cursor-pointer hover:bg-gray-50 transition-colors">
+                      <CardHeader className="pb-2 cursor-pointer hover:bg-gray-50 transition-colors border-b">
                         <div className="flex items-center justify-between">
                           <div>
                             <CardTitle className="text-lg">
@@ -494,9 +494,9 @@ export default function AdminDashboard() {
                       </CardHeader>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
-                      <CardContent className="pt-0 pb-6">
-                        <Tabs defaultValue="day" className="w-full space-y-4">
-                          <TabsList className="grid w-full grid-cols-2 mb-4">
+                      <CardContent className="pt-6 pb-6">
+                        <Tabs defaultValue="day" className="w-full">
+                          <TabsList className="grid w-full grid-cols-2 mb-6">
                             <TabsTrigger value="day">
                               <CalendarDays className="h-4 w-4 mr-2" /> 
                               Day Frequency
@@ -507,7 +507,7 @@ export default function AdminDashboard() {
                             </TabsTrigger>
                           </TabsList>
                           
-                          <TabsContent value="day" className="mt-2 w-full">
+                          <TabsContent value="day" className="mt-4 w-full">
                             {isLoadingAnalytics ? (
                               <div className="flex justify-center p-8 h-[300px]">
                                 <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
@@ -523,7 +523,7 @@ export default function AdminDashboard() {
                             )}
                           </TabsContent>
                           
-                          <TabsContent value="hour" className="mt-2 w-full">
+                          <TabsContent value="hour" className="mt-4 w-full">
                             {isLoadingAnalytics ? (
                               <div className="flex justify-center p-8 h-[300px]">
                                 <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
@@ -546,27 +546,32 @@ export default function AdminDashboard() {
               </div>
 
               {/* Visitor List Tabs */}
-              <div className="mt-12">
-                <Tabs defaultValue="current" onValueChange={setActiveTab}>
-                  <TabsList className="grid w-full grid-cols-2 max-w-md">
-                    <TabsTrigger value="current">Current Visitors</TabsTrigger>
-                    <TabsTrigger value="history">Visit History</TabsTrigger>
-                  </TabsList>
-                  <div className="mt-6">
-                    <TabsContent value="current">
-                      <AdminVisitorsTable 
-                        visits={currentVisitors} 
-                        isLoading={isLoadingCurrentVisitors} 
-                      />
-                    </TabsContent>
-                    <TabsContent value="history">
-                      <AdminVisitHistory 
-                        visitHistory={visitHistory} 
-                        isLoading={isLoadingVisitHistory} 
-                      />
-                    </TabsContent>
-                  </div>
-                </Tabs>
+              <div className="mt-16 pt-6 border-t border-gray-200">
+                <h3 className="text-lg font-medium mb-6">Visitor Management</h3>
+                <Card>
+                  <CardContent className="p-6">
+                    <Tabs defaultValue="current" onValueChange={setActiveTab}>
+                      <TabsList className="grid w-full grid-cols-2 max-w-md">
+                        <TabsTrigger value="current">Current Visitors</TabsTrigger>
+                        <TabsTrigger value="history">Visit History</TabsTrigger>
+                      </TabsList>
+                      <div className="mt-6">
+                        <TabsContent value="current">
+                          <AdminVisitorsTable 
+                            visits={currentVisitors} 
+                            isLoading={isLoadingCurrentVisitors} 
+                          />
+                        </TabsContent>
+                        <TabsContent value="history">
+                          <AdminVisitHistory 
+                            visitHistory={visitHistory} 
+                            isLoading={isLoadingVisitHistory} 
+                          />
+                        </TabsContent>
+                      </div>
+                    </Tabs>
+                  </CardContent>
+                </Card>
               </div>
             </>
           )}
