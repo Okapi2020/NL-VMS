@@ -62,13 +62,16 @@ export const insertVisitSchema = createInsertSchema(visits).pick({
 
 // Create schemas for form validation
 export const visitorFormSchema = z.object({
-  fullName: z.string()
-    .min(3, "Full name is required")
-    .refine(name => name.trim().includes(' '), {
-      message: "Please enter both first and last name"
-    })
-    .refine(name => /^[a-zA-Z\s.\-']+$/.test(name.trim()), {
-      message: "Name should contain only letters, spaces, and basic characters"
+  firstName: z.string()
+    .min(2, "First name is required")
+    .refine(name => /^[a-zA-Z.\-']+$/.test(name.trim()), {
+      message: "Name should contain only letters and basic characters"
+    }),
+  middleName: z.string().optional(),
+  lastName: z.string()
+    .min(2, "Last name is required")
+    .refine(name => /^[a-zA-Z.\-']+$/.test(name.trim()), {
+      message: "Name should contain only letters and basic characters"
     }),
   yearOfBirth: z.number()
     .min(1900, "Please enter a valid year")
@@ -76,6 +79,15 @@ export const visitorFormSchema = z.object({
   email: z.string().email("Please enter a valid email").optional().or(z.literal("")),
   phoneNumber: z.string().min(1, "Phone number is required"),
   purpose: z.string().min(1, "Purpose of visit is required").optional(),
+})
+.transform((data) => {
+  // Combine name fields into fullName for backend compatibility
+  const middleName = data.middleName ? ` ${data.middleName} ` : ' ';
+  const fullName = data.firstName + middleName + data.lastName;
+  return {
+    ...data,
+    fullName: fullName.trim()
+  };
 });
 
 export type Admin = typeof admins.$inferSelect;

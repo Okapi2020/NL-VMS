@@ -36,7 +36,9 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
   const form = useForm<VisitorFormValues>({
     resolver: zodResolver(visitorFormSchema),
     defaultValues: {
-      fullName: "",
+      firstName: "",
+      middleName: "",
+      lastName: "",
       yearOfBirth: undefined,
       email: "",
       phoneNumber: "",
@@ -107,29 +109,69 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
       title: "Personal Info",
       content: (
         <div className="space-y-4">
-          <FormField
-            control={form.control}
-            name="fullName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center">
-                  <span>Full Name</span>
-                  <span className="ml-1 text-red-500">*</span>
-                </FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="First Last (e.g., John Smith)" 
-                    {...field} 
-                    className="border-blue-200 focus:border-blue-400"
-                  />
-                </FormControl>
-                <div className="text-xs text-muted-foreground mt-1 ml-1">
-                  Please provide both your first and last name
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <FormField
+              control={form.control}
+              name="firstName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center">
+                    <span>First Name</span>
+                    <span className="ml-1 text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="John" 
+                      {...field} 
+                      className="border-blue-200 focus:border-blue-400"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="middleName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    <span>Middle Name</span>
+                    <span className="ml-1 text-xs text-muted-foreground">(Optional)</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Robert" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="lastName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center">
+                    <span>Last Name</span>
+                    <span className="ml-1 text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Smith" 
+                      {...field} 
+                      className="border-blue-200 focus:border-blue-400"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
           
           <FormField
             control={form.control}
@@ -166,7 +208,7 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
         </div>
       ),
       validate: async () => {
-        const result = await form.trigger(["fullName", "yearOfBirth"]);
+        const result = await form.trigger(["firstName", "lastName", "yearOfBirth"]);
         return result;
       }
     },
@@ -231,7 +273,11 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <h4 className="text-sm font-semibold text-muted-foreground">Full Name</h4>
-                  <p className="mt-1">{form.getValues("fullName")}</p>
+                  <p className="mt-1">
+                    {form.getValues("firstName")}{" "}
+                    {form.getValues("middleName") ? form.getValues("middleName") + " " : ""}
+                    {form.getValues("lastName")}
+                  </p>
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold text-muted-foreground">Age</h4>
