@@ -30,7 +30,9 @@ import {
   BarChart,
   CalendarDays,
   TrendingUp,
+  ChevronDown,
 } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export default function AdminDashboard() {
   const { user, logoutMutation } = useAuth();
@@ -470,62 +472,76 @@ export default function AdminDashboard() {
 
               {/* Analytics Cards */}
               <div className="mt-8 mb-12">
-                <Card className="w-full overflow-hidden">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">
-                      Analytics Overview
-                    </CardTitle>
-                    <CardDescription>
-                      Visitor traffic patterns and peak times
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Tabs defaultValue="day" className="w-full space-y-4">
-                      <TabsList className="grid w-full grid-cols-2 mb-4">
-                        <TabsTrigger value="day">
-                          <CalendarDays className="h-4 w-4 mr-2" /> 
-                          Day Frequency
-                        </TabsTrigger>
-                        <TabsTrigger value="hour">
-                          <TrendingUp className="h-4 w-4 mr-2" /> 
-                          Peak Hours
-                        </TabsTrigger>
-                      </TabsList>
-                      
-                      <TabsContent value="day" className="mt-2 w-full">
-                        {isLoadingAnalytics ? (
-                          <div className="flex justify-center p-8 h-64">
-                            <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
-                          </div>
-                        ) : !analyticsData?.byDayOfWeek?.length ? (
-                          <div className="text-center py-8 h-64 text-gray-500">
-                            <p>No data available</p>
-                          </div>
-                        ) : (
-                          <div className="h-64 w-full">
-                            <DayOfWeekChart data={analyticsData.byDayOfWeek} />
-                          </div>
-                        )}
-                      </TabsContent>
-                      
-                      <TabsContent value="hour" className="mt-2 w-full">
-                        {isLoadingAnalytics ? (
-                          <div className="flex justify-center p-8 h-64">
-                            <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
-                          </div>
-                        ) : !analyticsData?.byHour?.length ? (
-                          <div className="text-center py-8 h-64 text-gray-500">
-                            <p>No data available</p>
-                          </div>
-                        ) : (
-                          <div className="h-64 w-full">
-                            <HourlyDistributionChart data={analyticsData.byHour} />
-                          </div>
-                        )}
-                      </TabsContent>
-                    </Tabs>
-                  </CardContent>
-                </Card>
+                <Collapsible>
+                  <Card className="w-full">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-lg">
+                            Analytics Overview
+                          </CardTitle>
+                          <CardDescription>
+                            Visitor traffic patterns and peak times
+                          </CardDescription>
+                        </div>
+                        <CollapsibleTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
+                            <ChevronDown className="h-4 w-4" />
+                            <span className="sr-only">Toggle analytics panel</span>
+                          </Button>
+                        </CollapsibleTrigger>
+                      </div>
+                    </CardHeader>
+                    <CollapsibleContent>
+                      <CardContent className="pt-0">
+                        <Tabs defaultValue="day" className="w-full space-y-4">
+                          <TabsList className="grid w-full grid-cols-2 mb-4">
+                            <TabsTrigger value="day">
+                              <CalendarDays className="h-4 w-4 mr-2" /> 
+                              Day Frequency
+                            </TabsTrigger>
+                            <TabsTrigger value="hour">
+                              <TrendingUp className="h-4 w-4 mr-2" /> 
+                              Peak Hours
+                            </TabsTrigger>
+                          </TabsList>
+                          
+                          <TabsContent value="day" className="mt-2 w-full">
+                            {isLoadingAnalytics ? (
+                              <div className="flex justify-center p-8 h-[300px]">
+                                <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
+                              </div>
+                            ) : !analyticsData?.byDayOfWeek?.length ? (
+                              <div className="text-center py-8 h-[300px] text-gray-500">
+                                <p>No data available</p>
+                              </div>
+                            ) : (
+                              <div className="h-[300px] w-full">
+                                <DayOfWeekChart data={analyticsData.byDayOfWeek} />
+                              </div>
+                            )}
+                          </TabsContent>
+                          
+                          <TabsContent value="hour" className="mt-2 w-full">
+                            {isLoadingAnalytics ? (
+                              <div className="flex justify-center p-8 h-[300px]">
+                                <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
+                              </div>
+                            ) : !analyticsData?.byHour?.length ? (
+                              <div className="text-center py-8 h-[300px] text-gray-500">
+                                <p>No data available</p>
+                              </div>
+                            ) : (
+                              <div className="h-[300px] w-full">
+                                <HourlyDistributionChart data={analyticsData.byHour} />
+                              </div>
+                            )}
+                          </TabsContent>
+                        </Tabs>
+                      </CardContent>
+                    </CollapsibleContent>
+                  </Card>
+                </Collapsible>
               </div>
 
               {/* Visitor List Tabs */}
