@@ -469,8 +469,8 @@ export default function AdminDashboard() {
               </div>
 
               {/* Analytics Cards */}
-              <div className="mt-8">
-                <Card>
+              <div className="mt-8 mb-12">
+                <Card className="w-full overflow-hidden">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg">
                       Analytics Overview
@@ -480,7 +480,7 @@ export default function AdminDashboard() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Tabs defaultValue="day" className="w-full">
+                    <Tabs defaultValue="day" className="w-full space-y-4">
                       <TabsList className="grid w-full grid-cols-2 mb-4">
                         <TabsTrigger value="day">
                           <CalendarDays className="h-4 w-4 mr-2" /> 
@@ -492,33 +492,33 @@ export default function AdminDashboard() {
                         </TabsTrigger>
                       </TabsList>
                       
-                      <TabsContent value="day" className="mt-0">
+                      <TabsContent value="day" className="mt-2 w-full">
                         {isLoadingAnalytics ? (
-                          <div className="flex justify-center p-8">
+                          <div className="flex justify-center p-8 h-64">
                             <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
                           </div>
                         ) : !analyticsData?.byDayOfWeek?.length ? (
-                          <div className="text-center py-8 text-gray-500">
+                          <div className="text-center py-8 h-64 text-gray-500">
                             <p>No data available</p>
                           </div>
                         ) : (
-                          <div className="h-64">
+                          <div className="h-64 w-full">
                             <DayOfWeekChart data={analyticsData.byDayOfWeek} />
                           </div>
                         )}
                       </TabsContent>
                       
-                      <TabsContent value="hour" className="mt-0">
+                      <TabsContent value="hour" className="mt-2 w-full">
                         {isLoadingAnalytics ? (
-                          <div className="flex justify-center p-8">
+                          <div className="flex justify-center p-8 h-64">
                             <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
                           </div>
                         ) : !analyticsData?.byHour?.length ? (
-                          <div className="text-center py-8 text-gray-500">
+                          <div className="text-center py-8 h-64 text-gray-500">
                             <p>No data available</p>
                           </div>
                         ) : (
-                          <div className="h-64">
+                          <div className="h-64 w-full">
                             <HourlyDistributionChart data={analyticsData.byHour} />
                           </div>
                         )}
@@ -529,7 +529,7 @@ export default function AdminDashboard() {
               </div>
 
               {/* Visitor List Tabs */}
-              <div className="mt-8">
+              <div className="mt-12">
                 <Tabs defaultValue="current" onValueChange={setActiveTab}>
                   <TabsList className="grid w-full grid-cols-2 max-w-md">
                     <TabsTrigger value="current">Current Visitors</TabsTrigger>
