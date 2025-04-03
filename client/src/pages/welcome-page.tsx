@@ -1,16 +1,47 @@
 import { useState } from "react";
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { LogIn, UserCheck, ShieldCheck } from "lucide-react";
+import { LogIn, UserCheck, ShieldCheck, Loader2 } from "lucide-react";
+import { Settings } from "@shared/schema";
 
 export default function WelcomePage() {
+  // Query to fetch application settings
+  const { 
+    data: settings, 
+    isLoading: isLoadingSettings 
+  } = useQuery<Settings>({
+    queryKey: ["/api/settings"],
+    queryFn: async () => {
+      const res = await fetch("/api/settings");
+      if (!res.ok) throw new Error("Failed to fetch settings");
+      return res.json();
+    },
+  });
+
+  // Default application name
+  const appName = settings?.appName || "Visitor Management System";
+  
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header with minimalistic logo and admin login */}
+      {/* Header with logo and admin login */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">Visitor Management System</h1>
+          <div className="flex items-center">
+            {settings?.logoUrl ? (
+              <img 
+                src={settings.logoUrl} 
+                alt={appName} 
+                className="h-10 mr-3 object-contain"
+              />
+            ) : (
+              isLoadingSettings ? (
+                <Loader2 className="h-10 w-10 mr-3 text-primary-500 animate-spin" />
+              ) : null
+            )}
+            <h1 className="text-3xl font-bold text-gray-900">{appName}</h1>
+          </div>
           <Link href="/auth" 
             className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 text-primary-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500" 
             title="Admin Login">
@@ -82,7 +113,7 @@ export default function WelcomePage() {
       <footer className="bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
           <div className="text-center text-gray-500 text-sm">
-            <p>&copy; {new Date().getFullYear()} Visitor Management System</p>
+            <p>&copy; {new Date().getFullYear()} {appName}</p>
           </div>
         </div>
       </footer>

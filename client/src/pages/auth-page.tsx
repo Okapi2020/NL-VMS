@@ -3,7 +3,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/use-auth";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -27,7 +28,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { LogIn, UserPlus } from "lucide-react";
+import { LogIn, UserPlus, Loader2 } from "lucide-react";
+import { Settings } from "@shared/schema";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -39,6 +41,19 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function AuthPage() {
   const { user, loginMutation } = useAuth();
   const [, navigate] = useLocation();
+  
+  // Query to fetch application settings
+  const { 
+    data: settings, 
+    isLoading: isLoadingSettings 
+  } = useQuery<Settings>({
+    queryKey: ["/api/settings"],
+    queryFn: async () => {
+      const res = await fetch("/api/settings");
+      if (!res.ok) throw new Error("Failed to fetch settings");
+      return res.json();
+    },
+  });
 
   // Redirect to admin dashboard if already logged in
   useEffect(() => {
@@ -60,27 +75,42 @@ export default function AuthPage() {
     loginMutation.mutate(data);
   };
 
+  // Default application name
+  const appName = settings?.appName || "Visitor Management System";
+  
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
-          <svg
-            className="h-12 w-12 text-primary-600"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+        <div className="flex justify-center items-center mb-4">
+          {settings?.logoUrl ? (
+            <img 
+              src={settings.logoUrl} 
+              alt={appName} 
+              className="h-16 object-contain"
             />
-          </svg>
+          ) : (
+            isLoadingSettings ? (
+              <Loader2 className="h-12 w-12 text-primary-600 animate-spin" />
+            ) : (
+              <svg
+                className="h-12 w-12 text-primary-600"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                />
+              </svg>
+            )
+          )}
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Visitor Management System
+          {appName}
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
           Admin Portal - Securely manage your visitors

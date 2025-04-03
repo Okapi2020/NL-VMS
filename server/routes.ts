@@ -34,6 +34,42 @@ const handleZodError = (error: unknown, res: Response) => {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication
   setupAuth(app);
+  
+  // Settings endpoints
+  app.get("/api/settings", async (req, res) => {
+    try {
+      let settings = await storage.getSettings();
+      
+      // If no settings exist, create default ones
+      if (!settings) {
+        settings = await storage.createDefaultSettings();
+      }
+      
+      res.status(200).json(settings);
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+      res.status(500).json({ message: "Failed to fetch application settings" });
+    }
+  });
+  
+  app.post("/api/settings", ensureAuthenticated, async (req, res) => {
+    try {
+      // Update settings
+      const updatedSettings = await storage.updateSettings({
+        appName: req.body.appName,
+        logoUrl: req.body.logoUrl
+      });
+      
+      if (!updatedSettings) {
+        return res.status(500).json({ message: "Failed to update settings" });
+      }
+      
+      res.status(200).json(updatedSettings);
+    } catch (error) {
+      console.error("Error updating settings:", error);
+      res.status(500).json({ message: "Failed to update application settings" });
+    }
+  });
 
   // Visitor check-in endpoint
   app.post("/api/visitors/check-in", async (req, res) => {

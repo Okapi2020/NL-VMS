@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminVisitorsTable } from "@/components/admin-visitors-table";
 import { AdminVisitHistory } from "@/components/admin-visit-history";
+import { AdminSettings } from "@/components/admin-settings";
 import { exportToCSV } from "@/lib/utils";
 import { Visit, Visitor } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -769,12 +770,19 @@ export default function AdminDashboard() {
 
           {/* Settings View */}
           {activeView === "settings" && (
-            <div className="mt-6">
+            <div className="mt-6 grid grid-cols-1 gap-6">
+              {/* Application Settings Section */}
+              <AdminSettings />
+              
+              {/* Account Settings Section */}
               <Card>
+                <CardHeader>
+                  <CardTitle>Account Settings</CardTitle>
+                  <CardDescription>
+                    Manage your administrator account and create new administrators.
+                  </CardDescription>
+                </CardHeader>
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-medium mb-4">System Settings</h3>
-                  <p className="text-gray-500 mb-4">Manage your account and application settings.</p>
-                  
                   <div className="space-y-6">
                     <div>
                       <h4 className="text-md font-medium mb-2">Account Information</h4>

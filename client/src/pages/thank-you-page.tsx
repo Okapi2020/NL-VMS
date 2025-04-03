@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
-import { CheckCircle, Clock, Home } from "lucide-react";
+import { CheckCircle, Clock, Home, Loader2 } from "lucide-react";
 import { formatDate, formatTimeOnly, formatDuration } from "@/lib/utils";
-import type { Visitor, Visit } from "@shared/schema";
+import type { Visitor, Visit, Settings } from "@shared/schema";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { RouteComponentProps } from "wouter";
 
@@ -15,6 +16,22 @@ function ThankYouPageContent() {
   const [, navigate] = useLocation();
   const [visitor, setVisitor] = useState<Visitor | null>(null);
   const [visit, setVisit] = useState<Visit | null>(null);
+  
+  // Query to fetch application settings
+  const { 
+    data: settings, 
+    isLoading: isLoadingSettings 
+  } = useQuery<Settings>({
+    queryKey: ["/api/settings"],
+    queryFn: async () => {
+      const res = await fetch("/api/settings");
+      if (!res.ok) throw new Error("Failed to fetch settings");
+      return res.json();
+    },
+  });
+  
+  // Default application name
+  const appName = settings?.appName || "Visitor Management System";
   
   // Redirect to home after 30 seconds
   useEffect(() => {
@@ -46,10 +63,23 @@ function ThankYouPageContent() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* Header */}
+      {/* Header with logo */}
       <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">Visitor Management System</h1>
+        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
+          <div className="flex items-center">
+            {settings?.logoUrl ? (
+              <img 
+                src={settings.logoUrl} 
+                alt={appName} 
+                className="h-10 mr-3 object-contain"
+              />
+            ) : (
+              isLoadingSettings ? (
+                <Loader2 className="h-10 w-10 mr-3 text-primary-500 animate-spin" />
+              ) : null
+            )}
+            <h1 className="text-2xl font-bold text-gray-900">{appName}</h1>
+          </div>
         </div>
       </header>
 
@@ -128,7 +158,7 @@ function ThankYouPageContent() {
       <footer className="bg-gray-50 py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center text-sm text-gray-500">
-            <p>&copy; {new Date().getFullYear()} Visitor Management System</p>
+            <p>&copy; {new Date().getFullYear()} {appName}</p>
           </div>
         </div>
       </footer>

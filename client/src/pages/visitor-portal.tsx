@@ -6,16 +6,30 @@ import {
 import { Link, useLocation } from "wouter";
 import { VisitorCheckInForm } from "@/components/visitor-check-in-form";
 import { VisitorCheckedIn } from "@/components/visitor-checked-in";
-import { Visitor, Visit } from "@shared/schema";
+import { Visitor, Visit, Settings } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
 import { useIdleTimeout } from "@/hooks/use-idle-timeout";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { Loader2 } from "lucide-react";
 
 function VisitorPortalComponent() {
   const [checkedIn, setCheckedIn] = useState(false);
   const [visitor, setVisitor] = useState<Visitor | null>(null);
   const [visit, setVisit] = useState<Visit | null>(null);
   const [, navigate] = useLocation();
+  
+  // Query to fetch application settings
+  const { 
+    data: settings, 
+    isLoading: isLoadingSettings 
+  } = useQuery<Settings>({
+    queryKey: ["/api/settings"],
+    queryFn: async () => {
+      const res = await fetch("/api/settings");
+      if (!res.ok) throw new Error("Failed to fetch settings");
+      return res.json();
+    },
+  });
 
   // Configure idle timeout to redirect to welcome page after 2 minutes of inactivity
   useIdleTimeout({
@@ -71,8 +85,34 @@ function VisitorPortalComponent() {
     localStorage.removeItem("visitorId");
   };
 
+  // Default application name
+  const appName = settings?.appName || "Visitor Management System";
+  
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Header with logo and back button */}
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
+          <div className="flex items-center">
+            {settings?.logoUrl ? (
+              <img 
+                src={settings.logoUrl} 
+                alt={appName} 
+                className="h-10 mr-3 object-contain"
+              />
+            ) : (
+              isLoadingSettings ? (
+                <Loader2 className="h-10 w-10 mr-3 text-primary-500 animate-spin" />
+              ) : null
+            )}
+            <h1 className="text-2xl font-bold text-gray-900">{appName}</h1>
+          </div>
+          <Link href="/" className="text-primary-600 hover:text-primary-800 text-sm font-medium">
+            Back to Home
+          </Link>
+        </div>
+      </header>
+      
       {/* Main Content */}
       <main className="py-6 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">

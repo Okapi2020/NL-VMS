@@ -133,3 +133,25 @@ export const updateVisitorSchema = z.object({
 });
 
 export type UpdateVisitor = z.infer<typeof updateVisitorSchema>;
+
+// Settings schema for application configuration
+export const settings = pgTable("settings", {
+  id: serial("id").primaryKey(),
+  appName: varchar("app_name", { length: 255 }).default("Visitor Management System").notNull(),
+  logoUrl: text("logo_url"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertSettingsSchema = createInsertSchema(settings).pick({
+  appName: true,
+  logoUrl: true,
+});
+
+export const updateSettingsSchema = z.object({
+  appName: z.string().min(1, "Application name must not be empty"),
+  logoUrl: z.string().nullable().optional(),
+});
+
+export type Settings = typeof settings.$inferSelect;
+export type InsertSettings = z.infer<typeof insertSettingsSchema>;
+export type UpdateSettings = z.infer<typeof updateSettingsSchema>;

@@ -7,6 +7,7 @@ import {
   type UpdateVisitor
 } from "@shared/schema";
 import { visits, type Visit, type InsertVisit, type UpdateVisit } from "@shared/schema";
+import { settings, type Settings, type UpdateSettings } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull } from "drizzle-orm";
 import session from "express-session";
@@ -49,6 +50,11 @@ export interface IStorage {
   
   // Session store
   sessionStore: session.Store;
+  
+  // Settings methods
+  getSettings(): Promise<Settings | undefined>;
+  updateSettings(settings: UpdateSettings): Promise<Settings | undefined>;
+  createDefaultSettings(): Promise<Settings | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -328,6 +334,58 @@ export class DatabaseStorage implements IStorage {
     }
     
     return result;
+  }
+
+  // Settings methods
+  async getSettings(): Promise<Settings | undefined> {
+    // Get the first settings record or undefined if none exist
+    const [settingsRecord] = await db.select().from(settings);
+    return settingsRecord;
+  }
+
+  async updateSettings(updateData: UpdateSettings): Promise<Settings | undefined> {
+    try {
+      // First check if settings exist
+      const existingSettings = await this.getSettings();
+      
+      if (!existingSettings) {
+        // If no settings exist, create them
+        return this.createDefaultSettings(updateData);
+      }
+      
+      // Update existing settings
+      const [updatedSettings] = await db
+        .update(settings)
+        .set({
+          ...updateData,
+          updatedAt: new Date()
+        })
+        .where(eq(settings.id, existingSettings.id))
+        .returning();
+      
+      return updatedSettings;
+    } catch (error) {
+      console.error("Error updating settings:", error);
+      return undefined;
+    }
+  }
+
+  async createDefaultSettings(customSettings?: UpdateSettings): Promise<Settings | undefined> {
+    try {
+      // Create default settings
+      const [createdSettings] = await db
+        .insert(settings)
+        .values({
+          appName: customSettings?.appName || "Visitor Management System",
+          logoUrl: customSettings?.logoUrl || null,
+        })
+        .returning();
+      
+      return createdSettings;
+    } catch (error) {
+      console.error("Error creating default settings:", error);
+      return undefined;
+    }
   }
 }
 
