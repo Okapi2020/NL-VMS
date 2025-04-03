@@ -235,6 +235,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>ID</TableHead>
               <TableHead 
                 className="cursor-pointer" 
                 onClick={() => handleSortChange("name")}
@@ -297,6 +298,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
             {sortedVisits.length > 0 ? (
               sortedVisits.map(({ visitor, visit }) => (
                 <TableRow key={visit.id}>
+                  <TableCell className="font-mono text-xs">#{visitor.id}</TableCell>
                   <TableCell>
                     <div className="font-medium">{visitor.fullName}</div>
                     <div className="text-sm text-gray-500">{visitor.email || "No email provided"}</div>
@@ -330,7 +332,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-4 text-gray-500">
+                <TableCell colSpan={5} className="text-center py-4 text-gray-500">
                   No visits match your search or filters
                 </TableCell>
               </TableRow>
