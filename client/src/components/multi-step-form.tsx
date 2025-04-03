@@ -13,6 +13,7 @@ type MultiStepFormProps = {
   onComplete: () => void;
   submitButtonText?: string;
   className?: string;
+  renderCustomButtons?: (currentStepIndex: number, isFirstStep: boolean) => ReactNode;
 };
 
 export function MultiStepForm({
@@ -20,6 +21,7 @@ export function MultiStepForm({
   onComplete,
   submitButtonText = "Submit",
   className,
+  renderCustomButtons,
 }: MultiStepFormProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const currentStep = steps[currentStepIndex];
@@ -94,7 +96,12 @@ export function MultiStepForm({
 
       {/* Navigation Buttons */}
       <div className="mt-8 flex justify-between">
-        {!isFirstStep && (
+        {isFirstStep ? (
+          // Render custom home button on the first step if provided
+          renderCustomButtons ? (
+            renderCustomButtons(currentStepIndex, isFirstStep)
+          ) : null
+        ) : (
           <button
             type="button"
             onClick={back}
