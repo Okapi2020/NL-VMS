@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminVisitorsTable } from "@/components/admin-visitors-table";
 import { AdminVisitHistory } from "@/components/admin-visit-history";
 import { exportToCSV } from "@/lib/utils";
+import { Visit, Visitor } from "@shared/schema";
 import {
   UsersRound,
   UserRound,
@@ -16,34 +17,51 @@ import {
   Settings,
   LogOut,
   Download,
+  ExternalLink,
 } from "lucide-react";
 
 export default function AdminDashboard() {
   const { user, logoutMutation } = useAuth();
   const [activeTab, setActiveTab] = useState("current");
 
+  // Define types for our API responses
+  type VisitWithVisitor = { 
+    visit: Visit;
+    visitor: Visitor;
+  };
+  
+  type DashboardStats = {
+    totalVisitorsToday: number;
+    currentlyCheckedIn: number;
+    averageVisitDuration: number;
+  };
+
   // Get current visitors
   const {
-    data: currentVisitors = [],
+    data: currentVisitors = [] as VisitWithVisitor[],
     isLoading: isLoadingCurrentVisitors,
-  } = useQuery({
+  } = useQuery<VisitWithVisitor[]>({
     queryKey: ["/api/admin/current-visitors"],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
   // Get visit history
   const {
-    data: visitHistory = [],
+    data: visitHistory = [] as VisitWithVisitor[],
     isLoading: isLoadingVisitHistory,
-  } = useQuery({
+  } = useQuery<VisitWithVisitor[]>({
     queryKey: ["/api/admin/visit-history"],
   });
 
   // Get dashboard stats
   const {
-    data: stats = { totalVisitorsToday: 0, currentlyCheckedIn: 0, averageVisitDuration: 0 },
+    data: stats = { 
+      totalVisitorsToday: 0, 
+      currentlyCheckedIn: 0, 
+      averageVisitDuration: 0 
+    } as DashboardStats,
     isLoading: isLoadingStats,
-  } = useQuery({
+  } = useQuery<DashboardStats>({
     queryKey: ["/api/admin/stats"],
     refetchInterval: 60000, // Refresh every minute
   });
@@ -54,11 +72,10 @@ export default function AdminDashboard() {
       VisitorName: visitor.fullName,
       Email: visitor.email || "",
       Phone: visitor.phoneNumber,
-      Company: visitor.company || "",
-      Host: visit.host,
-      Purpose: visit.purpose === "other" ? visit.otherPurpose : visit.purpose,
+      YearOfBirth: visitor.yearOfBirth,
       CheckInTime: new Date(visit.checkInTime).toLocaleString(),
       CheckOutTime: visit.checkOutTime ? new Date(visit.checkOutTime).toLocaleString() : "N/A",
+      VisitStatus: visit.active ? "Active" : "Completed"
     }));
 
     exportToCSV(dataToExport, `visit-history-${new Date().toISOString().split('T')[0]}.csv`);
@@ -117,6 +134,15 @@ export default function AdminDashboard() {
             <Settings className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
             Settings
           </a>
+          <a
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+          >
+            <ExternalLink className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
+            Visit Check-In Portal
+          </a>
           <Button
             variant="ghost"
             className="w-full justify-start group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 hover:text-gray-900"
@@ -139,6 +165,16 @@ export default function AdminDashboard() {
               </h2>
             </div>
             <div className="mt-4 flex md:mt-0 md:ml-4">
+              <Button
+                variant="outline"
+                className="inline-flex items-center"
+                asChild
+              >
+                <a href="/" target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  Visit Portal
+                </a>
+              </Button>
               <Button
                 onClick={handleExportData}
                 className="ml-3 inline-flex items-center"
