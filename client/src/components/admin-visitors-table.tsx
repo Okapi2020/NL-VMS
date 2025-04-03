@@ -14,6 +14,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Search, 
   UserRound, 
@@ -46,6 +47,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -76,6 +84,9 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedVisitor, setSelectedVisitor] = useState<Visitor | null>(null);
+  const [selectedVisitors, setSelectedVisitors] = useState<number[]>([]);
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const checkOutMutation = useMutation({
     mutationFn: async (visitId: number) => {
@@ -318,6 +329,13 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
     
     return sortDirection === "asc" ? comparison : -comparison;
   });
+  
+  // Calculate pagination
+  const totalPages = Math.ceil(sortedVisits.length / itemsPerPage);
+  const paginatedVisits = sortedVisits.slice(
+    (page - 1) * itemsPerPage,
+    page * itemsPerPage
+  );
 
   return (
     <div>
@@ -336,7 +354,7 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
 
       {/* Results count */}
       <div className="text-sm text-gray-500 mb-2">
-        Showing {sortedVisits.length} of {visits.length} active visitors
+        Showing {paginatedVisits.length} of {sortedVisits.length} active visitors
       </div>
 
       {/* Table */}
@@ -344,6 +362,18 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[40px]">
+                <Checkbox
+                  checked={paginatedVisits.length > 0 && selectedVisitors.length === paginatedVisits.length}
+                  onCheckedChange={(checked: boolean) => {
+                    if (checked) {
+                      setSelectedVisitors(paginatedVisits.map(item => item.visitor.id));
+                    } else {
+                      setSelectedVisitors([]);
+                    }
+                  }}
+                />
+              </TableHead>
               <TableHead 
                 className="cursor-pointer" 
                 onClick={() => handleSortChange("name")}
@@ -409,9 +439,21 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedVisits.length > 0 ? (
-              sortedVisits.map(({ visitor, visit }) => (
+            {paginatedVisits.length > 0 ? (
+              paginatedVisits.map(({ visitor, visit }) => (
                 <TableRow key={visit.id}>
+                  <TableCell className="py-2">
+                    <Checkbox
+                      checked={selectedVisitors.includes(visitor.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedVisitors([...selectedVisitors, visitor.id]);
+                        } else {
+                          setSelectedVisitors(selectedVisitors.filter(id => id !== visitor.id));
+                        }
+                      }}
+                    />
+                  </TableCell>
                   <TableCell>
                     <div className="font-medium">{visitor.fullName}</div>
                   </TableCell>
@@ -470,13 +512,100 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-4 text-gray-500">
+                <TableCell colSpan={9} className="text-center py-4 text-gray-500">
                   No visitors match your search criteria
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
+      </div>
+      
+      {/* Bulk actions and pagination controls */}
+      <div className="flex flex-wrap justify-between items-center gap-2 mt-4">
+        <div className="flex flex-wrap gap-2">
+          {selectedVisitors.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-red-600 border-red-200 hover:bg-red-50"
+              onClick={() => {
+                if (window.confirm(`Are you sure you want to delete ${selectedVisitors.length} selected visitor(s)? This will move them to the trash bin.`)) {
+                  Promise.all(
+                    selectedVisitors.map(id => 
+                      apiRequest("DELETE", `/api/admin/delete-visitor/${id}`)
+                        .then(res => res.json())
+                    )
+                  )
+                    .then(() => {
+                      toast({
+                        title: "Success",
+                        description: `${selectedVisitors.length} visitor(s) deleted successfully`,
+                      });
+                      setSelectedVisitors([]);
+                      // Refresh data
+                      queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
+                      queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
+                    })
+                    .catch(error => {
+                      toast({
+                        title: "Error",
+                        description: `Failed to delete visitors: ${error.message}`,
+                        variant: "destructive",
+                      });
+                    });
+                }
+              }}
+            >
+              Delete Selected ({selectedVisitors.length})
+            </Button>
+          )}
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Select
+            value={String(itemsPerPage)}
+            onValueChange={(value) => {
+              setItemsPerPage(Number(value));
+              setPage(1);
+            }}
+          >
+            <SelectTrigger className="h-8 w-[130px]">
+              <SelectValue placeholder="10 per page" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10 per page</SelectItem>
+              <SelectItem value="20">20 per page</SelectItem>
+              <SelectItem value="30">30 per page</SelectItem>
+              <SelectItem value="50">50 per page</SelectItem>
+              <SelectItem value="100">100 per page</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <div className="flex">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setPage(Math.max(1, (page || 1) - 1))}
+              disabled={(page || 0) <= 1}
+              className="h-9 w-9 rounded-r-none"
+            >
+              &lt;
+            </Button>
+            <div className="border-y px-3 flex items-center text-sm">
+              <span className="text-gray-500">Page {page || 1} of {Math.max(1, totalPages || 1)}</span>
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setPage(Math.min((totalPages || 1), (page || 1) + 1))}
+              disabled={(page || 0) >= (totalPages || 0) || (totalPages || 0) === 0}
+              className="h-9 w-9 rounded-l-none"
+            >
+              &gt;
+            </Button>
+          </div>
+        </div>
       </div>
       
       {/* Edit Visitor Dialog */}
