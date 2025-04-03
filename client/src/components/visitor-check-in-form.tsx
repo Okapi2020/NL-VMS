@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+import { useLocation } from "wouter";
 
 type VisitorCheckInFormProps = {
   onSuccess: (visitor: Visitor, visit: Visit) => void;
@@ -30,6 +31,7 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
     phoneNumber: ""
   });
   const { toast } = useToast();
+  const [location, setLocation] = useLocation();
 
   const form = useForm<VisitorFormValues>({
     resolver: zodResolver(visitorFormSchema),
@@ -61,9 +63,15 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
         title: "Check-in successful",
         description: "You have been checked in successfully!",
       });
+      // Save data in session first
       onSuccess(data.visitor, data.visit);
       form.reset();
       setContactDetailsValues({ email: "", phoneNumber: "" });
+      
+      // Redirect to welcome page after successful check-in
+      setTimeout(() => {
+        setLocation("/");
+      }, 1500); // Short delay to let toast appear
     },
     onError: (error: Error) => {
       toast({

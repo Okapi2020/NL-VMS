@@ -14,15 +14,8 @@ export default function VisitorPortal() {
   const [visitor, setVisitor] = useState<Visitor | null>(null);
   const [visit, setVisit] = useState<Visit | null>(null);
 
-  // Check for active session in local storage
-  useEffect(() => {
-    const storedVisitorId = localStorage.getItem("visitorId");
-    if (storedVisitorId) {
-      // Query for active visit
-      const visitorId = parseInt(storedVisitorId);
-      refetch();
-    }
-  }, []);
+  // We don't want to automatically check for stored visitor IDs
+  // on the visitor portal page - it should only show the form
 
   // Query for active visit if visitor ID is available
   const { refetch } = useQuery({
@@ -71,34 +64,31 @@ export default function VisitorPortal() {
           <div className="flex justify-between h-16">
             <div className="flex">
               <div className="flex-shrink-0 flex items-center">
-                <Link href="/">
-                  <a className="flex items-center">
-                    <svg
-                      className="h-8 w-8 text-primary-600"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                      />
-                    </svg>
-                    <span className="ml-2 text-lg font-semibold text-gray-900">
-                      Visitor Management System
-                    </span>
-                  </a>
+                <Link href="/" className="flex items-center">
+                  <svg
+                    className="h-8 w-8 text-primary-600"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                    />
+                  </svg>
+                  <span className="ml-2 text-lg font-semibold text-gray-900">
+                    Visitor Management System
+                  </span>
                 </Link>
               </div>
             </div>
             <div className="flex items-center">
-              <Link href="/auth">
-                <a className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-primary-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-                  Admin Login
-                </a>
+              <Link href="/auth" 
+                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-primary-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                Admin Login
               </Link>
             </div>
           </div>
