@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminVisitorsTable } from "@/components/admin-visitors-table";
 import { AdminVisitHistory } from "@/components/admin-visit-history";
 import { AdminSettings } from "@/components/admin-settings";
+import { DayOfWeekChart } from "@/components/analytics/day-of-week-chart";
+import { HourlyDistributionChart } from "@/components/analytics/hourly-distribution-chart";
 
 import { exportToCSV } from "@/lib/utils";
 import { Visit, Visitor } from "@shared/schema";
