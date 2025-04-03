@@ -18,8 +18,26 @@ type VisitorCheckedInProps = {
 export function VisitorCheckedIn({ visitor, visit, onCheckOut }: VisitorCheckedInProps) {
   const { toast } = useToast();
   const [, navigate] = useLocation();
-  const [countdown, setCountdown] = useState(30); // 30 seconds countdown
+  const [countdown, setCountdown] = useState(6); // 6 seconds countdown
   const [autoRedirect, setAutoRedirect] = useState(true); // Control whether auto-redirect is enabled
+  
+  // Auto redirect after 6 seconds
+  useEffect(() => {
+    let timer: number;
+    
+    if (autoRedirect && countdown > 0) {
+      timer = window.setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000);
+    } else if (autoRedirect && countdown === 0) {
+      // When countdown reaches 0, navigate to home page
+      navigate("/");
+    }
+    
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [countdown, autoRedirect, navigate]);
 
   const checkOutMutation = useMutation({
     mutationFn: async () => {
@@ -100,6 +118,22 @@ export function VisitorCheckedIn({ visitor, visit, onCheckOut }: VisitorCheckedI
               <span className="ml-1">{visitor.phoneNumber}</span>
             </div>
           </div>
+        </div>
+
+        <div className="mt-3 text-sm text-gray-500">
+          <div className="flex items-center justify-center gap-2">
+            <Timer className="h-4 w-4" />
+            <span>Returning to home page in {countdown} seconds...</span>
+            <button 
+              onClick={() => setAutoRedirect(false)} 
+              className="text-blue-600 hover:text-blue-800 underline text-xs"
+            >
+              Cancel
+            </button>
+          </div>
+          {!autoRedirect && (
+            <p className="mt-1 text-xs text-green-600">Auto-redirect cancelled. You can use the buttons below when ready.</p>
+          )}
         </div>
 
         <div className="mt-5 flex flex-col sm:flex-row gap-4 justify-center">

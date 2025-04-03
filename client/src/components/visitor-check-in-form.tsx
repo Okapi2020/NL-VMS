@@ -70,10 +70,7 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
       form.reset();
       setContactDetailsValues({ email: "", phoneNumber: "" });
       
-      // Redirect to welcome page after successful check-in
-      setTimeout(() => {
-        setLocation("/");
-      }, 1500); // Short delay to let toast appear
+      // No immediate redirect - visitor will see confirmation screen first
     },
     onError: (error: Error) => {
       toast({
