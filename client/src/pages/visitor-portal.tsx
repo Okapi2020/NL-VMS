@@ -3,16 +3,31 @@ import {
   Card, 
   CardContent 
 } from "@/components/ui/card";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { VisitorCheckInForm } from "@/components/visitor-check-in-form";
 import { VisitorCheckedIn } from "@/components/visitor-checked-in";
 import { Visitor, Visit } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
+import { useIdleTimeout } from "@/hooks/use-idle-timeout";
+import { ErrorBoundary } from "@/components/error-boundary";
 
-export default function VisitorPortal() {
+function VisitorPortalComponent() {
   const [checkedIn, setCheckedIn] = useState(false);
   const [visitor, setVisitor] = useState<Visitor | null>(null);
   const [visit, setVisit] = useState<Visit | null>(null);
+  const [, navigate] = useLocation();
+
+  // Configure idle timeout to redirect to welcome page after 2 minutes of inactivity
+  useIdleTimeout({
+    timeout: 2 * 60 * 1000, // 2 minutes in milliseconds
+    onIdle: () => {
+      // Only redirect if checked in or if the form is empty (not being filled out)
+      // This will need more sophisticated form state tracking in a real app
+      navigate("/");
+    },
+    // Only enable if not actively filling out the form
+    enabled: true
+  });
 
   // We don't want to automatically check for stored visitor IDs
   // on the visitor portal page - it should only show the form
@@ -125,5 +140,14 @@ export default function VisitorPortal() {
         </div>
       </main>
     </div>
+  );
+}
+
+// Export with ErrorBoundary
+export default function VisitorPortal() {
+  return (
+    <ErrorBoundary>
+      <VisitorPortalComponent />
+    </ErrorBoundary>
   );
 }

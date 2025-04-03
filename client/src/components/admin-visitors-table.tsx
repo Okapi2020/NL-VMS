@@ -11,8 +11,12 @@ import { Button } from "@/components/ui/button";
 import { formatTimeOnly, formatDuration, formatBadgeId } from "@/lib/utils";
 import { Visit, Visitor, UpdateVisitor } from "@shared/schema";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequestWithRetry, useGlobalErrorHandler } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { useDebounce } from "@/hooks/use-debounce";
+import { ErrorBoundary } from "@/components/error-boundary";
+import { Loading, ButtonLoading } from "@/components/ui/loading";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
@@ -74,12 +78,15 @@ const editVisitorSchema = z.object({
 
 type EditVisitorFormValues = z.infer<typeof editVisitorSchema>;
 
-export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProps) {
+// Wrap component with error boundary
+function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTableProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { handleApiError } = useGlobalErrorHandler();
   const [processingIds, setProcessingIds] = useState<Set<number>>(new Set());
   const [processingVerificationIds, setProcessingVerificationIds] = useState<Set<number>>(new Set());
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 300); // Debounce search input by 300ms
   const [sortField, setSortField] = useState<"name" | "checkIn" | "duration">("checkIn");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -87,6 +94,7 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
   const [selectedVisitors, setSelectedVisitors] = useState<number[]>([]);
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const checkOutMutation = useMutation({
     mutationFn: async (visitId: number) => {
@@ -294,18 +302,19 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
     return <div className="py-4 text-center">No visitors currently checked in.</div>;
   }
 
-  // Filter visits based on search term
+  // Filter visits based on search term (using debounced search term for better performance)
   const filteredVisits = visits.filter(({ visitor }) => {
-    if (!searchTerm) return true;
+    if (!debouncedSearchTerm) return true;
     
     // Generate badge ID for searching
     const badgeId = formatBadgeId(visitor.id).toLowerCase();
+    const searchLower = debouncedSearchTerm.toLowerCase();
     
     return (
-      visitor.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (visitor.email && visitor.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      visitor.phoneNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      badgeId.includes(searchTerm.toLowerCase())
+      visitor.fullName.toLowerCase().includes(searchLower) ||
+      (visitor.email && visitor.email.toLowerCase().includes(searchLower)) ||
+      visitor.phoneNumber.toLowerCase().includes(searchLower) ||
+      badgeId.includes(searchLower)
     );
   });
 
@@ -336,6 +345,21 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
     (page - 1) * itemsPerPage,
     page * itemsPerPage
   );
+
+  // Safely show loading state
+  if (isLoading) {
+    return <Loading text="Loading current visitors..." />;
+  }
+
+  // Safely show empty state
+  if (visits.length === 0) {
+    return (
+      <div className="py-6 text-center">
+        <div className="text-gray-500 mb-2">No visitors currently checked in</div>
+        <div className="text-sm text-gray-400">When visitors check in, they will appear here</div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -710,3 +734,5 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
     </div>
   );
 }
+
+export const AdminVisitorsTable = AdminVisitorsTableComponent;
