@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminVisitorsTable } from "@/components/admin-visitors-table";
 import { AdminVisitHistory } from "@/components/admin-visit-history";
 import { AdminSettings } from "@/components/admin-settings";
-import { AnalyticsDashboard } from "@/components/analytics";
+
 import { exportToCSV } from "@/lib/utils";
 import { Visit, Visitor } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -26,6 +26,8 @@ import {
   RefreshCw,
   Trash,
   BarChart,
+  CalendarDays,
+  TrendingUp,
 } from "lucide-react";
 
 export default function AdminDashboard() {
@@ -97,6 +99,41 @@ export default function AdminDashboard() {
   } = useQuery<Visitor[]>({
     queryKey: ["/api/admin/trash"],
     enabled: activeView === "trash"
+  });
+  
+  // Define type for analytics data
+  type AnalyticsData = {
+    summary: {
+      totalVisits: number;
+      uniqueVisitors: number;
+      completedVisits: number;
+      activeVisits: number;
+      averageVisitDuration: number;
+    };
+    timeSeries: {
+      date: string;
+      count: number;
+      active: number;
+      completed: number;
+      avgDuration: number;
+    }[];
+    byHour: {
+      hour: string;
+      count: number;
+    }[];
+    byDayOfWeek: {
+      day: string;
+      count: number;
+    }[];
+  };
+  
+  // Get analytics data for dashboard cards
+  const {
+    data: analyticsData,
+    isLoading: isLoadingAnalytics,
+  } = useQuery<AnalyticsData>({
+    queryKey: ["/api/analytics/data"],
+    enabled: activeView === "dashboard"
   });
   
   // Empty trash bin mutation
@@ -254,20 +291,7 @@ export default function AdminDashboard() {
             }`} />
             Visitors
           </a>
-          <a
-            href="#"
-            onClick={(e) => { e.preventDefault(); setActiveView("analytics"); }}
-            className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-              activeView === "analytics" 
-                ? "bg-primary-50 text-primary-700" 
-                : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-            }`}
-          >
-            <BarChart className={`mr-3 h-5 w-5 ${
-              activeView === "analytics" ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
-            }`} />
-            Analytics
-          </a>
+
           <a
             href="#"
             onClick={(e) => { e.preventDefault(); setActiveView("reports"); }}
@@ -344,7 +368,7 @@ export default function AdminDashboard() {
               <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
                 {activeView === "dashboard" && "Dashboard"}
                 {activeView === "visitors" && "Visitors"}
-                {activeView === "analytics" && "Analytics"}
+
                 {activeView === "reports" && "Reports"}
                 {activeView === "trash" && "Recycle Bin"}
                 {activeView === "settings" && "Settings"}
@@ -442,6 +466,112 @@ export default function AdminDashboard() {
                 </Card>
               </div>
 
+              {/* Analytics Cards */}
+              <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
+                {/* Day frequency card */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center">
+                      <CalendarDays className="h-5 w-5 mr-2 text-primary-600" /> 
+                      Visit Frequency by Day
+                    </CardTitle>
+                    <CardDescription>
+                      How busy each day of the week is
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {isLoadingAnalytics ? (
+                      <div className="flex justify-center p-8">
+                        <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
+                      </div>
+                    ) : !analyticsData?.byDayOfWeek?.length ? (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>No data available</p>
+                      </div>
+                    ) : (
+                      <div className="h-52">
+                        <div className="space-y-2">
+                          {analyticsData.byDayOfWeek.map((item) => (
+                            <div key={item.day} className="flex items-center">
+                              <div className="w-12 text-sm text-gray-500">{item.day}</div>
+                              <div className="flex-1 ml-2">
+                                <div className="relative h-8">
+                                  <div className="absolute inset-0 bg-gray-100 rounded"></div>
+                                  <div 
+                                    className="absolute inset-y-0 left-0 bg-primary-500 rounded" 
+                                    style={{ 
+                                      width: `${item.count ? Math.max((item.count / Math.max(...analyticsData.byDayOfWeek.map(d => d.count))) * 100, 5) : 0}%` 
+                                    }}
+                                  ></div>
+                                  <div className="absolute inset-y-0 right-2 flex items-center">
+                                    <span className="text-sm font-medium">{item.count}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Peak time card */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center">
+                      <TrendingUp className="h-5 w-5 mr-2 text-primary-600" /> 
+                      Peak Check-in Times
+                    </CardTitle>
+                    <CardDescription>
+                      Most popular hours for visitor check-ins
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {isLoadingAnalytics ? (
+                      <div className="flex justify-center p-8">
+                        <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
+                      </div>
+                    ) : !analyticsData?.byHour?.length ? (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>No data available</p>
+                      </div>
+                    ) : (
+                      <div className="h-52 overflow-y-auto pr-2">
+                        <div className="space-y-2">
+                          {analyticsData.byHour
+                            .map(item => ({
+                              ...item,
+                              hour: `${item.hour}:00`,
+                              hourNum: parseInt(item.hour, 10)
+                            }))
+                            .sort((a, b) => a.hourNum - b.hourNum)
+                            .map((item) => (
+                              <div key={item.hour} className="flex items-center">
+                                <div className="w-16 text-sm text-gray-500">{item.hour}</div>
+                                <div className="flex-1 ml-2">
+                                  <div className="relative h-8">
+                                    <div className="absolute inset-0 bg-gray-100 rounded"></div>
+                                    <div 
+                                      className="absolute inset-y-0 left-0 bg-blue-500 rounded" 
+                                      style={{ 
+                                        width: `${item.count ? Math.max((item.count / Math.max(...analyticsData.byHour.map(h => h.count))) * 100, 5) : 0}%` 
+                                      }}
+                                    ></div>
+                                    <div className="absolute inset-y-0 right-2 flex items-center">
+                                      <span className="text-sm font-medium">{item.count}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
               {/* Visitor List Tabs */}
               <div className="mt-8">
                 <Tabs defaultValue="current" onValueChange={setActiveTab}>
@@ -484,20 +614,7 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* Analytics View */}
-          {activeView === "analytics" && (
-            <div className="mt-6">
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-medium mb-4">Visitor Analytics</h3>
-                  <p className="text-gray-500 mb-4">Analyze visitor traffic and patterns over time.</p>
-                  
-                  {/* Analytics Dashboard Component */}
-                  <AnalyticsDashboard />
-                </CardContent>
-              </Card>
-            </div>
-          )}
+
 
           {/* Reports View */}
           {activeView === "reports" && (
