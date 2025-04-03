@@ -69,7 +69,7 @@ export default function WelcomePage() {
                 </p>
                 
                 {/* Live Clock Display */}
-                <div className="mb-6 bg-white/80 py-3 px-4 rounded-lg shadow-sm w-full">
+                <div className="mb-6 w-full flex justify-center">
                   <LiveClock />
                 </div>
                 

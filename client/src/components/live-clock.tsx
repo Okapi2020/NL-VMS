@@ -14,12 +14,13 @@ export function LiveClock() {
     return () => clearInterval(timer);
   }, []);
   
-  // Format the time (HH:MM:SS)
+  // Format the time in 24-hour format (HH:MM:SS)
   const formatTime = () => {
     return dateTime.toLocaleTimeString([], { 
       hour: '2-digit', 
       minute: '2-digit', 
-      second: '2-digit' 
+      second: '2-digit',
+      hour12: false
     });
   };
   
@@ -36,7 +37,7 @@ export function LiveClock() {
   return (
     <div className="flex items-center gap-2 text-gray-700">
       <Clock className="h-5 w-5 text-primary-500" />
-      <div>
+      <div className="text-center">
         <div className="text-lg font-medium">{formatTime()}</div>
         <div className="text-sm">{formatDate()}</div>
       </div>
