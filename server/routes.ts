@@ -6,7 +6,8 @@ import {
   visitorFormSchema, 
   updateVisitSchema, 
   updateVisitorVerificationSchema,
-  updateVisitorSchema
+  updateVisitorSchema,
+  type Visitor
 } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
@@ -39,10 +40,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate the form data
       const formData = visitorFormSchema.parse(req.body);
       
-      // First, check if visitor exists by email (if provided)
-      let visitor;
+      // First, check if visitor exists by email or phone number
+      let visitor: Visitor | undefined;
+      
       if (formData.email) {
         visitor = await storage.getVisitorByEmail(formData.email);
+      }
+      
+      // If not found by email, try to find by phone number
+      if (!visitor && formData.phoneNumber) {
+        visitor = await storage.getVisitorByPhoneNumber(formData.phoneNumber);
       }
       
       // If visitor doesn't exist, create a new one
@@ -53,6 +60,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: formData.email || null,
           phoneNumber: formData.phoneNumber,
         });
+        
+        if (!visitor) {
+          return res.status(500).json({ message: "Failed to create visitor record" });
+        }
+      } else {
+        // If visitor exists but some details have changed, update their record
+        // Only update if there are actual changes
+        const needsUpdate = (
+          visitor.fullName !== formData.fullName ||
+          visitor.yearOfBirth !== formData.yearOfBirth ||
+          (formData.email && visitor.email !== formData.email) ||
+          visitor.phoneNumber !== formData.phoneNumber
+        );
+        
+        if (needsUpdate) {
+          const updatedVisitor = await storage.updateVisitor({
+            id: visitor.id,
+            fullName: formData.fullName,
+            yearOfBirth: formData.yearOfBirth,
+            email: formData.email || visitor.email,
+            phoneNumber: formData.phoneNumber
+          });
+          
+          if (!updatedVisitor) {
+            return res.status(500).json({ message: "Failed to update visitor record" });
+          }
+          
+          visitor = updatedVisitor;
+        }
       }
       
       // Create a new visit record

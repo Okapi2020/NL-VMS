@@ -238,9 +238,16 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
               </div>
             </CardContent>
           </Card>
-          <p className="text-sm text-muted-foreground">
-            By clicking "Check In", you confirm that the information above is correct.
-          </p>
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              By clicking "Check In", you confirm that the information above is correct.
+            </p>
+            <div className="bg-blue-50 p-3 rounded-md border border-blue-100">
+              <p className="text-sm text-blue-700">
+                <span className="font-semibold">Returning visitor?</span> If you've checked in before using the same email or phone number, our system will recognize you and update your information.
+              </p>
+            </div>
+          </div>
         </div>
       ),
       validate: () => true

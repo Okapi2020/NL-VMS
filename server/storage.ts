@@ -25,6 +25,7 @@ export interface IStorage {
   // Visitor methods
   getVisitor(id: number): Promise<Visitor | undefined>;
   getVisitorByEmail(email: string): Promise<Visitor | undefined>;
+  getVisitorByPhoneNumber(phoneNumber: string): Promise<Visitor | undefined>;
   createVisitor(visitor: InsertVisitor): Promise<Visitor>;
   getAllVisitors(): Promise<Visitor[]>;
   getDeletedVisitors(): Promise<Visitor[]>;
@@ -93,6 +94,12 @@ export class DatabaseStorage implements IStorage {
   async getVisitorByEmail(email: string): Promise<Visitor | undefined> {
     if (!email) return undefined;
     const [visitor] = await db.select().from(visitors).where(eq(visitors.email, email));
+    return visitor;
+  }
+  
+  async getVisitorByPhoneNumber(phoneNumber: string): Promise<Visitor | undefined> {
+    if (!phoneNumber) return undefined;
+    const [visitor] = await db.select().from(visitors).where(eq(visitors.phoneNumber, phoneNumber));
     return visitor;
   }
   
