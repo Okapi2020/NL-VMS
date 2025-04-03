@@ -29,24 +29,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     data: user,
     error,
     isLoading,
+    refetch
   } = useQuery<Admin | null, Error>({
     queryKey: ["/api/admin/user"],
     queryFn: getQueryFn({ on401: "returnNull" }),
+    retry: false,
+    refetchOnWindowFocus: true, // Refresh user data when window gets focus
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
-      const res = await apiRequest("POST", "/api/admin/login", credentials);
-      return await res.json();
+      console.log("Attempting login with credentials:", credentials);
+      try {
+        const res = await apiRequest("POST", "/api/admin/login", credentials);
+        const userData = await res.json();
+        console.log("Login response:", userData);
+        return userData;
+      } catch (error) {
+        console.error("Login error:", error);
+        throw error;
+      }
     },
     onSuccess: (user: Admin) => {
+      console.log("Login successful, setting user data:", user);
+      
+      // Update the cached user data
       queryClient.setQueryData(["/api/admin/user"], user);
+      
+      // Also refetch to ensure we have fresh data
+      refetch();
+      
       toast({
         title: "Logged in successfully",
         description: `Welcome back, ${user.username}!`,
       });
+      
+      // Verify user data was set correctly
+      setTimeout(() => {
+        console.log("Current user data:", queryClient.getQueryData(["/api/admin/user"]));
+      }, 500);
     },
     onError: (error: Error) => {
+      console.error("Login mutation error:", error);
       toast({
         title: "Login failed",
         description: "Invalid username or password",
@@ -60,7 +85,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await apiRequest("POST", "/api/admin/logout");
     },
     onSuccess: () => {
+      // Clear the cached user data
       queryClient.setQueryData(["/api/admin/user"], null);
+      
+      // Also refetch to ensure our state is up-to-date
+      refetch();
+      
       toast({
         title: "Logged out",
         description: "You have been logged out successfully",

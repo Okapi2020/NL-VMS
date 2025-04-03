@@ -40,7 +40,9 @@ export function setupAuth(app: Express) {
     store: storage.sessionStore,
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      secure: process.env.NODE_ENV === "production",
+      secure: false, // Set to true in production with HTTPS
+      httpOnly: true,
+      sameSite: 'lax'
     }
   };
 
@@ -91,8 +93,31 @@ export function setupAuth(app: Express) {
   })();
 
   // Authentication routes
-  app.post("/api/admin/login", passport.authenticate("local"), (req, res) => {
-    res.status(200).json(req.user);
+  app.post("/api/admin/login", (req, res, next) => {
+    console.log("Login attempt for username:", req.body.username);
+    
+    passport.authenticate("local", (err: any, user: Express.User | false, info: any) => {
+      if (err) {
+        console.error("Login error:", err);
+        return next(err);
+      }
+      
+      if (!user) {
+        console.log("Authentication failed:", info);
+        return res.status(401).json({ message: "Authentication failed" });
+      }
+      
+      req.login(user, (err) => {
+        if (err) {
+          console.error("Session save error:", err);
+          return next(err);
+        }
+        
+        console.log("Login successful for:", user.username);
+        console.log("Session ID:", req.sessionID);
+        return res.status(200).json(user);
+      });
+    })(req, res, next);
   });
 
   app.post("/api/admin/logout", (req, res, next) => {
@@ -103,7 +128,15 @@ export function setupAuth(app: Express) {
   });
 
   app.get("/api/admin/user", (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    res.json(req.user);
+    console.log("GET /api/admin/user - isAuthenticated:", req.isAuthenticated());
+    console.log("Session ID:", req.sessionID);
+    
+    if (req.isAuthenticated()) {
+      console.log("Authenticated user:", req.user);
+      return res.json(req.user);
+    } else {
+      console.log("User not authenticated");
+      return res.sendStatus(401);
+    }
   });
 }
