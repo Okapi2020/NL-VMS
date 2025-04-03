@@ -18,6 +18,13 @@ const settingsSchema = z.object({
     .min(1, { message: "Application name is required" })
     .max(50, { message: "Application name cannot exceed 50 characters" }),
   logoUrl: z.string().nullable().optional(),
+  countryCode: z
+    .string()
+    .min(1, { message: "Country code is required" })
+    .max(5, { message: "Country code should be up to 5 digits" })
+    .refine(code => /^\d+$/.test(code), {
+      message: "Country code should contain only digits"
+    }),
 });
 
 type SettingsFormValues = z.infer<typeof settingsSchema>;
@@ -69,10 +76,12 @@ export function AdminSettings() {
     defaultValues: {
       appName: settings?.appName || "Visitor Management System",
       logoUrl: settings?.logoUrl || null,
+      countryCode: settings?.countryCode || "243",
     },
     values: settings ? {
       appName: settings.appName,
       logoUrl: settings.logoUrl,
+      countryCode: settings.countryCode,
     } : undefined,
   });
   
@@ -190,6 +199,27 @@ export function AdminSettings() {
               )}
             />
             
+            <FormField
+              control={form.control}
+              name="countryCode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Default Country Code</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="243" 
+                      {...field} 
+                      maxLength={5}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    This country code will be used when displaying phone numbers (e.g., +243)
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <div className="space-y-4">
               <FormLabel>Application Logo</FormLabel>
               

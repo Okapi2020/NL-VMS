@@ -77,16 +77,38 @@ export const visitorFormSchema = z.object({
     .min(1900, "Please enter a valid year")
     .max(new Date().getFullYear(), "Year cannot be in the future"),
   email: z.string().email("Please enter a valid email").optional().or(z.literal("")),
-  phoneNumber: z.string().min(1, "Phone number is required"),
+  phoneNumber: z.string()
+    .min(1, "Phone number is required")
+    .refine(
+      phone => {
+        // Remove all non-digit characters for validation
+        const digits = phone.replace(/\D/g, '');
+        // Phone should have exactly 10 digits
+        return digits.length === 10;
+      },
+      {
+        message: "Phone number must be exactly 10 digits"
+      }
+    ),
   purpose: z.string().min(1, "Purpose of visit is required").optional(),
 })
 .transform((data) => {
   // Combine name fields into fullName for backend compatibility
   const middleName = data.middleName ? ` ${data.middleName} ` : ' ';
   const fullName = data.firstName + middleName + data.lastName;
+  
+  // Normalize phone number to remove any non-digit characters
+  let phoneNumber = data.phoneNumber.replace(/\D/g, '');
+  
+  // Remove leading zero if present (for country code format)
+  if (phoneNumber.startsWith('0')) {
+    phoneNumber = phoneNumber.substring(1);
+  }
+  
   return {
     ...data,
-    fullName: fullName.trim()
+    fullName: fullName.trim(),
+    phoneNumber: phoneNumber
   };
 });
 
@@ -139,17 +161,20 @@ export const settings = pgTable("settings", {
   id: serial("id").primaryKey(),
   appName: varchar("app_name", { length: 255 }).default("Visitor Management System").notNull(),
   logoUrl: text("logo_url"),
+  countryCode: varchar("country_code", { length: 10 }).default("243").notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const insertSettingsSchema = createInsertSchema(settings).pick({
   appName: true,
   logoUrl: true,
+  countryCode: true,
 });
 
 export const updateSettingsSchema = z.object({
   appName: z.string().min(1, "Application name must not be empty"),
   logoUrl: z.string().nullable().optional(),
+  countryCode: z.string().min(1, "Country code must not be empty").max(5, "Country code should be up to 5 digits"),
 });
 
 export type Settings = typeof settings.$inferSelect;

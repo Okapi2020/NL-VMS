@@ -52,6 +52,24 @@ export function formatBadgeId(visitorId: number): string {
   return `VIS-${visitorId.toString().padStart(5, '0')}`;
 }
 
+// Format phone number for display with country code
+export function formatPhoneWithCountryCode(phoneNumber: string, countryCode: string): string {
+  // Remove any non-digit characters
+  const digitsOnly = phoneNumber.replace(/\D/g, '');
+  
+  // Remove leading zero if present
+  const formattedNumber = digitsOnly.startsWith('0') ? digitsOnly.substring(1) : digitsOnly;
+  
+  // Return formatted number with country code
+  return `+${countryCode}${formattedNumber}`;
+}
+
+// Create WhatsApp URL for a phone number
+export function getWhatsAppUrl(phoneNumber: string, countryCode: string): string {
+  const formattedNumber = formatPhoneWithCountryCode(phoneNumber, countryCode).replace(/\+/g, '');
+  return `https://wa.me/${formattedNumber}`;
+}
+
 // Helper function to convert objects to CSV format
 export function exportToCSV(data: any[], filename: string) {
   if (!data || !data.length) {

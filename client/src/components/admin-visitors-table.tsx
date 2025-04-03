@@ -33,6 +33,7 @@ import {
   Trash2,
   X
 } from "lucide-react";
+
 import {
   Dialog,
   DialogContent,
@@ -61,6 +62,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { PhoneNumberLink } from "@/components/phone-number-link";
 
 type AdminVisitorsTableProps = {
   visits: { visit: Visit; visitor: Visitor }[];
@@ -482,7 +484,13 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                     <div className="font-medium">{visitor.fullName}</div>
                   </TableCell>
                   <TableCell className="text-sm text-gray-500">{visitor.email || "No email provided"}</TableCell>
-                  <TableCell className="text-sm">{visitor.phoneNumber}</TableCell>
+                  <TableCell className="text-sm">
+                    {visitor.phoneNumber ? (
+                      <PhoneNumberLink phoneNumber={visitor.phoneNumber} />
+                    ) : (
+                      "No phone provided"
+                    )}
+                  </TableCell>
                   <TableCell className="font-mono text-xs text-blue-600 font-medium">{formatBadgeId(visitor.id)}</TableCell>
                   <TableCell>{formatTimeOnly(visit.checkInTime)}</TableCell>
                   <TableCell className="text-center">

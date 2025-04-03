@@ -62,13 +62,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Better logging for troubleshooting
       console.log("Settings update request received:", { 
         hasAppName: !!req.body.appName,
-        logoUrlLength: req.body.logoUrl ? req.body.logoUrl.length : 0 
+        logoUrlLength: req.body.logoUrl ? req.body.logoUrl.length : 0,
+        countryCode: req.body.countryCode
       });
       
       // Update settings
       const updatedSettings = await storage.updateSettings({
         appName: req.body.appName,
-        logoUrl: req.body.logoUrl
+        logoUrl: req.body.logoUrl,
+        countryCode: req.body.countryCode || "243" // Default to 243 if not provided
       });
       
       if (!updatedSettings) {

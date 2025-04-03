@@ -242,13 +242,22 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
               <FormItem>
                 <FormLabel>Phone Number</FormLabel>
                 <FormControl>
-                  <Input 
-                    type="tel" 
-                    placeholder="+1 (555) 123-4567" 
-                    value={contactDetailsValues.phoneNumber}
-                    onChange={(e) => handleContactDetailsChange("phoneNumber", e.target.value)}
-                    onBlur={field.onBlur}
-                  />
+                  <div>
+                    <Input 
+                      type="tel" 
+                      placeholder="0808 382 697" 
+                      value={contactDetailsValues.phoneNumber}
+                      onChange={(e) => {
+                        // Allow only numbers and basic formatting characters
+                        const value = e.target.value.replace(/[^\d\s-]/g, '');
+                        handleContactDetailsChange("phoneNumber", value);
+                      }}
+                      onBlur={field.onBlur}
+                    />
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      Enter a 10-digit phone number (e.g., 0808 382 697)
+                    </div>
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatTimeOnly, formatBadgeId } from "@/lib/utils";
 import { Check, Tag, Phone, Timer } from "lucide-react";
+import { PhoneNumberLink } from "@/components/phone-number-link";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -115,7 +116,13 @@ export function VisitorCheckedIn({ visitor, visit, onCheckOut }: VisitorCheckedI
             <div className="flex items-center">
               <Phone className="h-4 w-4 mr-1 text-gray-500" />
               <span className="font-medium">Phone:</span>{" "}
-              <span className="ml-1">{visitor.phoneNumber}</span>
+              <span className="ml-1">
+                {visitor.phoneNumber ? (
+                  <PhoneNumberLink phoneNumber={visitor.phoneNumber} />
+                ) : (
+                  "No phone provided"
+                )}
+              </span>
             </div>
           </div>
         </div>

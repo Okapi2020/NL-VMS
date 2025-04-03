@@ -33,6 +33,7 @@ import {
   Trash2,
   ArchiveRestore
 } from "lucide-react";
+import { PhoneNumberLink } from "@/components/phone-number-link";
 import {
   Dialog,
   DialogContent,
@@ -922,7 +923,13 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                     <div className="font-medium">{visitor.fullName}</div>
                   </TableCell>
                   <TableCell className="text-sm text-gray-500">{visitor.email || "No email provided"}</TableCell>
-                  <TableCell className="text-sm">{visitor.phoneNumber}</TableCell>
+                  <TableCell className="text-sm">
+                    {visitor.phoneNumber ? (
+                      <PhoneNumberLink phoneNumber={visitor.phoneNumber} />
+                    ) : (
+                      "No phone provided"
+                    )}
+                  </TableCell>
                   <TableCell className="font-mono text-xs text-blue-600 font-medium">{formatBadgeId(visitor.id)}</TableCell>
                   <TableCell>
                     <div className="text-sm">{formatTimeOnly(visit.checkInTime)}</div>

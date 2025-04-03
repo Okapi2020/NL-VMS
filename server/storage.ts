@@ -408,6 +408,7 @@ export class DatabaseStorage implements IStorage {
         .values({
           appName: customSettings?.appName || "Visitor Management System",
           logoUrl: customSettings?.logoUrl || null,
+          countryCode: customSettings?.countryCode || "243", // Default country code
         })
         .returning();
       
