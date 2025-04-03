@@ -47,6 +47,11 @@ export function formatDuration(startDate: Date | string, endDate: Date | string)
   return `${hours}h ${remainingMinutes}m`;
 }
 
+export function formatBadgeId(visitorId: number): string {
+  // Format visitor ID to VIS-XXXXX format
+  return `VIS-${visitorId.toString().padStart(5, '0')}`;
+}
+
 // Helper function to convert objects to CSV format
 export function exportToCSV(data: any[], filename: string) {
   if (!data || !data.length) {

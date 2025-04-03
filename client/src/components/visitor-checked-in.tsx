@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { formatTimeOnly } from "@/lib/utils";
-import { Check } from "lucide-react";
+import { formatTimeOnly, formatBadgeId } from "@/lib/utils";
+import { Check, Tag, Phone } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -68,9 +68,16 @@ export function VisitorCheckedIn({ visitor, visit, onCheckOut }: VisitorCheckedI
               <span>{formatTimeOnly(visit.checkInTime)}</span>
             </div>
 
-            <div>
-              <span className="font-medium">Visitor ID:</span>{" "}
-              <span>VIS-{visit.id.toString().padStart(5, '0')}</span>
+            <div className="flex items-center">
+              <Tag className="h-4 w-4 mr-1 text-blue-600" />
+              <span className="font-medium">Badge ID:</span>{" "}
+              <span className="font-mono text-blue-600 ml-1">{formatBadgeId(visitor.id)}</span>
+            </div>
+            
+            <div className="flex items-center">
+              <Phone className="h-4 w-4 mr-1 text-gray-500" />
+              <span className="font-medium">Phone:</span>{" "}
+              <span className="ml-1">{visitor.phoneNumber}</span>
             </div>
           </div>
         </div>

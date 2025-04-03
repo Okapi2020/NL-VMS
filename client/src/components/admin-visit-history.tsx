@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatDate, formatTimeOnly, formatDuration } from "@/lib/utils";
+import { formatDate, formatTimeOnly, formatDuration, formatBadgeId } from "@/lib/utils";
 import { Visit, Visitor } from "@shared/schema";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,9 @@ import {
   Calendar,
   UserRound,
   Clock,
-  XCircle
+  XCircle,
+  Tag,
+  Phone
 } from "lucide-react";
 import {
   Select,
@@ -54,9 +56,14 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
 
   // Filter visits based on search term, status, and date range
   const filteredVisits = visitHistory.filter(({ visitor, visit }) => {
+    // Generate badge ID for searching
+    const badgeId = formatBadgeId(visitor.id).toLowerCase();
+    
     const matchesSearch = 
       visitor.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (visitor.email && visitor.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      visitor.phoneNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      badgeId.includes(searchTerm.toLowerCase()) ||
       formatDate(visit.checkInTime).toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = 
@@ -140,7 +147,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
             <Input
-              placeholder="Search visitors..."
+              placeholder="Search by name, badge, phone, email, date..."
               className="w-full pl-9"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -236,6 +243,12 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
           <TableHeader>
             <TableRow>
               <TableHead>ID</TableHead>
+              <TableHead>
+                <div className="flex items-center">
+                  <Tag className="mr-1 h-4 w-4" />
+                  Badge ID
+                </div>
+              </TableHead>
               <TableHead 
                 className="cursor-pointer" 
                 onClick={() => handleSortChange("name")}
@@ -248,6 +261,12 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                     <ChevronUp className="ml-1 h-4 w-4" /> : 
                     <ChevronDown className="ml-1 h-4 w-4" />
                   )}
+                </div>
+              </TableHead>
+              <TableHead>
+                <div className="flex items-center">
+                  <Phone className="mr-1 h-4 w-4" />
+                  Phone
                 </div>
               </TableHead>
               <TableHead 
@@ -299,10 +318,12 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
               sortedVisits.map(({ visitor, visit }) => (
                 <TableRow key={visit.id}>
                   <TableCell className="font-mono text-xs">#{visitor.id}</TableCell>
+                  <TableCell className="font-mono text-xs text-blue-600 font-medium">{formatBadgeId(visitor.id)}</TableCell>
                   <TableCell>
                     <div className="font-medium">{visitor.fullName}</div>
                     <div className="text-sm text-gray-500">{visitor.email || "No email provided"}</div>
                   </TableCell>
+                  <TableCell className="text-sm">{visitor.phoneNumber}</TableCell>
                   <TableCell>
                     <div className="text-sm">{formatTimeOnly(visit.checkInTime)}</div>
                     <div className="text-xs text-gray-500">
@@ -332,7 +353,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-4 text-gray-500">
+                <TableCell colSpan={7} className="text-center py-4 text-gray-500">
                   No visits match your search or filters
                 </TableCell>
               </TableRow>

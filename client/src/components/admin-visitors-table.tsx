@@ -8,13 +8,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { formatTimeOnly, formatDuration } from "@/lib/utils";
+import { formatTimeOnly, formatDuration, formatBadgeId } from "@/lib/utils";
 import { Visit, Visitor } from "@shared/schema";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
-import { Search, UserRound, Clock, CalendarClock, ChevronDown, ChevronUp } from "lucide-react";
+import { Search, UserRound, Clock, CalendarClock, ChevronDown, ChevronUp, Tag, Phone } from "lucide-react";
 
 type AdminVisitorsTableProps = {
   visits: { visit: Visit; visitor: Visitor }[];
@@ -107,9 +107,14 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
   const filteredVisits = visits.filter(({ visitor }) => {
     if (!searchTerm) return true;
     
+    // Generate badge ID for searching
+    const badgeId = formatBadgeId(visitor.id).toLowerCase();
+    
     return (
       visitor.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (visitor.email && visitor.email.toLowerCase().includes(searchTerm.toLowerCase()))
+      (visitor.email && visitor.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      visitor.phoneNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      badgeId.includes(searchTerm.toLowerCase())
     );
   });
 
@@ -141,7 +146,7 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
         <div className="relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
           <Input
-            placeholder="Search visitors..."
+            placeholder="Search by name, badge, phone, email..."
             className="w-full pl-9"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -160,6 +165,12 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
           <TableHeader>
             <TableRow>
               <TableHead>ID</TableHead>
+              <TableHead>
+                <div className="flex items-center">
+                  <Tag className="mr-1 h-4 w-4" />
+                  Badge ID
+                </div>
+              </TableHead>
               <TableHead 
                 className="cursor-pointer" 
                 onClick={() => handleSortChange("name")}
@@ -172,6 +183,12 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
                     <ChevronUp className="ml-1 h-4 w-4" /> : 
                     <ChevronDown className="ml-1 h-4 w-4" />
                   )}
+                </div>
+              </TableHead>
+              <TableHead>
+                <div className="flex items-center">
+                  <Phone className="mr-1 h-4 w-4" />
+                  Phone
                 </div>
               </TableHead>
               <TableHead 
@@ -210,10 +227,12 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
               sortedVisits.map(({ visitor, visit }) => (
                 <TableRow key={visit.id}>
                   <TableCell className="font-mono text-xs">#{visitor.id}</TableCell>
+                  <TableCell className="font-mono text-xs text-blue-600 font-medium">{formatBadgeId(visitor.id)}</TableCell>
                   <TableCell>
                     <div className="font-medium">{visitor.fullName}</div>
                     <div className="text-sm text-gray-500">{visitor.email || "No email provided"}</div>
                   </TableCell>
+                  <TableCell className="text-sm">{visitor.phoneNumber}</TableCell>
                   <TableCell>{formatTimeOnly(visit.checkInTime)}</TableCell>
                   <TableCell>{calculateDuration(visit.checkInTime)}</TableCell>
                   <TableCell className="text-right">
@@ -230,7 +249,7 @@ export function AdminVisitorsTable({ visits, isLoading }: AdminVisitorsTableProp
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-4 text-gray-500">
+                <TableCell colSpan={7} className="text-center py-4 text-gray-500">
                   No visitors match your search criteria
                 </TableCell>
               </TableRow>
