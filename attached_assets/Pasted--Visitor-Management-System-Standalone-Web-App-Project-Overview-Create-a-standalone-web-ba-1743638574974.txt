@@ -1,0 +1,40 @@
+### Visitor Management System (Standalone Web App
+#### Project Overview
+Create a standalone web-based Visitor Management System (VMS) with a clean architecture, beautiful user interfaces, and a robust API for integration with other applications (such as the NL Time Controller App). The system should have a visitor-facing portal, an admin dashboard, and a secure backend with a well-documented API.
+
+#### Step 1: App Setup
+- Create a new project for the Visitor Management System.
+- Organize the project structure in a clear and maintainable way.
+- Set up necessary configurations and environment settings.
+
+#### Step 2: Backend Setup
+- Design a structured and efficient database to store visitor information and visit logs.
+- Implement API endpoints that allow for visitor check-in, check-out, and data retrieval.
+- Ensure the backend can handle multiple concurrent users and provide reliable performance.
+
+#### Step 3: Frontend Visitor Portal
+- Design a clean and intuitive user interface for visitors to check in and check out.
+- Include fields like Full Name, Email (optional), Phone Number, and Year of Birth.
+- Display the visitor’s age automatically after entering the year of birth.
+- Provide clear feedback on the success or failure of actions.
+- Design a multi step form
+
+#### Step 4: Admin Dashboard
+- Create a simple and efficient dashboard for administrators to monitor and manage visitors.
+- Include features like real-time status updates, visitor history, and manual check-out.
+- Allow administrators to export data in common formats for analysis.
+- Ensure the dashboard is accessible and easy to use.
+
+#### Step 5: Integration with NL Time Controller
+- Create robust and secure API endpoints to allow the NL Time Controller to fetch visitor information.
+- Implement features that sync visitor data as customer profiles when selected.
+- Ensure secure and authenticated communication between applications.
+
+#### Step 6: Additional Requirements
+- Maintain a clean and consistent codebase with comprehensive comments.
+- Implement error handling for edge cases and unexpected inputs.
+- Provide thorough documentation for developers and administrators.
+
+#### Final Considerations
+Ensure the system is built with scalability and modularity in mind. Focus on performance, usability, and maintainability to facilitate future updates and integrations.
+
