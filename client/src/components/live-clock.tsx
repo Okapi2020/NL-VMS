@@ -35,12 +35,12 @@ export function LiveClock() {
   };
   
   return (
-    <div className="flex items-center gap-2 text-gray-700">
-      <Clock className="h-5 w-5 text-primary-500" />
-      <div className="text-center">
+    <div className="flex flex-col items-center text-gray-700">
+      <div className="flex items-center gap-1.5 mb-1">
+        <Clock className="h-5 w-5 text-gray-500" />
         <div className="text-lg font-medium">{formatTime()}</div>
-        <div className="text-sm">{formatDate()}</div>
       </div>
+      <div className="text-sm text-gray-500">{formatDate()}</div>
     </div>
   );
 }
