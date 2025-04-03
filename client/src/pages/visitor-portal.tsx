@@ -90,29 +90,6 @@ function VisitorPortalComponent() {
   
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header with logo and back button */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <div className="flex items-center">
-            {settings?.logoUrl ? (
-              <img 
-                src={settings.logoUrl} 
-                alt={appName} 
-                className="h-10 mr-3 object-contain"
-              />
-            ) : (
-              isLoadingSettings ? (
-                <Loader2 className="h-10 w-10 mr-3 text-primary-500 animate-spin" />
-              ) : null
-            )}
-            <h1 className="text-2xl font-bold text-gray-900">{appName}</h1>
-          </div>
-          <Link href="/" className="text-primary-600 hover:text-primary-800 text-sm font-medium">
-            Back to Home
-          </Link>
-        </div>
-      </header>
-      
       {/* Main Content */}
       <main className="py-6 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">

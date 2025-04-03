@@ -10,6 +10,7 @@ import { visits, type Visit, type InsertVisit, type UpdateVisit } from "@shared/
 import { settings, type Settings, type UpdateSettings } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull } from "drizzle-orm";
+import { sql } from "drizzle-orm/sql/sql";
 import session from "express-session";
 type SessionStore = session.Store;
 import connectPg from "connect-pg-simple";
