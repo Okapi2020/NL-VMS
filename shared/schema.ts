@@ -92,6 +92,7 @@ export const updateVisitSchema = z.object({
   id: z.number(),
   checkOutTime: z.date().optional(),
   active: z.boolean().optional(),
+  purpose: z.string().optional(),
 });
 
 export type UpdateVisit = z.infer<typeof updateVisitSchema>;

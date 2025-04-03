@@ -211,6 +211,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Admin update visit purpose
+  app.post("/api/admin/update-visit-purpose", ensureAuthenticated, async (req, res) => {
+    try {
+      const { visitId, purpose } = req.body;
+      
+      if (!visitId || typeof visitId !== 'number') {
+        return res.status(400).json({ message: "Valid visit ID is required" });
+      }
+      
+      if (!purpose || typeof purpose !== 'string') {
+        return res.status(400).json({ message: "Valid purpose is required" });
+      }
+      
+      const visitData = updateVisitSchema.parse({
+        id: visitId,
+        purpose: purpose,
+      });
+      
+      const updatedVisit = await storage.updateVisit(visitData);
+      
+      if (!updatedVisit) {
+        return res.status(404).json({ message: "Visit not found" });
+      }
+      
+      res.status(200).json(updatedVisit);
+    } catch (error) {
+      return handleZodError(error, res);
+    }
+  });
+  
   // Admin update visitor verification status
   app.post("/api/admin/verify-visitor", ensureAuthenticated, async (req, res) => {
     try {

@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useDebounce } from "@/hooks/use-debounce";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { Loading, ButtonLoading } from "@/components/ui/loading";
+import { UpdateVisitPurpose } from "@/components/admin-update-visit-purpose";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
@@ -445,6 +446,12 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   Verified Badge
                 </div>
               </TableHead>
+              <TableHead>
+                <div className="flex items-center">
+                  <Tag className="mr-1 h-4 w-4" />
+                  Purpose
+                </div>
+              </TableHead>
               <TableHead 
                 className="cursor-pointer" 
                 onClick={() => handleSortChange("duration")}
@@ -500,6 +507,15 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                         <ShieldCheck className="h-5 w-5 text-gray-300" />
                       )}
                     </Button>
+                  </TableCell>
+                  <TableCell>
+                    <UpdateVisitPurpose 
+                      visit={visit} 
+                      onSuccess={() => {
+                        // Refresh data when purpose is updated
+                        queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
+                      }}
+                    />
                   </TableCell>
                   <TableCell>{calculateDuration(visit.checkInTime)}</TableCell>
                   <TableCell>
