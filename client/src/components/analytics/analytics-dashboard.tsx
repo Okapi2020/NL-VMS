@@ -41,7 +41,7 @@ export function AnalyticsDashboard() {
   const { user } = useAuth();
 
   // Query to fetch analytics data
-  const { data, isLoading, refetch } = useQuery<AnalyticsData>({
+  const { data, isLoading, error, refetch } = useQuery<AnalyticsData>({
     queryKey: ['/api/analytics/data', dateRange],
     enabled: !!user, // Only run query if user is logged in
     queryFn: async ({ queryKey }) => {
@@ -49,6 +49,7 @@ export function AnalyticsDashboard() {
       const url = `/api/analytics/data${params ? `?${params}` : ''}`;
       
       try {
+        console.log("Fetching analytics data from:", url);
         const res = await fetch(url, {
           credentials: 'include', // Important for sending cookies with the request
           headers: {
@@ -60,8 +61,11 @@ export function AnalyticsDashboard() {
           throw new Error(`Error ${res.status}: ${res.statusText}`);
         }
         
-        return await res.json();
+        const data = await res.json();
+        console.log("Analytics data received:", data);
+        return data;
       } catch (error: any) {
+        console.error("Error fetching analytics data:", error);
         toast({
           title: "Error",
           description: `Failed to fetch analytics data: ${error.message}`,
@@ -76,6 +80,25 @@ export function AnalyticsDashboard() {
   useEffect(() => {
     refetch();
   }, [dateRange, refetch]);
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="p-4 border border-red-300 bg-red-50 rounded-md text-red-800">
+          <h3 className="text-lg font-medium mb-2">Error Loading Analytics</h3>
+          <p className="mb-2">There was a problem loading the analytics data:</p>
+          <p className="font-mono bg-red-100 p-2 rounded">{(error as Error).message}</p>
+          <button 
+            className="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
+            onClick={() => refetch()}
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Render loading skeletons during data fetch
   if (isLoading || !data) {
@@ -96,6 +119,9 @@ export function AnalyticsDashboard() {
       </div>
     );
   }
+  
+  // Debug log
+  console.log("Rendering analytics with data:", data);
 
   return (
     <div className="space-y-6">

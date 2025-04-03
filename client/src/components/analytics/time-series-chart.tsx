@@ -21,6 +21,11 @@ interface TimeSeriesChartProps {
 
 export function TimeSeriesChart({ data, title, interval = "day" }: TimeSeriesChartProps) {
   const formattedData = useMemo(() => {
+    if (!data || !Array.isArray(data)) {
+      console.error("Invalid data format in TimeSeriesChart:", data);
+      return [];
+    }
+    
     return data.map(point => {
       // Format the date for display on the chart
       let formattedDate = point.date;
@@ -45,7 +50,7 @@ export function TimeSeriesChart({ data, title, interval = "day" }: TimeSeriesCha
         }
       } catch (e) {
         // Fallback to the original date format if parsing fails
-        console.error("Date parsing error:", e);
+        console.error("Date parsing error:", e, point);
       }
       
       return {
@@ -54,6 +59,25 @@ export function TimeSeriesChart({ data, title, interval = "day" }: TimeSeriesCha
       };
     });
   }, [data, interval]);
+
+  // Handle empty data
+  if (!formattedData.length) {
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-80 flex items-center justify-center">
+            <div className="text-center text-gray-500">
+              <p className="text-lg">No data available for this time period</p>
+              <p className="text-sm mt-2">Try selecting a different date range</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full">
@@ -73,14 +97,31 @@ export function TimeSeriesChart({ data, title, interval = "day" }: TimeSeriesCha
               }}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="formattedDate" />
-              <YAxis />
-              <Tooltip formatter={(value, name) => {
-                if (name === "avgDuration") {
-                  return [`${value} min`, "Avg. Duration"];
-                }
-                return [value, name === "count" ? "Total" : name === "active" ? "Active" : "Completed"];
-              }} />
+              <XAxis 
+                dataKey="formattedDate" 
+                allowDataOverflow={false}
+                minTickGap={15}
+              />
+              <YAxis 
+                allowDecimals={false}
+                domain={[0, 'auto']}
+              />
+              <Tooltip 
+                formatter={(value, name) => {
+                  if (!value && value !== 0) return ['-', ''];
+                  if (name === "avgDuration") {
+                    return [`${value} min`, "Avg. Duration"];
+                  }
+                  return [
+                    value, 
+                    name === "count" ? "Total" : 
+                    name === "active" ? "Active" : 
+                    name === "completed" ? "Completed" : 
+                    name
+                  ];
+                }}
+                contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', borderRadius: '4px', border: '1px solid #ddd' }}
+              />
               <Legend />
               <Area
                 type="monotone"
@@ -89,6 +130,7 @@ export function TimeSeriesChart({ data, title, interval = "day" }: TimeSeriesCha
                 stroke="#8884d8"
                 fill="#8884d8"
                 name="Total Visits"
+                isAnimationActive={true}
               />
               <Area
                 type="monotone"
@@ -97,6 +139,7 @@ export function TimeSeriesChart({ data, title, interval = "day" }: TimeSeriesCha
                 stroke="#82ca9d"
                 fill="#82ca9d"
                 name="Active Visits"
+                isAnimationActive={true}
               />
               <Area
                 type="monotone"
@@ -105,6 +148,7 @@ export function TimeSeriesChart({ data, title, interval = "day" }: TimeSeriesCha
                 stroke="#ffc658"
                 fill="#ffc658"
                 name="Completed Visits"
+                isAnimationActive={true}
               />
               <Area
                 type="monotone"
@@ -112,6 +156,7 @@ export function TimeSeriesChart({ data, title, interval = "day" }: TimeSeriesCha
                 stroke="#ff7300"
                 fill="none"
                 name="Avg. Duration (min)"
+                isAnimationActive={true}
               />
             </AreaChart>
           </ResponsiveContainer>

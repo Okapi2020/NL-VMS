@@ -544,6 +544,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Advanced analytics endpoints
   app.get("/api/analytics/data", ensureAuthenticated, async (req, res) => {
     try {
+      console.log("Analytics request received:", req.query);
+      
       // Extract query parameters
       const { fromDate, toDate, interval = 'day' } = req.query;
       
@@ -563,12 +565,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Validate dates
       if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        console.error("Invalid date format:", { fromDate, toDate, start, end });
         return res.status(400).json({ message: "Invalid date format" });
       }
       
+      console.log("Date range for analytics:", { start: start.toISOString(), end: end.toISOString(), interval });
+      
       // Fetch all visits 
       const visitHistory = await storage.getVisitHistory(5000); // Increased limit for better analytics
+      console.log(`Retrieved ${visitHistory.length} historical visits`);
+      
       const activeVisits = await storage.getActiveVisits();
+      console.log(`Retrieved ${activeVisits.length} active visits`);
+      
       const allVisits = [...visitHistory, ...activeVisits];
       
       // Filter visits in date range
@@ -576,6 +585,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const visitDate = new Date(visit.checkInTime);
         return visitDate >= start && visitDate <= end;
       });
+      
+      console.log(`Found ${visitsInRange.length} visits in the selected date range`);
       
       // Group visits by interval
       interface IntervalData {
@@ -590,6 +601,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let visitsByInterval: Record<string, IntervalData> = {};
       const hourDistribution = Array(24).fill(0);
       const dayOfWeekDistribution = Array(7).fill(0);
+      
+      // If we have no visits, return empty data to avoid errors
+      if (visitsInRange.length === 0) {
+        console.log("No visits found in date range, returning empty dataset");
+        return res.status(200).json({
+          summary: {
+            totalVisits: 0,
+            uniqueVisitors: 0,
+            completedVisits: 0,
+            activeVisits: 0,
+            averageVisitDuration: 0
+          },
+          timeSeries: [],
+          byHour: hourDistribution.map((_, hour) => ({
+            hour: String(hour).padStart(2, '0'),
+            count: 0
+          })),
+          byDayOfWeek: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => ({
+            day,
+            count: 0
+          }))
+        });
+      }
       
       visitsInRange.forEach(visit => {
         const visitDate = new Date(visit.checkInTime);
@@ -681,6 +715,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...data
       })).sort((a, b) => a.date.localeCompare(b.date));
       
+      console.log(`Generated ${timeSeriesData.length} time series data points`);
+      
       // Calculate summary statistics
       const totalVisits = visitsInRange.length;
       const uniqueVisitorIds = Array.from(new Set(visitsInRange.map(v => v.visitorId)));
@@ -727,10 +763,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         byDayOfWeek: dayOfWeekData
       };
       
+      console.log("Analytics data prepared successfully");
       res.status(200).json(analytics);
     } catch (error) {
       console.error("Analytics error:", error);
-      res.status(500).json({ message: "Internal server error" });
+      // Send detailed error information in development
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorStack = error instanceof Error ? error.stack : "";
+      res.status(500).json({ 
+        message: "Failed to generate analytics data", 
+        error: errorMessage,
+        stack: process.env.NODE_ENV === "production" ? undefined : errorStack
+      });
     }
   });
   
