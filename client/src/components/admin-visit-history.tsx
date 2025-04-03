@@ -59,6 +59,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { Checkbox } from "@/components/ui/checkbox"; 
 import { DateRange } from "react-day-picker";
 
 type AdminVisitHistoryProps = {
@@ -79,6 +80,14 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedVisitor, setSelectedVisitor] = useState<Visitor | null>(null);
   const [showDeletedVisitors, setShowDeletedVisitors] = useState(false);
+  
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  
+  // Bulk selection
+  const [selectedVisitors, setSelectedVisitors] = useState<number[]>([]);
+  const [isProcessingBulk, setIsProcessingBulk] = useState(false);
   
   // Form schema for editing visitor
   const editVisitorSchema = z.object({
@@ -317,6 +326,19 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
     
     return sortDirection === "asc" ? comparison : -comparison;
   });
+  
+  // Reset to first page when filters change
+  useEffect(() => {
+    setPage(1);
+    setSelectedVisitors([]);
+  }, [searchTerm, filterStatus, dateRange, showDeletedVisitors]);
+  
+  // Calculate paginated data
+  const totalPages = Math.ceil(sortedVisits.length / itemsPerPage);
+  const paginatedVisits = sortedVisits.slice(
+    (page - 1) * itemsPerPage,
+    page * itemsPerPage
+  );
 
   const toggleSortDirection = () => {
     setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -433,10 +455,234 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
         )}
       </div>
 
+      {/* Action buttons and pagination controls */}
+      <div className="flex flex-wrap justify-between items-center gap-2 mb-3">
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (paginatedVisits.length > 0) {
+                if (selectedVisitors.length === paginatedVisits.length) {
+                  setSelectedVisitors([]);
+                } else {
+                  setSelectedVisitors(paginatedVisits.map(item => item.visitor.id));
+                }
+              }
+            }}
+          >
+            {selectedVisitors.length > 0 && selectedVisitors.length === paginatedVisits.length ? "Deselect All" : "Select All"}
+          </Button>
+          
+          {!showDeletedVisitors && (
+            <Button
+              variant="outline"
+              size="sm"
+              color="danger"
+              disabled={isProcessingBulk || selectedVisitors.length === 0}
+              onClick={() => {
+                if (selectedVisitors.length > 0 && window.confirm(`Are you sure you want to delete ${selectedVisitors.length} selected visitor(s)? This will move them to the trash bin.`)) {
+                  setIsProcessingBulk(true);
+                  Promise.all(
+                    selectedVisitors.map(id => 
+                      apiRequest("DELETE", `/api/admin/delete-visitor/${id}`)
+                        .then(res => res.json())
+                    )
+                  )
+                    .then(() => {
+                      toast({
+                        title: "Success",
+                        description: `${selectedVisitors.length} visitor(s) deleted successfully`,
+                      });
+                      setSelectedVisitors([]);
+                      // Refresh data
+                      queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
+                      queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
+                      queryClient.invalidateQueries({ queryKey: ["/api/admin/trash"] });
+                    })
+                    .catch(error => {
+                      toast({
+                        title: "Error",
+                        description: `Failed to delete visitors: ${error.message}`,
+                        variant: "destructive",
+                      });
+                    })
+                    .finally(() => {
+                      setIsProcessingBulk(false);
+                    });
+                }
+              }}
+            >
+              {isProcessingBulk ? 'Processing...' : `Delete Selected (${selectedVisitors.length})`}
+            </Button>
+          )}
+          
+          {showDeletedVisitors && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-green-600 border-green-600 hover:bg-green-50"
+                disabled={isProcessingBulk || selectedVisitors.length === 0}
+                onClick={() => {
+                  if (selectedVisitors.length > 0 && window.confirm("Are you sure you want to restore all selected visitors?")) {
+                    setIsProcessingBulk(true);
+                    Promise.all(
+                      selectedVisitors.map(id => 
+                        apiRequest("POST", `/api/admin/restore-visitor/${id}`)
+                          .then(res => res.json())
+                      )
+                    )
+                      .then(() => {
+                        toast({
+                          title: "Success",
+                          description: `${selectedVisitors.length} visitor(s) restored successfully`,
+                        });
+                        setSelectedVisitors([]);
+                        // Refresh data
+                        queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
+                        queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
+                        queryClient.invalidateQueries({ queryKey: ["/api/admin/trash"] });
+                      })
+                      .catch(error => {
+                        toast({
+                          title: "Error",
+                          description: `Failed to restore visitors: ${error.message}`,
+                          variant: "destructive",
+                        });
+                      })
+                      .finally(() => {
+                        setIsProcessingBulk(false);
+                      });
+                  }
+                }}
+              >
+                {isProcessingBulk ? 'Processing...' : `Restore Selected (${selectedVisitors.length})`}
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-red-600 border-red-200 hover:bg-red-50"
+                disabled={isProcessingBulk || (selectedVisitors.length === 0 && sortedVisits.length === 0)}
+                onClick={() => {
+                  if (selectedVisitors.length > 0) {
+                    if (window.confirm(`Are you sure you want to permanently delete ${selectedVisitors.length} selected visitor(s)? This action cannot be undone.`)) {
+                      setIsProcessingBulk(true);
+                      Promise.all(
+                        selectedVisitors.map(id => 
+                          apiRequest("DELETE", `/api/admin/permanently-delete/${id}`)
+                            .then(res => res.json())
+                        )
+                      )
+                        .then(() => {
+                          toast({
+                            title: "Success",
+                            description: `${selectedVisitors.length} visitor(s) permanently deleted`,
+                          });
+                          setSelectedVisitors([]);
+                          // Refresh data
+                          queryClient.invalidateQueries({ queryKey: ["/api/admin/trash"] });
+                        })
+                        .catch(error => {
+                          toast({
+                            title: "Error",
+                            description: `Failed to delete visitors: ${error.message}`,
+                            variant: "destructive",
+                          });
+                        })
+                        .finally(() => {
+                          setIsProcessingBulk(false);
+                        });
+                    }
+                  } else if (sortedVisits.length > 0) {
+                    // Empty bin functionality
+                    if (window.confirm("Are you sure you want to permanently delete ALL items in the trash bin? This action cannot be undone.")) {
+                      setIsProcessingBulk(true);
+                      apiRequest("DELETE", "/api/admin/empty-trash")
+                        .then(res => res.json())
+                        .then(() => {
+                          toast({
+                            title: "Success",
+                            description: "Trash bin emptied successfully",
+                          });
+                          // Refresh data
+                          queryClient.invalidateQueries({ queryKey: ["/api/admin/trash"] });
+                        })
+                        .catch(error => {
+                          toast({
+                            title: "Error",
+                            description: `Failed to empty trash bin: ${error.message}`,
+                            variant: "destructive",
+                          });
+                        })
+                        .finally(() => {
+                          setIsProcessingBulk(false);
+                        });
+                    }
+                  }
+                }}
+              >
+                {isProcessingBulk ? 'Processing...' : selectedVisitors.length > 0 
+                  ? `Delete Selected (${selectedVisitors.length})` 
+                  : "Empty Bin"}
+              </Button>
+            </>
+          )}
+        </div>
+        
+        {/* Pagination */}
+        <div className="flex items-center gap-2">
+          <Select
+            value={itemsPerPage.toString()}
+            onValueChange={(value) => {
+              setItemsPerPage(parseInt(value));
+              setPage(1); // Reset to first page when changing items per page
+            }}
+          >
+            <SelectTrigger className="h-9 w-[100px]">
+              <SelectValue placeholder="10 per page" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10 per page</SelectItem>
+              <SelectItem value="20">20 per page</SelectItem>
+              <SelectItem value="30">30 per page</SelectItem>
+              <SelectItem value="50">50 per page</SelectItem>
+              <SelectItem value="100">100 per page</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <div className="flex">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setPage(Math.max(1, page - 1))}
+              disabled={page === 1}
+              className="h-9 w-9 rounded-r-none"
+            >
+              &lt;
+            </Button>
+            <div className="border-y px-3 flex items-center text-sm">
+              <span className="text-gray-500">Page {page} of {Math.max(1, totalPages)}</span>
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setPage(Math.min(totalPages, page + 1))}
+              disabled={page === totalPages || totalPages === 0}
+              className="h-9 w-9 rounded-l-none"
+            >
+              &gt;
+            </Button>
+          </div>
+        </div>
+      </div>
+      
       {/* Results count */}
       <div className="text-sm text-gray-500 mb-2">
-        Showing {sortedVisits.length} of {visitHistory.length} visits
+        Showing {paginatedVisits.length} of {sortedVisits.length} visits
         {showDeletedVisitors && " (Trash Bin)"}
+        {selectedVisitors.length > 0 && ` • ${selectedVisitors.length} selected`}
       </div>
 
       {/* Table */}
@@ -444,6 +690,19 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[40px]">
+                <Checkbox
+                  checked={paginatedVisits.length > 0 && selectedVisitors.length === paginatedVisits.length}
+                  onCheckedChange={(checked: boolean) => {
+                    if (selectedVisitors.length === paginatedVisits.length) {
+                      setSelectedVisitors([]);
+                    } else {
+                      setSelectedVisitors(paginatedVisits.map(item => item.visitor.id));
+                    }
+                  }}
+                  aria-label="Select all"
+                />
+              </TableHead>
               <TableHead 
                 className="cursor-pointer" 
                 onClick={() => handleSortChange("name")}
@@ -524,8 +783,24 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
           </TableHeader>
           <TableBody>
             {sortedVisits.length > 0 ? (
-              sortedVisits.map(({ visitor, visit }) => (
-                <TableRow key={visit.id} className={visitor.deleted ? "bg-gray-50" : ""}>
+              paginatedVisits.map(({ visitor, visit }) => (
+                <TableRow 
+                  key={visit.id} 
+                  className={`${visitor.deleted ? "bg-gray-50" : ""} ${selectedVisitors.includes(visitor.id) ? "bg-primary-50" : ""}`}
+                >
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedVisitors.includes(visitor.id)}
+                      onCheckedChange={(checked: boolean) => {
+                        if (checked) {
+                          setSelectedVisitors([...selectedVisitors, visitor.id]);
+                        } else {
+                          setSelectedVisitors(selectedVisitors.filter(id => id !== visitor.id));
+                        }
+                      }}
+                      aria-label={`Select ${visitor.fullName}`}
+                    />
+                  </TableCell>
                   <TableCell>
                     <div className="font-medium">{visitor.fullName}</div>
                   </TableCell>
@@ -624,7 +899,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-4 text-gray-500">
+                <TableCell colSpan={10} className="text-center py-4 text-gray-500">
                   {showDeletedVisitors 
                     ? "Trash bin is empty" 
                     : "No visits match your search or filters"}
