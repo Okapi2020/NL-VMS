@@ -109,79 +109,69 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
       title: "Personal Info",
       content: (
         <div className="space-y-4">
-          {/* Name fields in a 2-row layout */}
+          {/* Name fields in a simple vertical layout */}
           <div className="space-y-4">
-            {/* First row: First Name and Middle Name side by side */}
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
-                <FormField
-                  control={form.control}
-                  name="firstName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center">
-                        <span>First Name</span>
-                        <span className="ml-1 text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="John" 
-                          {...field} 
-                          className="border-blue-200 focus:border-blue-400"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <div className="flex-1">
-                <FormField
-                  control={form.control}
-                  name="middleName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        <span>Middle Name</span>
-                        <span className="ml-1 text-xs text-muted-foreground">(Optional)</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Robert" 
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
+            <FormField
+              control={form.control}
+              name="firstName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center">
+                    <span>First Name</span>
+                    <span className="ml-1 text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="John" 
+                      {...field} 
+                      className="border-blue-200 focus:border-blue-400"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             
-            {/* Second row: Last Name */}
-            <div>
-              <FormField
-                control={form.control}
-                name="lastName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center">
-                      <span>Last Name</span>
-                      <span className="ml-1 text-red-500">*</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Smith" 
-                        {...field} 
-                        className="border-blue-200 focus:border-blue-400"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="middleName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    <span>Middle Name</span>
+                    <span className="ml-1 text-xs text-muted-foreground">(Optional)</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Robert" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="lastName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center">
+                    <span>Last Name</span>
+                    <span className="ml-1 text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Smith" 
+                      {...field} 
+                      className="border-blue-200 focus:border-blue-400"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
           
           <FormField
