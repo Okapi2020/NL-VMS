@@ -62,7 +62,14 @@ export const insertVisitSchema = createInsertSchema(visits).pick({
 
 // Create schemas for form validation
 export const visitorFormSchema = z.object({
-  fullName: z.string().min(1, "Full name is required"),
+  fullName: z.string()
+    .min(3, "Full name is required")
+    .refine(name => name.trim().includes(' '), {
+      message: "Please enter both first and last name"
+    })
+    .refine(name => /^[a-zA-Z\s.\-']+$/.test(name.trim()), {
+      message: "Name should contain only letters, spaces, and basic characters"
+    }),
   yearOfBirth: z.number()
     .min(1900, "Please enter a valid year")
     .max(new Date().getFullYear(), "Year cannot be in the future"),

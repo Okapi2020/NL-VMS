@@ -112,10 +112,20 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
             name="fullName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Full Name</FormLabel>
+                <FormLabel className="flex items-center">
+                  <span>Full Name</span>
+                  <span className="ml-1 text-red-500">*</span>
+                </FormLabel>
                 <FormControl>
-                  <Input placeholder="John Doe" {...field} />
+                  <Input 
+                    placeholder="First Last (e.g., John Smith)" 
+                    {...field} 
+                    className="border-blue-200 focus:border-blue-400"
+                  />
                 </FormControl>
+                <div className="text-xs text-muted-foreground mt-1 ml-1">
+                  Please provide both your first and last name
+                </div>
                 <FormMessage />
               </FormItem>
             )}
