@@ -64,7 +64,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         hasAppName: !!req.body.appName,
         logoUrlLength: req.body.logoUrl ? req.body.logoUrl.length : 0,
         countryCode: req.body.countryCode,
-        theme: req.body.theme
+        theme: req.body.theme,
+        adminTheme: req.body.adminTheme,
+        visitorTheme: req.body.visitorTheme
       });
       
       // Update settings
@@ -72,7 +74,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         appName: req.body.appName,
         logoUrl: req.body.logoUrl,
         countryCode: req.body.countryCode || "243", // Default to 243 if not provided
-        theme: req.body.theme || "light" // Default to light if not provided
+        theme: req.body.theme || "light", // Default to light if not provided
+        adminTheme: req.body.adminTheme || req.body.theme || "light", // Use adminTheme, fallback to theme
+        visitorTheme: req.body.visitorTheme || req.body.theme || "light" // Use visitorTheme, fallback to theme
       });
       
       if (!updatedSettings) {

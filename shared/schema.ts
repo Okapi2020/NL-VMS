@@ -208,6 +208,7 @@ export const insertSettingsSchema = createInsertSchema(settings).pick({
   countryCode: true,
   adminTheme: true,
   visitorTheme: true,
+  theme: true, // Include the legacy theme field as well
 });
 
 export const updateSettingsSchema = z.object({

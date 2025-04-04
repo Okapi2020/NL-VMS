@@ -43,6 +43,7 @@ type SettingsFormValues = z.infer<typeof settingsSchema>;
 
 export function AdminSettings() {
   const { toast } = useToast();
+  const { setTheme } = useTheme();
   const queryClient = useQueryClient();
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -190,7 +191,22 @@ export function AdminSettings() {
       ...data,
       theme: data.adminTheme // Keep theme field updated for backward compatibility
     };
-    updateSettingsMutation.mutate(submissionData);
+    
+    // Save the settings first
+    updateSettingsMutation.mutate(submissionData, {
+      onSuccess: () => {
+        // After successfully saving, update the current theme since we're in the admin dashboard
+        try {
+          // We're in the admin interface, so use adminTheme
+          setTheme(data.adminTheme);
+          
+          // Also update the localStorage for the theme
+          localStorage.setItem("theme", data.adminTheme);
+        } catch (e) {
+          console.warn("Could not immediately update theme:", e);
+        }
+      }
+    });
   };
   
   if (isLoading) {
@@ -331,15 +347,8 @@ export function AdminSettings() {
                         <RadioGroup
                           onValueChange={(value) => {
                             field.onChange(value);
-                            // Update the current theme if we're in the admin dashboard
-                            try {
-                              const { setTheme } = useTheme();
-                              // Just update the theme - this affects the current interface
-                              setTheme(value as "light" | "dark" | "twilight" | "system");
-                            } catch (e) {
-                              // Theme context might not be available, that's okay
-                              console.warn("Could not immediately update theme:", e);
-                            }
+                            // We won't try to update the theme here - this caused issues
+                            // The theme will be updated when the form is submitted
                           }}
                           defaultValue={field.value}
                           className="flex flex-col space-y-1"
