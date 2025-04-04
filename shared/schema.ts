@@ -210,8 +210,8 @@ export const updateSettingsSchema = z.object({
   appName: z.string().min(1, "Application name must not be empty"),
   logoUrl: z.string().nullable().optional(),
   countryCode: z.string().min(1, "Country code must not be empty").max(5, "Country code should be up to 5 digits"),
-  theme: z.enum(["light", "dark", "system"], {
-    errorMap: () => ({ message: "Theme must be light, dark, or system" }),
+  theme: z.enum(["light", "dark", "twilight", "system"], {
+    errorMap: () => ({ message: "Theme must be light, dark, twilight, or system" }),
   }),
 });
 

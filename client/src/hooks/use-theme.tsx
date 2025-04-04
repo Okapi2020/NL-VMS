@@ -5,13 +5,13 @@ import { Settings } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
 // Theme types
-export type Theme = "light" | "dark" | "system";
+export type Theme = "light" | "dark" | "twilight" | "system";
 
 // Context type
 type ThemeContextType = {
   theme: Theme;
   setTheme: (theme: Theme) => void;
-  resolvedTheme: "light" | "dark";
+  resolvedTheme: "light" | "dark" | "twilight";
   isLoading: boolean;
 };
 
@@ -36,7 +36,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       return "light";
     }
   });
-  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
+  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark" | "twilight">("light");
 
   // Query for fetching settings
   const { data: settings, isLoading } = useQuery({
@@ -132,7 +132,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
           : "light";
         setResolvedTheme(systemTheme);
       } else {
-        setResolvedTheme(theme as "light" | "dark");
+        setResolvedTheme(theme as "light" | "dark" | "twilight");
       }
     };
 
@@ -154,10 +154,14 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   useEffect(() => {
     const root = document.documentElement;
     
+    // Clear all theme classes first
+    root.classList.remove("dark", "twilight");
+    
+    // Apply appropriate class
     if (resolvedTheme === "dark") {
       root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
+    } else if (resolvedTheme === "twilight") {
+      root.classList.add("twilight");
     }
   }, [resolvedTheme]);
 

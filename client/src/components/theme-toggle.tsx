@@ -1,4 +1,4 @@
-import { Moon, Sun, Laptop } from "lucide-react";
+import { Moon, Sun, Laptop, SunDim } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -23,7 +23,7 @@ export function ThemeToggle({
 }: ThemeToggleProps) {
   // Try to use theme context, but provide fallback if not available
   let theme: Theme = "light";
-  let resolvedTheme: "light" | "dark" = "light";
+  let resolvedTheme: "light" | "dark" | "twilight" = "light";
   let setTheme: (theme: Theme) => void = () => {};
 
   try {
@@ -34,14 +34,31 @@ export function ThemeToggle({
   } catch (error) {
     console.warn("Theme context not available, using defaults");
     // Provide fallback behavior
-    resolvedTheme = document.documentElement.classList.contains("dark") ? "dark" : "light";
+    if (document.documentElement.classList.contains("dark")) {
+      resolvedTheme = "dark";
+    } else if (document.documentElement.classList.contains("twilight")) {
+      resolvedTheme = "twilight";
+    } else {
+      resolvedTheme = "light";
+    }
+    
     setTheme = (newTheme: Theme) => {
       try {
         localStorage.setItem("theme", newTheme);
-        if (newTheme === "dark" || (newTheme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+        
+        // Remove all theme classes first
+        document.documentElement.classList.remove("dark", "twilight");
+        
+        if (newTheme === "dark") {
           document.documentElement.classList.add("dark");
-        } else {
-          document.documentElement.classList.remove("dark");
+        } else if (newTheme === "twilight") {
+          document.documentElement.classList.add("twilight");
+        } else if (newTheme === "system") {
+          const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          if (prefersDark) {
+            document.documentElement.classList.add("dark");
+          }
+          // System doesn't handle twilight automatically
         }
       } catch (e) {
         console.error("Failed to set theme", e);
@@ -59,12 +76,17 @@ export function ThemeToggle({
         <Button variant={variant} size={size} className={className}>
           {resolvedTheme === "light" ? (
             <>
-              <Sun className="h-5 w-5" />
+              <Sun className="h-5 w-5 text-yellow-500" />
               {showLabel && <span className="ml-2">Light</span>}
+            </>
+          ) : resolvedTheme === "twilight" ? (
+            <>
+              <SunDim className="h-5 w-5 text-purple-400" />
+              {showLabel && <span className="ml-2">Twilight</span>}
             </>
           ) : (
             <>
-              <Moon className="h-5 w-5" />
+              <Moon className="h-5 w-5 text-indigo-400" />
               {showLabel && <span className="ml-2">Dark</span>}
             </>
           )}
@@ -73,15 +95,19 @@ export function ThemeToggle({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => handleThemeChange("light")}>
-          <Sun className="mr-2 h-4 w-4" />
+          <Sun className="mr-2 h-4 w-4 text-yellow-500" />
           <span>Light</span>
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleThemeChange("twilight")}>
+          <SunDim className="mr-2 h-4 w-4 text-purple-400" />
+          <span>Twilight</span>
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleThemeChange("dark")}>
-          <Moon className="mr-2 h-4 w-4" />
+          <Moon className="mr-2 h-4 w-4 text-indigo-400" />
           <span>Dark</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleThemeChange("system")}>
-          <Laptop className="mr-2 h-4 w-4" />
+          <Laptop className="mr-2 h-4 w-4 text-blue-500" />
           <span>System</span>
         </DropdownMenuItem>
       </DropdownMenuContent>

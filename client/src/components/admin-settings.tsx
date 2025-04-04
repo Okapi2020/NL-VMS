@@ -10,7 +10,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, Moon, Sun, Laptop } from "lucide-react";
+import { Loader2, Upload, Moon, Sun, Laptop, SunDim } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
 
 // Settings schema for the form
@@ -27,8 +27,8 @@ const settingsSchema = z.object({
     .refine(code => /^\d+$/.test(code), {
       message: "Country code should contain only digits"
     }),
-  theme: z.enum(["light", "dark", "system"], {
-    errorMap: () => ({ message: "Theme must be light, dark, or system" }),
+  theme: z.enum(["light", "dark", "twilight", "system"], {
+    errorMap: () => ({ message: "Theme must be light, dark, twilight, or system" }),
   }),
 });
 
@@ -82,13 +82,13 @@ export function AdminSettings() {
       appName: settings?.appName || "Visitor Management System",
       logoUrl: settings?.logoUrl || null,
       countryCode: settings?.countryCode || "243",
-      theme: settings?.theme as "light" | "dark" | "system" || "light",
+      theme: settings?.theme as "light" | "dark" | "twilight" | "system" || "light",
     },
     values: settings ? {
       appName: settings.appName,
       logoUrl: settings.logoUrl,
       countryCode: settings.countryCode,
-      theme: settings.theme as "light" | "dark" | "system" || "light",
+      theme: settings.theme as "light" | "dark" | "twilight" | "system" || "light",
     } : undefined,
   });
   
@@ -309,7 +309,7 @@ export function AdminSettings() {
                           // Also update the current theme if using useTheme
                           try {
                             const { setTheme } = useTheme();
-                            setTheme(value as "light" | "dark" | "system");
+                            setTheme(value as "light" | "dark" | "twilight" | "system");
                           } catch (e) {
                             // Theme context might not be available, that's okay
                             console.warn("Could not immediately update theme:", e);
@@ -327,6 +327,18 @@ export function AdminSettings() {
                             Light Mode
                             <span className="ml-2 text-xs text-muted-foreground">
                               (Light background, dark text)
+                            </span>
+                          </FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="twilight" />
+                          </FormControl>
+                          <FormLabel className="font-normal flex items-center">
+                            <SunDim className="mr-2 h-5 w-5 text-purple-400" />
+                            Twilight Mode
+                            <span className="ml-2 text-xs text-muted-foreground">
+                              (Soft dark mode with reduced contrast)
                             </span>
                           </FormLabel>
                         </FormItem>
