@@ -10,8 +10,8 @@ import { Visitor, Visit, Settings } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
 import { useIdleTimeout } from "@/hooks/use-idle-timeout";
 import { ErrorBoundary } from "@/components/error-boundary";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { Loader2, Home } from "lucide-react";
+// ThemeToggle removed - only admins can control theme
+// Removed unused icon imports
 
 function VisitorPortalComponent() {
   const [checkedIn, setCheckedIn] = useState(false);

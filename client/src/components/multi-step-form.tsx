@@ -58,12 +58,12 @@ export function MultiStepForm({
             <div key={step.id} className="flex items-center relative">
               <div 
                 className={cn(
-                  "rounded-full h-10 w-10 flex items-center justify-center text-white",
+                  "rounded-full h-10 w-10 flex items-center justify-center",
                   index < currentStepIndex 
-                    ? "bg-green-500" 
+                    ? "bg-green-500 text-white" 
                     : index === currentStepIndex 
-                      ? "bg-primary" 
-                      : "bg-gray-300 text-gray-700"
+                      ? "bg-primary text-primary-foreground" 
+                      : "bg-muted text-muted-foreground"
                 )}
               >
                 {index < currentStepIndex ? "✓" : index + 1}
@@ -71,13 +71,13 @@ export function MultiStepForm({
               <div 
                 className={cn(
                   "ml-3 text-sm font-medium", 
-                  index <= currentStepIndex ? "text-gray-900" : "text-gray-500"
+                  index <= currentStepIndex ? "text-foreground" : "text-muted-foreground"
                 )}
               >
                 {step.title}
               </div>
               {index < steps.length - 1 && (
-                <div className="flex-1 border-t-2 border-gray-200 mx-4"></div>
+                <div className="flex-1 border-t-2 border-border mx-4"></div>
               )}
             </div>
           ))}
@@ -86,7 +86,7 @@ export function MultiStepForm({
 
       {/* Step Content */}
       <div className="mb-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-6">
+        <h2 className="text-lg font-medium text-foreground mb-6">
           Step {currentStepIndex + 1}: {currentStep.title}
         </h2>
         <div>
@@ -105,7 +105,7 @@ export function MultiStepForm({
           <button
             type="button"
             onClick={back}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+            className="inline-flex items-center px-4 py-2 border border-input text-sm font-medium rounded-md shadow-sm text-foreground bg-background hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
           >
             <span className="mr-2">←</span> Previous
           </button>
@@ -115,7 +115,7 @@ export function MultiStepForm({
             type="button"
             onClick={next}
             className={cn(
-              "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500",
+              "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-primary-foreground focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary",
               isLastStep 
                 ? "bg-green-600 hover:bg-green-700" 
                 : "bg-primary hover:bg-primary/90"

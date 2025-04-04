@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { LogIn, UserCheck, ShieldCheck, Loader2 } from "lucide-react";
 import { Settings } from "@shared/schema";
 import { LiveClock } from "@/components/live-clock";
-import { ThemeToggle } from "@/components/theme-toggle";
+// ThemeToggle removed - only admins can control theme
 
 export default function WelcomePage() {
   // Query to fetch application settings
@@ -45,7 +45,6 @@ export default function WelcomePage() {
             <h1 className="text-3xl font-bold">{appName}</h1>
           </div>
           <div className="flex items-center space-x-2">
-            <ThemeToggle />
             <Link href="/auth" 
               className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-muted text-primary hover:bg-muted/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary" 
               title="Admin Login">
