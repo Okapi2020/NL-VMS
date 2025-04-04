@@ -20,20 +20,43 @@ async function migrate() {
       END $$;
     `);
     
-    // Create settings table if it doesn't exist
+    // Create settings table if it doesn't exist with all columns
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS settings (
         id SERIAL PRIMARY KEY,
         app_name VARCHAR(255) NOT NULL DEFAULT 'Visitor Management System',
+        header_app_name VARCHAR(255),
+        footer_app_name VARCHAR(255),
         logo_url TEXT,
+        country_code VARCHAR(10) NOT NULL DEFAULT '243',
+        theme VARCHAR(10) NOT NULL DEFAULT 'light',
+        admin_theme VARCHAR(10) NOT NULL DEFAULT 'light',
+        visitor_theme VARCHAR(10) NOT NULL DEFAULT 'light',
         updated_at TIMESTAMP NOT NULL DEFAULT NOW()
       );
     `);
     
-    // Create initial settings record if none exists
+    // Create initial settings record if none exists with all fields
     await db.execute(sql`
-      INSERT INTO settings (app_name, logo_url)
-      SELECT 'Visitor Management System', NULL
+      INSERT INTO settings (
+        app_name, 
+        header_app_name, 
+        footer_app_name, 
+        logo_url, 
+        country_code, 
+        theme, 
+        admin_theme, 
+        visitor_theme
+      )
+      SELECT 
+        'Visitor Management System', 
+        'Visitor Management System',
+        'Visitor Management System',
+        NULL, 
+        '243', 
+        'light', 
+        'light', 
+        'light'
       WHERE NOT EXISTS (SELECT 1 FROM settings);
     `);
     

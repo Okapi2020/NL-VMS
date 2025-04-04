@@ -19,6 +19,8 @@ const settingsSchema = z.object({
     .string()
     .min(1, { message: "Application name is required" })
     .max(50, { message: "Application name cannot exceed 50 characters" }),
+  headerAppName: z.string().optional(),
+  footerAppName: z.string().optional(),
   logoUrl: z.string().nullable().optional(),
   countryCode: z
     .string()
