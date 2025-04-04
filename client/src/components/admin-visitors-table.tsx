@@ -384,7 +384,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto border rounded-md">
         <Table>
           <TableHeader>
             <TableRow>
