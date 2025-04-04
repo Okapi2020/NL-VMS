@@ -791,8 +791,8 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto border rounded-md">
-        <Table>
+      <div className="overflow-x-auto border rounded-md w-full">
+        <Table className="w-full min-w-[900px]">
           <TableHeader>
             <TableRow>
               <TableHead className="w-[40px]">
