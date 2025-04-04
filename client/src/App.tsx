@@ -7,7 +7,6 @@ import AuthPage from "@/pages/auth-page";
 import WelcomePage from "@/pages/welcome-page";
 import ThankYouPage from "@/pages/thank-you-page";
 import { ProtectedRoute } from "@/lib/protected-route";
-import { AuthProvider } from "@/hooks/use-auth";
 
 function Router() {
   return (
@@ -23,11 +22,7 @@ function Router() {
 }
 
 function App() {
-  return (
-    <AuthProvider>
-      <Router />
-    </AuthProvider>
-  );
+  return <Router />;
 }
 
 export default App;

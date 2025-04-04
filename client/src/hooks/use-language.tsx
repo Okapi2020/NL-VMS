@@ -8,7 +8,6 @@ import {
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useToast } from './use-toast';
 import { queryClient } from '@/lib/queryClient';
-import { useAuth } from '@/hooks/use-auth';
 
 type Language = 'en' | 'fr';
 
@@ -353,18 +352,11 @@ export function LanguageProvider({
 }: LanguageProviderProps) {
   const [language, setLanguage] = useState<Language>(defaultLanguage);
   const { toast } = useToast();
-  const { user } = useAuth();
   
-  // Initialize with defaultLanguage
+  // Use default language as the initial value
   useEffect(() => {
-    if (user?.preferredLanguage) {
-      // If user is logged in, use their preference
-      setLanguage(user.preferredLanguage as Language);
-    } else {
-      // If not logged in, use the default language from settings
-      setLanguage(defaultLanguage);
-    }
-  }, [defaultLanguage, user]);
+    setLanguage(defaultLanguage);
+  }, [defaultLanguage]);
 
   // Mutation to update language preference for admin users
   const { mutate, isPending: isUpdating } = useMutation({
@@ -383,15 +375,7 @@ export function LanguageProvider({
       
       return await response.json();
     },
-    onSuccess: (data) => {
-      // Update the user data in the React Query cache
-      if (user) {
-        queryClient.setQueryData(['/api/user'], {
-          ...user,
-          preferredLanguage: language,
-        });
-      }
-      
+    onSuccess: (data) => {      
       toast({
         title: translations.languageUpdated[language],
         description: '',
@@ -410,11 +394,9 @@ export function LanguageProvider({
   // Function to update language preference
   const updateLanguagePreference = (lang: Language) => {
     setLanguage(lang);
-    
-    // If user is logged in, update their preference in the database
-    if (user) {
-      mutate(lang);
-    }
+    // We'll attempt to update the preference on the server
+    // even if not logged in - the server will handle authentication
+    mutate(lang);
   };
 
   // Helper function to translate text
