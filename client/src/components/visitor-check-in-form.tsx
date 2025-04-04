@@ -220,16 +220,50 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email Address (Optional)</FormLabel>
+                <FormLabel>
+                  <span>Email Address</span>
+                  <span className="ml-1 text-xs text-muted-foreground">(Optional)</span>
+                </FormLabel>
                 <FormControl>
-                  <Input 
-                    type="email" 
-                    placeholder="john.doe@example.com" 
-                    value={contactDetailsValues.email}
-                    onChange={(e) => handleContactDetailsChange("email", e.target.value)}
-                    onBlur={field.onBlur}
-                  />
+                  <div className="relative">
+                    <Input 
+                      type="email" 
+                      placeholder="john.doe@example.com"
+                      className="pl-10"
+                      value={contactDetailsValues.email}
+                      onChange={(e) => {
+                        // Only allow valid email characters
+                        const value = e.target.value.replace(/[^\w.@+-]/g, '');
+                        handleContactDetailsChange("email", value);
+                        
+                        // Clear error when field is emptied
+                        if (!value) {
+                          form.clearErrors("email");
+                        }
+                      }}
+                      onBlur={(e) => {
+                        // Basic email format validation on blur
+                        const value = e.target.value;
+                        if (value && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)) {
+                          form.setError("email", { 
+                            type: "manual", 
+                            message: "Please enter a valid email address format (e.g., name@example.com)" 
+                          });
+                        }
+                        field.onBlur();
+                      }}
+                    />
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                      </svg>
+                    </div>
+                  </div>
                 </FormControl>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  Enter a valid email address format (e.g., name@example.com)
+                </div>
                 <FormMessage />
               </FormItem>
             )}
@@ -266,7 +300,8 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
         </div>
       ),
       validate: async () => {
-        return await form.trigger(["phoneNumber"]);
+        // Validate both phone number and email (if provided)
+        return await form.trigger(["phoneNumber", "email"]);
       }
     },
     {

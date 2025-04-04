@@ -87,7 +87,13 @@ export const visitorFormSchema = z.object({
   yearOfBirth: z.number()
     .min(1900, "Please enter a valid year")
     .max(new Date().getFullYear(), "Year cannot be in the future"),
-  email: z.string().email("Please enter a valid email").optional().or(z.literal("")),
+  email: z.string()
+    .email("Please enter a valid email address")
+    .refine(email => email === "" || /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email), {
+      message: "Please enter a valid email address with proper format (e.g., name@example.com)"
+    })
+    .optional()
+    .or(z.literal("")),
   phoneNumber: z.string()
     .min(1, "Phone number is required")
     .refine(
@@ -171,7 +177,13 @@ export const updateVisitorSchema = z.object({
   yearOfBirth: z.number()
     .min(1900, "Year of birth must be after 1900")
     .max(new Date().getFullYear(), "Year of birth cannot be in the future"),
-  email: z.string().email("Invalid email format").optional().nullable(),
+  email: z.string()
+    .email("Invalid email format")
+    .refine(email => email === null || email === "" || /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email), {
+      message: "Please enter a valid email address with proper format (e.g., name@example.com)"
+    })
+    .optional()
+    .nullable(),
   phoneNumber: z.string()
     .min(7, "Phone number must be at least 7 characters")
     .refine(
