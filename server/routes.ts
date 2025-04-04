@@ -7,7 +7,9 @@ import {
   updateVisitSchema, 
   updateVisitorVerificationSchema,
   updateVisitorSchema,
-  type Visitor
+  updateAdminLanguageSchema,
+  type Visitor,
+  type UpdateAdminLanguage
 } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
@@ -68,7 +70,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         countryCode: req.body.countryCode,
         theme: req.body.theme,
         adminTheme: req.body.adminTheme,
-        visitorTheme: req.body.visitorTheme
+        visitorTheme: req.body.visitorTheme,
+        defaultLanguage: req.body.defaultLanguage
       });
       
       // Update settings
@@ -81,7 +84,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         countryCode: req.body.countryCode || "243", // Default to 243 if not provided
         theme: req.body.theme || "light", // Default to light if not provided
         adminTheme: req.body.adminTheme || req.body.theme || "light", // Use adminTheme, fallback to theme
-        visitorTheme: req.body.visitorTheme || req.body.theme || "light" // Use visitorTheme, fallback to theme
+        visitorTheme: req.body.visitorTheme || req.body.theme || "light", // Use visitorTheme, fallback to theme
+        defaultLanguage: req.body.defaultLanguage || "en" // Default language to English if not provided
       });
       
       if (!updatedSettings) {
@@ -320,6 +324,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       res.status(200).json(updatedVisitor);
+    } catch (error) {
+      return handleZodError(error, res);
+    }
+  });
+  
+  // Admin update language preference
+  app.post("/api/admin/update-language", ensureAuthenticated, async (req, res) => {
+    try {
+      // Validate request body
+      const languageData = updateAdminLanguageSchema.parse({
+        id: req.user?.id,
+        preferredLanguage: req.body.preferredLanguage,
+      });
+      
+      // Update admin language preference
+      const updatedAdmin = await storage.updateAdminLanguage(languageData);
+      
+      if (!updatedAdmin) {
+        return res.status(404).json({ message: "Admin user not found" });
+      }
+      
+      res.status(200).json(updatedAdmin);
     } catch (error) {
       return handleZodError(error, res);
     }

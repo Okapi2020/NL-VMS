@@ -10,6 +10,7 @@ import { AdminSettings } from "@/components/admin-settings";
 import { DayOfWeekChart } from "@/components/analytics/day-of-week-chart";
 import { HourlyDistributionChart } from "@/components/analytics/hourly-distribution-chart";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LanguageSelector } from "@/components/language-selector";
 
 import { exportToCSV } from "@/lib/utils";
 import { Visit, Visitor, Settings } from "@shared/schema";
@@ -398,6 +399,7 @@ export default function AdminDashboard() {
                 </h2>
               </div>
               <div className="mt-4 flex md:mt-0 md:ml-4 items-center space-x-2">
+                <LanguageSelector size="icon" variant="outline" />
                 <ThemeToggle />
                 <Button
                   variant="outline"

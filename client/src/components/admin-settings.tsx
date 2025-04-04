@@ -35,6 +35,9 @@ const settingsSchema = z.object({
   visitorTheme: z.enum(["light", "dark", "twilight", "system"], {
     errorMap: () => ({ message: "Theme must be light, dark, twilight, or system" }),
   }),
+  defaultLanguage: z.enum(["en", "fr"], {
+    errorMap: () => ({ message: "Language must be either English (en) or French (fr)" }),
+  }),
   // Keep theme field for backward compatibility
   theme: z.enum(["light", "dark", "twilight", "system"], {
     errorMap: () => ({ message: "Theme must be light, dark, twilight, or system" }),
@@ -96,6 +99,7 @@ export function AdminSettings() {
       countryCode: "243",
       adminTheme: "light" as const,
       visitorTheme: "light" as const,
+      defaultLanguage: "en" as const,
       theme: "light" as const,
     },
   });
@@ -112,6 +116,7 @@ export function AdminSettings() {
         // Use the new fields if available, otherwise fallback to the legacy theme field
         adminTheme: (settings.adminTheme || settings.theme) as "light" | "dark" | "twilight" | "system",
         visitorTheme: (settings.visitorTheme || settings.theme) as "light" | "dark" | "twilight" | "system",
+        defaultLanguage: (settings.defaultLanguage || "en") as "en" | "fr",
         theme: settings.theme as "light" | "dark" | "twilight" | "system",
       });
     }
@@ -553,6 +558,53 @@ export function AdminSettings() {
                     <FormControl>
                       <Input type="hidden" {...field} />
                     </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            {/* Language Settings Section */}
+            <div className="border rounded-lg p-4 bg-card shadow-sm mt-6 mb-6">
+              <h3 className="text-lg font-medium mb-2">Language Settings</h3>
+              <p className="text-muted-foreground mb-4">
+                Configure the default language for visitor-facing pages. Admin users can set their individual preferences.
+              </p>
+              
+              <FormField
+                control={form.control}
+                name="defaultLanguage"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>Default Visitor Language</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-col space-y-1"
+                      >
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="en" />
+                          </FormControl>
+                          <FormLabel className="font-normal">
+                            English
+                          </FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="fr" />
+                          </FormControl>
+                          <FormLabel className="font-normal">
+                            French (Français)
+                          </FormLabel>
+                        </FormItem>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormDescription>
+                      This setting determines the default language for the visitor-facing portal.
+                      Individual admin users can still select their own preferred language.
+                    </FormDescription>
+                    <FormMessage />
                   </FormItem>
                 )}
               />

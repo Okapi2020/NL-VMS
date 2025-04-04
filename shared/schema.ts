@@ -8,11 +8,13 @@ export const admins = pgTable("admins", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  preferredLanguage: varchar("preferred_language", { length: 10 }).default("en").notNull(),
 });
 
 export const insertAdminSchema = createInsertSchema(admins).pick({
   username: true,
   password: true,
+  preferredLanguage: true,
 });
 
 // Visitors schema
@@ -129,8 +131,17 @@ export const visitorFormSchema = z.object({
   };
 });
 
+// Schema for updating admin language preference
+export const updateAdminLanguageSchema = z.object({
+  id: z.number(),
+  preferredLanguage: z.enum(["en", "fr"], {
+    errorMap: () => ({ message: "Language must be either English (en) or French (fr)" }),
+  }),
+});
+
 export type Admin = typeof admins.$inferSelect;
 export type InsertAdmin = z.infer<typeof insertAdminSchema>;
+export type UpdateAdminLanguage = z.infer<typeof updateAdminLanguageSchema>;
 
 export type Visitor = typeof visitors.$inferSelect;
 export type InsertVisitor = z.infer<typeof insertVisitorSchema>;
@@ -212,6 +223,8 @@ export const settings = pgTable("settings", {
   countryCode: varchar("country_code", { length: 10 }).default("243").notNull(),
   adminTheme: varchar("admin_theme", { length: 10 }).default("light").notNull(),
   visitorTheme: varchar("visitor_theme", { length: 10 }).default("light").notNull(),
+  // Add default language for frontend visitor view
+  defaultLanguage: varchar("default_language", { length: 10 }).default("en").notNull(),
   // Keep legacy theme field for backward compatibility
   theme: varchar("theme", { length: 10 }).default("light").notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -225,6 +238,7 @@ export const insertSettingsSchema = createInsertSchema(settings).pick({
   countryCode: true,
   adminTheme: true,
   visitorTheme: true,
+  defaultLanguage: true,
   theme: true, // Include the legacy theme field as well
 });
 
@@ -239,6 +253,9 @@ export const updateSettingsSchema = z.object({
   }),
   visitorTheme: z.enum(["light", "dark", "twilight", "system"], {
     errorMap: () => ({ message: "Theme must be light, dark, twilight, or system" }),
+  }),
+  defaultLanguage: z.enum(["en", "fr"], {
+    errorMap: () => ({ message: "Language must be either English (en) or French (fr)" }),
   }),
   // Keep theme field for backward compatibility
   theme: z.enum(["light", "dark", "twilight", "system"], {

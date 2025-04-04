@@ -32,6 +32,7 @@ async function migrate() {
         theme VARCHAR(10) NOT NULL DEFAULT 'light',
         admin_theme VARCHAR(10) NOT NULL DEFAULT 'light',
         visitor_theme VARCHAR(10) NOT NULL DEFAULT 'light',
+        default_language VARCHAR(10) NOT NULL DEFAULT 'en',
         updated_at TIMESTAMP NOT NULL DEFAULT NOW()
       );
     `);

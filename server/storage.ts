@@ -1,4 +1,4 @@
-import { admins, type Admin, type InsertAdmin } from "@shared/schema";
+import { admins, type Admin, type InsertAdmin, type UpdateAdminLanguage } from "@shared/schema";
 import { 
   visitors, 
   type Visitor, 
@@ -23,6 +23,7 @@ export interface IStorage {
   getAdmin(id: number): Promise<Admin | undefined>;
   getAdminByUsername(username: string): Promise<Admin | undefined>;
   createAdmin(admin: InsertAdmin): Promise<Admin>;
+  updateAdminLanguage(update: UpdateAdminLanguage): Promise<Admin | undefined>;
   
   // Visitor methods
   getVisitor(id: number): Promise<Visitor | undefined>;
@@ -90,6 +91,20 @@ export class DatabaseStorage implements IStorage {
       .values(admin)
       .returning();
     return createdAdmin;
+  }
+  
+  async updateAdminLanguage(update: UpdateAdminLanguage): Promise<Admin | undefined> {
+    try {
+      const [updatedAdmin] = await db
+        .update(admins)
+        .set({ preferredLanguage: update.preferredLanguage })
+        .where(eq(admins.id, update.id))
+        .returning();
+      return updatedAdmin;
+    } catch (error) {
+      console.error("Error updating admin language preference:", error);
+      return undefined;
+    }
   }
   
   // Visitor methods
@@ -374,6 +389,8 @@ export class DatabaseStorage implements IStorage {
           // Set header and footer app names if not provided
           headerAppName: updateData.headerAppName || existingSettings.headerAppName || updateData.appName || existingSettings.appName,
           footerAppName: updateData.footerAppName || existingSettings.footerAppName || updateData.appName || existingSettings.appName,
+          // Set defaultLanguage if not provided
+          defaultLanguage: updateData.defaultLanguage || existingSettings.defaultLanguage,
           updatedAt: new Date() 
         };
         
@@ -399,6 +416,7 @@ export class DatabaseStorage implements IStorage {
               theme VARCHAR(10) NOT NULL DEFAULT 'light',
               admin_theme VARCHAR(10) NOT NULL DEFAULT 'light',
               visitor_theme VARCHAR(10) NOT NULL DEFAULT 'light',
+              default_language VARCHAR(10) NOT NULL DEFAULT 'en',
               updated_at TIMESTAMP NOT NULL DEFAULT NOW()
             );
           `);
@@ -430,6 +448,7 @@ export class DatabaseStorage implements IStorage {
           theme: themeValue, // Default theme (legacy)
           adminTheme: customSettings?.adminTheme || themeValue, // Admin theme
           visitorTheme: customSettings?.visitorTheme || themeValue, // Visitor theme
+          defaultLanguage: customSettings?.defaultLanguage || "en", // Default language
         })
         .returning();
       
