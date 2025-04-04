@@ -22,7 +22,7 @@ export function HourlyDistributionChart({ data }: HourlyDistributionChartProps) 
     return (
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Visitors by Hour of Day</CardTitle>
+          <CardTitle>Hourly Distribution of Check-ins</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-80 flex items-center justify-center">
@@ -41,7 +41,7 @@ export function HourlyDistributionChart({ data }: HourlyDistributionChartProps) 
     return (
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Visitors by Hour of Day</CardTitle>
+          <CardTitle>Hourly Distribution of Check-ins</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-80 flex items-center justify-center">
@@ -56,50 +56,30 @@ export function HourlyDistributionChart({ data }: HourlyDistributionChartProps) 
   }
 
   try {
-    // Filter data to only include hours between 10:00 - 22:00 (10 AM - 10 PM)
-    // Convert data to 24-hour format
-    const filteredData = data
-      .filter(item => {
-        const hour = parseInt(item.hour, 10);
-        return hour >= 10 && hour <= 22; // Only include 10 AM to 10 PM
-      })
-      .map(item => {
-        const hour = parseInt(item.hour, 10);
-        return {
-          ...item,
-          formattedHour: `${hour}:00`, // 24-hour format
-        };
-      });
-
-    // If we don't have any data for the selected time range, show a message
-    if (filteredData.length === 0) {
-      return (
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle>Visitors by Hour of Day</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80 flex items-center justify-center">
-              <div className="text-center text-gray-500">
-                <p className="text-lg">No data available for 10:00 - 22:00</p>
-                <p className="text-sm mt-2">No check-ins recorded during these hours</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      );
-    }
+    // We format the hour to be more readable (e.g., "09" to "9 AM", "13" to "1 PM")
+    const formattedData = data.map((item) => {
+      const hour = parseInt(item.hour, 10);
+      const formattedHour = hour === 0 ? "12 AM" : 
+                            hour === 12 ? "12 PM" : 
+                            hour < 12 ? `${hour} AM` : 
+                            `${hour - 12} PM`;
+      
+      return {
+        ...item,
+        formattedHour,
+      };
+    });
 
     return (
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Visitors by Hour of Day (10:00 - 22:00)</CardTitle>
+          <CardTitle>Hourly Distribution of Check-ins</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={filteredData}
+                data={formattedData}
                 margin={{
                   top: 5,
                   right: 30,
@@ -140,7 +120,7 @@ export function HourlyDistributionChart({ data }: HourlyDistributionChartProps) 
     return (
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Visitors by Hour of Day</CardTitle>
+          <CardTitle>Hourly Distribution of Check-ins</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-80 flex items-center justify-center">

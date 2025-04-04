@@ -371,9 +371,6 @@ export class DatabaseStorage implements IStorage {
           ...updateData, 
           // If theme is not provided but one of the new fields is, use that
           theme: updateData.theme || updateData.adminTheme || existingSettings.theme,
-          // Set header and footer app names if not provided
-          headerAppName: updateData.headerAppName || existingSettings.headerAppName || updateData.appName || existingSettings.appName,
-          footerAppName: updateData.footerAppName || existingSettings.footerAppName || updateData.appName || existingSettings.appName,
           updatedAt: new Date() 
         };
         
@@ -392,8 +389,6 @@ export class DatabaseStorage implements IStorage {
             CREATE TABLE IF NOT EXISTS settings (
               id SERIAL PRIMARY KEY,
               app_name VARCHAR(255) NOT NULL DEFAULT 'Visitor Management System',
-              header_app_name VARCHAR(255),
-              footer_app_name VARCHAR(255),
               logo_url TEXT,
               country_code VARCHAR(10) NOT NULL DEFAULT '243',
               theme VARCHAR(10) NOT NULL DEFAULT 'light',
@@ -423,8 +418,6 @@ export class DatabaseStorage implements IStorage {
         .insert(settings)
         .values({
           appName: customSettings?.appName || "Visitor Management System",
-          headerAppName: customSettings?.headerAppName || customSettings?.appName || "Visitor Management System",
-          footerAppName: customSettings?.footerAppName || customSettings?.appName || "Visitor Management System",
           logoUrl: customSettings?.logoUrl || null,
           countryCode: customSettings?.countryCode || "243", // Default country code
           theme: themeValue, // Default theme (legacy)

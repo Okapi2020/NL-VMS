@@ -168,7 +168,12 @@ export default function AuthPage() {
                     </>
                   )}
                 </Button>
-
+                
+                <div className="mt-4">
+                  <p className="text-sm text-center text-gray-600">
+                    Default credentials: <span className="font-mono">admin</span> / <span className="font-mono">admin123</span>
+                  </p>
+                </div>
               </form>
             </Form>
           </CardContent>

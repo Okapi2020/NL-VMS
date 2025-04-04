@@ -86,10 +86,8 @@ function VisitorPortalComponent() {
     localStorage.removeItem("visitorId");
   };
 
-  // Get application names from settings
+  // Default application name
   const appName = settings?.appName || "Visitor Management System";
-  const headerAppName = settings?.headerAppName || appName;
-  const footerAppName = settings?.footerAppName || appName;
   
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -124,13 +122,6 @@ function VisitorPortalComponent() {
           )}
         </div>
       </main>
-      
-      {/* Footer with dynamic application name */}
-      <footer className="py-6 px-4 mt-8 border-t">
-        <div className="text-center text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} {footerAppName}
-        </div>
-      </footer>
     </div>
   );
 }
