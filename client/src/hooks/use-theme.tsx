@@ -26,35 +26,61 @@ type ThemeProviderProps = {
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [theme, setThemeState] = useState<Theme>("light");
+  const [theme, setThemeState] = useState<Theme>(() => {
+    // Try to get theme from localStorage on initialization
+    try {
+      const savedTheme = localStorage.getItem("theme") as Theme | null;
+      return savedTheme || "light";
+    } catch (e) {
+      console.error("Failed to get theme from localStorage", e);
+      return "light";
+    }
+  });
   const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
 
   // Query for fetching settings
   const { data: settings, isLoading } = useQuery({
     queryKey: ["/api/settings"],
     queryFn: async () => {
-      const res = await fetch("/api/settings");
-      if (!res.ok) throw new Error("Failed to fetch settings");
-      return res.json() as Promise<Settings>;
+      try {
+        const res = await fetch("/api/settings");
+        if (!res.ok) {
+          console.warn("Failed to fetch settings, using defaults");
+          return null;
+        }
+        return res.json() as Promise<Settings>;
+      } catch (error) {
+        console.warn("Error fetching settings:", error);
+        return null;
+      }
     },
   });
 
   // Mutation for updating theme
   const updateThemeMutation = useMutation({
     mutationFn: async (newTheme: Theme) => {
-      // Get current settings first
-      const currentSettings = queryClient.getQueryData<Settings>(["/api/settings"]);
-      if (!currentSettings) {
-        throw new Error("Settings not loaded");
-      }
+      try {
+        // Get current settings first
+        const currentSettings = queryClient.getQueryData<Settings>(["/api/settings"]);
+        if (!currentSettings) {
+          // Can't update settings yet, but we can at least save to localStorage
+          localStorage.setItem("theme", newTheme);
+          return { theme: newTheme };
+        }
 
-      // Update settings with new theme
-      const res = await apiRequest("POST", "/api/settings", {
-        ...currentSettings,
-        theme: newTheme,
-      });
-      
-      return res.json();
+        // Update settings with new theme
+        const res = await apiRequest("POST", "/api/settings", {
+          ...currentSettings,
+          theme: newTheme,
+        });
+        
+        return res.json();
+      } catch (error) {
+        console.error("Failed to update theme:", error);
+        // At least save to localStorage
+        localStorage.setItem("theme", newTheme);
+        return { theme: newTheme };
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/settings"] });

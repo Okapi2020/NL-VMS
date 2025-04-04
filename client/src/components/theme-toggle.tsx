@@ -21,7 +21,33 @@ export function ThemeToggle({
   showLabel = false,
   className = ""
 }: ThemeToggleProps) {
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  // Try to use theme context, but provide fallback if not available
+  let theme: Theme = "light";
+  let resolvedTheme: "light" | "dark" = "light";
+  let setTheme: (theme: Theme) => void = () => {};
+
+  try {
+    const themeContext = useTheme();
+    theme = themeContext.theme;
+    resolvedTheme = themeContext.resolvedTheme;
+    setTheme = themeContext.setTheme;
+  } catch (error) {
+    console.warn("Theme context not available, using defaults");
+    // Provide fallback behavior
+    resolvedTheme = document.documentElement.classList.contains("dark") ? "dark" : "light";
+    setTheme = (newTheme: Theme) => {
+      try {
+        localStorage.setItem("theme", newTheme);
+        if (newTheme === "dark" || (newTheme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
+      } catch (e) {
+        console.error("Failed to set theme", e);
+      }
+    };
+  }
 
   const handleThemeChange = (newTheme: Theme) => {
     setTheme(newTheme);

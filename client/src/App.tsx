@@ -25,12 +25,9 @@ function Router() {
 
 function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <Router />
-        <Toaster />
-      </AuthProvider>
-    </ThemeProvider>
+    <AuthProvider>
+      <Router />
+    </AuthProvider>
   );
 }
 
