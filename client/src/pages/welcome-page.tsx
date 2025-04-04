@@ -101,8 +101,8 @@ export default function WelcomePage() {
                 </div>
                 
                 <Link href="/visitor">
-                  <Button size="lg" className="w-full text-lg py-6 font-medium">
-                    <LogIn className="mr-2 h-6 w-6" />
+                  <Button size="lg" className="w-full text-lg py-6 font-medium text-white">
+                    <LogIn className="mr-2 h-6 w-6 text-white" />
                     {isEnglish ? 'Check In Now' : 'ARRIVÉE'}
                   </Button>
                 </Link>
