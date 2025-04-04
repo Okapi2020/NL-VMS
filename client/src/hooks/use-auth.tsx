@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   } = useQuery<Admin | null, Error>({
     queryKey: ["/api/admin/user"],
     queryFn: getQueryFn({ on401: "returnNull" }),
-    retry: false,
+    retry: 1, // Try once more if it fails
     refetchOnWindowFocus: true, // Refresh user data when window gets focus
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -42,7 +42,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     mutationFn: async (credentials: LoginData) => {
       console.log("Attempting login with credentials:", credentials);
       try {
-        const res = await apiRequest("POST", "/api/admin/login", credentials);
+        // Use direct fetch instead of apiRequest for more debugging
+        const res = await fetch("/api/admin/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(credentials),
+          credentials: "include"
+        });
+        
+        // Check cookies after login
+        console.log("Cookies after login request:", document.cookie);
+        
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(`Login failed: ${res.status} ${errorText}`);
+        }
+        
         const userData = await res.json();
         console.log("Login response:", userData);
         return userData;

@@ -38,11 +38,13 @@ export function setupAuth(app: Express) {
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
+    name: 'vmsid', // Custom cookie name instead of the default 'connect.sid'
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       secure: false, // Set to true in production with HTTPS
       httpOnly: true,
-      sameSite: 'lax'
+      sameSite: 'lax',
+      path: '/'
     }
   };
 
@@ -113,9 +115,27 @@ export function setupAuth(app: Express) {
           return next(err);
         }
         
-        console.log("Login successful for:", user.username);
-        console.log("Session ID:", req.sessionID);
-        return res.status(200).json(user);
+        // Regenerate session to prevent session fixation
+        const prevSession = req.session;
+        req.session.regenerate((err) => {
+          if (err) {
+            console.error("Session regeneration error:", err);
+            return next(err);
+          }
+          
+          // Copy data from previous session
+          Object.assign(req.session, prevSession);
+          
+          console.log("Login successful for:", user.username);
+          console.log("New Session ID:", req.sessionID);
+          console.log("Session data:", req.session);
+          
+          // Add session cookie debugging
+          const cookieHeader = res.getHeader('Set-Cookie');
+          console.log("Setting cookies:", cookieHeader);
+          
+          return res.status(200).json(user);
+        });
       });
     })(req, res, next);
   });

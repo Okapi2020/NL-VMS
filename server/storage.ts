@@ -71,6 +71,14 @@ export class DatabaseStorage implements IStorage {
         ssl: true,
       },
       createTableIfMissing: true,
+      tableName: 'session', // Explicitly name the session table
+      pruneSessionInterval: 60 * 15, // Prune invalid sessions every 15 min
+      // Customize session columns if needed
+      columns: {
+        session_id: 'sid',
+        session_data: 'sess',
+        expire: 'expire'
+      }
     });
   }
   

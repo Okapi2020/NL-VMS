@@ -355,7 +355,13 @@ export function LanguageProvider({
   
   // Use default language as the initial value
   useEffect(() => {
-    setLanguage(defaultLanguage);
+    // Check if there's a stored language preference in localStorage
+    const storedLanguage = localStorage.getItem('preferredLanguage') as Language | null;
+    if (storedLanguage && (storedLanguage === 'en' || storedLanguage === 'fr')) {
+      setLanguage(storedLanguage);
+    } else {
+      setLanguage(defaultLanguage);
+    }
   }, [defaultLanguage]);
 
   // Mutation to update language preference for admin users
@@ -367,9 +373,14 @@ export function LanguageProvider({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ preferredLanguage }),
+        credentials: 'include'
       });
       
       if (!response.ok) {
+        if (response.status === 401) {
+          // Not authenticated, just store in localStorage
+          return { success: true, local: true };
+        }
         throw new Error('Failed to update language preference');
       }
       
@@ -394,8 +405,9 @@ export function LanguageProvider({
   // Function to update language preference
   const updateLanguagePreference = (lang: Language) => {
     setLanguage(lang);
-    // We'll attempt to update the preference on the server
-    // even if not logged in - the server will handle authentication
+    // Store in localStorage for persistence
+    localStorage.setItem('preferredLanguage', lang);
+    // Also attempt to update on the server if user is logged in
     mutate(lang);
   };
 
