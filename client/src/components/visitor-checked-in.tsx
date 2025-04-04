@@ -14,9 +14,10 @@ type VisitorCheckedInProps = {
   visitor: Visitor;
   visit: Visit;
   onCheckOut: () => void;
+  isEnglish?: boolean;
 };
 
-export function VisitorCheckedIn({ visitor, visit, onCheckOut }: VisitorCheckedInProps) {
+export function VisitorCheckedIn({ visitor, visit, onCheckOut, isEnglish = true }: VisitorCheckedInProps) {
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const [countdown, setCountdown] = useState(6); // 6 seconds countdown
@@ -47,8 +48,10 @@ export function VisitorCheckedIn({ visitor, visit, onCheckOut }: VisitorCheckedI
     },
     onSuccess: (updatedVisit) => {
       toast({
-        title: "Check-out successful",
-        description: "You have been checked out successfully. Thank you for your visit!",
+        title: isEnglish ? "Check-out successful" : "Déconnexion réussie",
+        description: isEnglish 
+          ? "You have been checked out successfully. Thank you for your visit!" 
+          : "Vous avez été déconnecté avec succès. Merci pour votre visite !",
       });
       
       try {
@@ -70,7 +73,7 @@ export function VisitorCheckedIn({ visitor, visit, onCheckOut }: VisitorCheckedI
     },
     onError: (error: Error) => {
       toast({
-        title: "Check-out failed",
+        title: isEnglish ? "Check-out failed" : "Échec de la déconnexion",
         description: error.message,
         variant: "destructive",
       });
@@ -78,7 +81,7 @@ export function VisitorCheckedIn({ visitor, visit, onCheckOut }: VisitorCheckedI
   });
 
   const handleCheckOut = () => {
-    if (confirm("Are you sure you want to check out?")) {
+    if (confirm(isEnglish ? "Are you sure you want to check out?" : "Êtes-vous sûr de vouloir vous déconnecter ?")) {
       checkOutMutation.mutate();
     }
   };
@@ -90,37 +93,43 @@ export function VisitorCheckedIn({ visitor, visit, onCheckOut }: VisitorCheckedI
           <Check className="h-6 w-6 text-green-600 dark:text-green-400" />
         </div>
 
-        <h3 className="mt-3 text-lg font-medium">Successfully Checked In</h3>
+        <h3 className="mt-3 text-lg font-medium">
+          {isEnglish ? "Successfully Checked In" : "Enregistrement Réussi"}
+        </h3>
         <p className="mt-2 text-sm text-muted-foreground">
-          Thank you for checking in. You have been registered in the system.
+          {isEnglish 
+            ? "Thank you for checking in. You have been registered in the system."
+            : "Merci de vous être enregistré. Vous avez été enregistré dans le système."}
         </p>
 
         <div className="mt-4 border-t pt-4 border-border">
-          <p className="text-sm font-medium text-muted-foreground">Your check-in details:</p>
+          <p className="text-sm font-medium text-muted-foreground">
+            {isEnglish ? "Your check-in details:" : "Détails de votre enregistrement :"}
+          </p>
           <div className="mt-2 text-sm grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4">
             <div>
-              <span className="font-medium">Name:</span>{" "}
+              <span className="font-medium">{isEnglish ? "Name:" : "Nom :"}</span>{" "}
               <span>{visitor.fullName}</span>
             </div>
             <div>
-              <span className="font-medium">Check-in time:</span>{" "}
+              <span className="font-medium">{isEnglish ? "Check-in time:" : "Heure d'arrivée :"}</span>{" "}
               <span>{formatTimeOnly(visit.checkInTime)}</span>
             </div>
 
             <div className="flex items-center">
               <Tag className="h-4 w-4 mr-1 text-primary" />
-              <span className="font-medium">Badge ID:</span>{" "}
+              <span className="font-medium">{isEnglish ? "Badge ID:" : "Numéro de badge :"}</span>{" "}
               <span className="font-mono text-primary ml-1">{formatBadgeId(visitor.id)}</span>
             </div>
             
             <div className="flex items-center">
               <Phone className="h-4 w-4 mr-1 text-muted-foreground" />
-              <span className="font-medium">Phone:</span>{" "}
+              <span className="font-medium">{isEnglish ? "Phone:" : "Téléphone :"}</span>{" "}
               <span className="ml-1">
                 {visitor.phoneNumber ? (
                   <PhoneNumberLink phoneNumber={visitor.phoneNumber} />
                 ) : (
-                  "No phone provided"
+                  isEnglish ? "No phone provided" : "Aucun téléphone fourni"
                 )}
               </span>
             </div>
@@ -130,16 +139,24 @@ export function VisitorCheckedIn({ visitor, visit, onCheckOut }: VisitorCheckedI
         <div className="mt-3 text-sm text-muted-foreground">
           <div className="flex items-center justify-center gap-2">
             <Timer className="h-4 w-4" />
-            <span>Returning to home page in {countdown} seconds...</span>
+            <span>
+              {isEnglish 
+                ? `Returning to home page in ${countdown} seconds...`
+                : `Retour à la page d'accueil dans ${countdown} secondes...`}
+            </span>
             <button 
               onClick={() => setAutoRedirect(false)} 
               className="text-primary hover:text-primary/80 underline text-xs"
             >
-              Cancel
+              {isEnglish ? "Cancel" : "Annuler"}
             </button>
           </div>
           {!autoRedirect && (
-            <p className="mt-1 text-xs text-green-600 dark:text-green-400">Auto-redirect cancelled. You can use the buttons below when ready.</p>
+            <p className="mt-1 text-xs text-green-600 dark:text-green-400">
+              {isEnglish 
+                ? "Auto-redirect cancelled. You can use the buttons below when ready."
+                : "Redirection automatique annulée. Vous pouvez utiliser les boutons ci-dessous quand vous êtes prêt."}
+            </p>
           )}
         </div>
 
@@ -148,12 +165,14 @@ export function VisitorCheckedIn({ visitor, visit, onCheckOut }: VisitorCheckedI
             onClick={handleCheckOut}
             disabled={checkOutMutation.isPending}
           >
-            {checkOutMutation.isPending ? "Processing..." : "Check Out"}
+            {checkOutMutation.isPending 
+              ? (isEnglish ? "Processing..." : "Traitement...") 
+              : (isEnglish ? "Check Out" : "Se Déconnecter")}
           </Button>
           
           <Link href="/">
             <Button variant="outline" className="inline-flex items-center">
-              Back to Home
+              {isEnglish ? "Back to Home" : "Retour à l'Accueil"}
             </Button>
           </Link>
         </div>

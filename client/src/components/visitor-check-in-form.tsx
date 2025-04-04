@@ -21,10 +21,15 @@ import { useLocation, Link } from "wouter";
 
 type VisitorCheckInFormProps = {
   onSuccess: (visitor: Visitor, visit: Visit) => void;
+  isEnglish?: boolean;
 };
 
-export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
-  const [ageValue, setAgeValue] = useState<string>("Age will be calculated automatically");
+export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheckInFormProps) {
+  const [ageValue, setAgeValue] = useState<string>(
+    isEnglish 
+      ? "Age will be calculated automatically" 
+      : "L'âge sera calculé automatiquement"
+  );
   // Create separate state for step 2 to avoid overlapping values
   const [contactDetailsValues, setContactDetailsValues] = useState({
     email: "",
@@ -62,8 +67,10 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
     },
     onSuccess: (data) => {
       toast({
-        title: "Check-in successful",
-        description: "You have been checked in successfully!",
+        title: isEnglish ? "Check-in successful" : "Enregistrement réussi",
+        description: isEnglish 
+          ? "You have been checked in successfully!" 
+          : "Vous avez été enregistré avec succès !",
       });
       // Save data in session first
       onSuccess(data.visitor, data.visit);
@@ -74,7 +81,7 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
     },
     onError: (error: Error) => {
       toast({
-        title: "Check-in failed",
+        title: isEnglish ? "Check-in failed" : "Échec de l'enregistrement",
         description: error.message,
         variant: "destructive",
       });
@@ -84,9 +91,9 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
   const handleYearOfBirthChange = (value: number) => {
     if (value && value > 1900 && value <= new Date().getFullYear()) {
       const age = calculateAge(value);
-      setAgeValue(`${age} years`);
+      setAgeValue(isEnglish ? `${age} years` : `${age} ans`);
     } else {
-      setAgeValue("Invalid year");
+      setAgeValue(isEnglish ? "Invalid year" : "Année invalide");
     }
   };
 
@@ -103,7 +110,7 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
   const steps = [
     {
       id: "personal-info",
-      title: "Personal Info",
+      title: isEnglish ? "Personal Info" : "Informations Personnelles",
       content: (
         <div className="space-y-4">
           {/* Name fields in a simple vertical layout */}
@@ -114,12 +121,12 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="flex items-center">
-                    <span>First Name</span>
+                    <span>{isEnglish ? "First Name" : "Prénom"}</span>
                     <span className="ml-1 text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="John" 
+                      placeholder={isEnglish ? "John" : "Jean"} 
                       {...field} 
                       className="border-blue-200 focus:border-blue-400"
                     />
@@ -135,12 +142,14 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    <span>Middle Name</span>
-                    <span className="ml-1 text-xs text-muted-foreground">(Optional)</span>
+                    <span>{isEnglish ? "Middle Name" : "Deuxième Prénom"}</span>
+                    <span className="ml-1 text-xs text-muted-foreground">
+                      {isEnglish ? "(Optional)" : "(Optionnel)"}
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="Robert" 
+                      placeholder={isEnglish ? "Robert" : "Pierre"} 
                       {...field} 
                     />
                   </FormControl>
@@ -155,12 +164,12 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="flex items-center">
-                    <span>Last Name</span>
+                    <span>{isEnglish ? "Last Name" : "Nom de Famille"}</span>
                     <span className="ml-1 text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="Smith" 
+                      placeholder={isEnglish ? "Smith" : "Dupont"} 
                       {...field} 
                       className="border-blue-200 focus:border-blue-400"
                     />
@@ -176,7 +185,7 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
             name="yearOfBirth"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Year of Birth</FormLabel>
+                <FormLabel>{isEnglish ? "Year of Birth" : "Année de Naissance"}</FormLabel>
                 <FormControl>
                   <Input 
                     type="number" 
@@ -198,7 +207,7 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
           />
           
           <div>
-            <FormLabel>Age</FormLabel>
+            <FormLabel>{isEnglish ? "Age" : "Âge"}</FormLabel>
             <div className="mt-1 py-2 px-3 bg-muted text-foreground rounded-md border border-border">
               {ageValue}
             </div>
@@ -212,7 +221,7 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
     },
     {
       id: "contact-details",
-      title: "Contact Details",
+      title: isEnglish ? "Contact Details" : "Coordonnées",
       content: (
         <div className="space-y-4">
           <FormField
@@ -221,8 +230,10 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  <span>Email Address</span>
-                  <span className="ml-1 text-xs text-muted-foreground">(Optional)</span>
+                  <span>{isEnglish ? "Email Address" : "Adresse Email"}</span>
+                  <span className="ml-1 text-xs text-muted-foreground">
+                    {isEnglish ? "(Optional)" : "(Optionnel)"}
+                  </span>
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
@@ -247,7 +258,9 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
                         if (value && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)) {
                           form.setError("email", { 
                             type: "manual", 
-                            message: "Please enter a valid email address format (e.g., name@example.com)" 
+                            message: isEnglish 
+                              ? "Please enter a valid email address format (e.g., name@example.com)" 
+                              : "Veuillez entrer une adresse email valide (ex: nom@exemple.com)"
                           });
                         }
                         field.onBlur();
@@ -262,7 +275,9 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
                   </div>
                 </FormControl>
                 <div className="mt-1 text-xs text-muted-foreground">
-                  Enter a valid email address format (e.g., name@example.com)
+                  {isEnglish 
+                    ? "Enter a valid email address format (e.g., name@example.com)" 
+                    : "Entrez une adresse email valide (ex: nom@exemple.com)"}
                 </div>
                 <FormMessage />
               </FormItem>
@@ -274,7 +289,7 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
             name="phoneNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Phone Number</FormLabel>
+                <FormLabel>{isEnglish ? "Phone Number" : "Numéro de Téléphone"}</FormLabel>
                 <FormControl>
                   <div>
                     <Input 
@@ -289,7 +304,9 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
                       onBlur={field.onBlur}
                     />
                     <div className="mt-1 text-xs text-muted-foreground">
-                      Enter a 10-digit phone number (e.g., 0808 382 697)
+                      {isEnglish 
+                        ? "Enter a 10-digit phone number (e.g., 0808 382 697)"
+                        : "Entrez un numéro de téléphone à 10 chiffres (ex: 0612 345 678)"}
                     </div>
                   </div>
                 </FormControl>
@@ -306,15 +323,19 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
     },
     {
       id: "review-info",
-      title: "Review Information",
+      title: isEnglish ? "Review Information" : "Vérification des Informations",
       content: (
         <div className="space-y-6">
-          <h3 className="text-lg font-medium">Please review your information</h3>
+          <h3 className="text-lg font-medium">
+            {isEnglish ? "Please review your information" : "Veuillez vérifier vos informations"}
+          </h3>
           <Card className="bg-muted/50">
             <CardContent className="pt-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="text-sm font-semibold text-muted-foreground">Full Name</h4>
+                  <h4 className="text-sm font-semibold text-muted-foreground">
+                    {isEnglish ? "Full Name" : "Nom Complet"}
+                  </h4>
                   <p className="mt-1">
                     {form.getValues("firstName")}{" "}
                     {form.getValues("middleName") ? form.getValues("middleName") + " " : ""}
@@ -322,15 +343,21 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
                   </p>
                 </div>
                 <div>
-                  <h4 className="text-sm font-semibold text-muted-foreground">Age</h4>
+                  <h4 className="text-sm font-semibold text-muted-foreground">
+                    {isEnglish ? "Age" : "Âge"}
+                  </h4>
                   <p className="mt-1">{ageValue}</p>
                 </div>
                 <div>
-                  <h4 className="text-sm font-semibold text-muted-foreground">Email</h4>
+                  <h4 className="text-sm font-semibold text-muted-foreground">
+                    {isEnglish ? "Email" : "Courriel"}
+                  </h4>
                   <p className="mt-1">{contactDetailsValues.email || "—"}</p>
                 </div>
                 <div>
-                  <h4 className="text-sm font-semibold text-muted-foreground">Phone</h4>
+                  <h4 className="text-sm font-semibold text-muted-foreground">
+                    {isEnglish ? "Phone" : "Téléphone"}
+                  </h4>
                   <p className="mt-1">{contactDetailsValues.phoneNumber}</p>
                 </div>
               </div>
@@ -338,11 +365,18 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
           </Card>
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">
-              By clicking "Check In", you confirm that the information above is correct.
+              {isEnglish 
+                ? "By clicking \"Check In\", you confirm that the information above is correct."
+                : "En cliquant sur \"Enregistrer\", vous confirmez que les informations ci-dessus sont correctes."}
             </p>
             <div className="bg-primary/10 p-3 rounded-md border border-primary/20">
               <p className="text-sm text-primary dark:text-primary-foreground">
-                <span className="font-semibold">Returning visitor?</span> If you've checked in before using the same email or phone number, our system will recognize you and update your information.
+                <span className="font-semibold">
+                  {isEnglish ? "Returning visitor?" : "Déjà visiteur?"}
+                </span>{" "}
+                {isEnglish
+                  ? "If you've checked in before using the same email or phone number, our system will recognize you and update your information."
+                  : "Si vous vous êtes déjà enregistré avec la même adresse email ou le même numéro de téléphone, notre système vous reconnaîtra et mettra à jour vos informations."}
               </p>
             </div>
           </div>
@@ -359,7 +393,7 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
           <MultiStepForm 
             steps={steps} 
             onComplete={form.handleSubmit(onSubmit)}
-            submitButtonText="Check In"
+            submitButtonText={isEnglish ? "Check In" : "Enregistrer"}
             renderCustomButtons={(currentStepIndex, isFirstStep) => (
               isFirstStep ? (
                 <Link 
@@ -380,7 +414,7 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
                       d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" 
                     />
                   </svg>
-                  Home
+                  {isEnglish ? "Home" : "Accueil"}
                 </Link>
               ) : null
             )}

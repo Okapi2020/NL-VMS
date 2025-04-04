@@ -10,14 +10,31 @@ import { Visitor, Visit, Settings } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
 import { useIdleTimeout } from "@/hooks/use-idle-timeout";
 import { ErrorBoundary } from "@/components/error-boundary";
-// ThemeToggle removed - only admins can control theme
-// Removed unused icon imports
+import { Button } from "@/components/ui/button";
+import { Languages } from "lucide-react";
 
 function VisitorPortalComponent() {
+  // Language state (default to French)
+  const [isEnglish, setIsEnglish] = useState(false);
   const [checkedIn, setCheckedIn] = useState(false);
   const [visitor, setVisitor] = useState<Visitor | null>(null);
   const [visit, setVisit] = useState<Visit | null>(null);
   const [, navigate] = useLocation();
+  
+  // Load language preference from localStorage on component mount
+  useEffect(() => {
+    const storedLang = localStorage.getItem('isEnglish');
+    if (storedLang !== null) {
+      setIsEnglish(storedLang === 'true');
+    }
+  }, []);
+  
+  // Toggle language and save to localStorage
+  const toggleLanguage = () => {
+    const newValue = !isEnglish;
+    setIsEnglish(newValue);
+    localStorage.setItem('isEnglish', String(newValue));
+  };
   
   // Query to fetch application settings
   const { 
@@ -43,9 +60,6 @@ function VisitorPortalComponent() {
     // Only enable if not actively filling out the form
     enabled: true
   });
-
-  // We don't want to automatically check for stored visitor IDs
-  // on the visitor portal page - it should only show the form
 
   // Query for active visit if visitor ID is available
   const { refetch } = useQuery({
@@ -93,7 +107,23 @@ function VisitorPortalComponent() {
   
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* No header with theme toggle - only admins can control theme */}
+      {/* Header with language toggle */}
+      <header className="bg-card shadow">
+        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between w-full">
+            <h1 className="text-2xl font-bold">{headerAppName}</h1>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={toggleLanguage} 
+              className="flex items-center gap-2"
+            >
+              <Languages size={18} />
+              <span>{isEnglish ? 'Français' : 'English'}</span>
+            </Button>
+          </div>
+        </div>
+      </header>
       
       {/* Main Content */}
       <main className="py-4 px-4 sm:px-6 lg:px-8">
@@ -101,10 +131,12 @@ function VisitorPortalComponent() {
           {/* Page Title */}
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold">
-              Visitor Check-in
+              {isEnglish ? 'Visitor Check-in' : 'Enregistrement du Visiteur'}
             </h1>
             <p className="mt-2 text-muted-foreground">
-              Please fill out the form below to register your visit
+              {isEnglish 
+                ? 'Please fill out the form below to register your visit' 
+                : 'Veuillez remplir le formulaire ci-dessous pour enregistrer votre visite'}
             </p>
           </div>
 
@@ -114,11 +146,15 @@ function VisitorPortalComponent() {
               visitor={visitor} 
               visit={visit} 
               onCheckOut={handleCheckOut} 
+              isEnglish={isEnglish}
             />
           ) : (
             <Card>
               <CardContent className="px-4 py-5 sm:p-6">
-                <VisitorCheckInForm onSuccess={handleCheckInSuccess} />
+                <VisitorCheckInForm 
+                  onSuccess={handleCheckInSuccess} 
+                  isEnglish={isEnglish}
+                />
               </CardContent>
             </Card>
           )}

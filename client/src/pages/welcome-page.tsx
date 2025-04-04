@@ -8,8 +8,8 @@ import { Settings } from "@shared/schema";
 import { LiveClock } from "@/components/live-clock";
 
 export default function WelcomePage() {
-  // Use state for language toggle
-  const [isEnglish, setIsEnglish] = useState(true);
+  // Use state for language toggle (default to French)
+  const [isEnglish, setIsEnglish] = useState(false);
   
   // Load language preference from localStorage on component mount
   useEffect(() => {
