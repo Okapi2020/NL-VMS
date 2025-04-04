@@ -29,9 +29,9 @@ export default function WelcomePage() {
   
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
-      {/* Header with logo and admin login */}
+      {/* Header with logo only - admin button removed */}
       <header className="bg-card shadow">
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex items-center">
             {settings?.logoUrl ? (
               <img 
@@ -45,13 +45,6 @@ export default function WelcomePage() {
               ) : null
             )}
             <h1 className="text-3xl font-bold">{headerAppName}</h1>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Link href="/auth" 
-              className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-muted text-primary hover:bg-muted/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary" 
-              title="Admin Login">
-              <ShieldCheck className="h-5 w-5" />
-            </Link>
           </div>
         </div>
       </header>
