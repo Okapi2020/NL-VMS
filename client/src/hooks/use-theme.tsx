@@ -203,7 +203,14 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (context === undefined) {
-    throw new Error("useTheme must be used within a ThemeProvider");
+    console.warn("Theme context not available, using defaults");
+    // Return a default context instead of throwing an error
+    return {
+      theme: "light" as Theme,
+      setTheme: () => {},
+      resolvedTheme: "light" as const,
+      isLoading: false
+    };
   }
   return context;
 }

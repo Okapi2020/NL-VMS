@@ -91,16 +91,7 @@ function VisitorPortalComponent() {
   
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Header with theme toggle and back button */}
-      <header className="pt-4 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto flex justify-between items-center">
-          <Link href="/" className="flex items-center text-muted-foreground hover:text-foreground">
-            <Home className="h-5 w-5 mr-1" />
-            <span>Back to Home</span>
-          </Link>
-          <ThemeToggle />
-        </div>
-      </header>
+      {/* No header with theme toggle - only admins can control theme */}
       
       {/* Main Content */}
       <main className="py-4 px-4 sm:px-6 lg:px-8">

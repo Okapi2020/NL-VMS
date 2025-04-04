@@ -199,7 +199,7 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
           
           <div>
             <FormLabel>Age</FormLabel>
-            <div className="mt-1 py-2 px-3 bg-gray-100 text-gray-700 rounded-md">
+            <div className="mt-1 py-2 px-3 bg-muted text-foreground rounded-md border border-border">
               {ageValue}
             </div>
           </div>
@@ -305,8 +305,8 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
             <p className="text-sm text-muted-foreground">
               By clicking "Check In", you confirm that the information above is correct.
             </p>
-            <div className="bg-blue-50 p-3 rounded-md border border-blue-100">
-              <p className="text-sm text-blue-700">
+            <div className="bg-primary/10 p-3 rounded-md border border-primary/20">
+              <p className="text-sm text-primary dark:text-primary-foreground">
                 <span className="font-semibold">Returning visitor?</span> If you've checked in before using the same email or phone number, our system will recognize you and update your information.
               </p>
             </div>
@@ -329,7 +329,7 @@ export function VisitorCheckInForm({ onSuccess }: VisitorCheckInFormProps) {
               isFirstStep ? (
                 <Link 
                   href="/" 
-                  className="inline-flex items-center text-sm font-medium px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 shadow-sm"
+                  className="inline-flex items-center text-sm font-medium px-4 py-2 rounded-md border bg-background text-foreground hover:bg-muted shadow-sm"
                 >
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
