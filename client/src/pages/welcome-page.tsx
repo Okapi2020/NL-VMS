@@ -97,12 +97,12 @@ export default function WelcomePage() {
                 
                 {/* Live Clock Display */}
                 <div className="mb-6 w-full flex justify-center">
-                  <LiveClock isEnglish={isEnglish} />
+                  <LiveClock />
                 </div>
                 
                 <Link href="/visitor">
-                  <Button size="lg" className="w-full text-lg py-6 font-medium text-white">
-                    <LogIn className="mr-2 h-6 w-6 text-white" />
+                  <Button size="lg" className="w-full text-lg py-6 font-medium">
+                    <LogIn className="mr-2 h-6 w-6" />
                     {isEnglish ? 'Check In Now' : 'ARRIVÉE'}
                   </Button>
                 </Link>
