@@ -385,6 +385,8 @@ export class DatabaseStorage implements IStorage {
               id SERIAL PRIMARY KEY,
               app_name VARCHAR(255) NOT NULL DEFAULT 'Visitor Management System',
               logo_url TEXT,
+              country_code VARCHAR(10) NOT NULL DEFAULT '243',
+              theme VARCHAR(10) NOT NULL DEFAULT 'light',
               updated_at TIMESTAMP NOT NULL DEFAULT NOW()
             );
           `);
@@ -409,6 +411,7 @@ export class DatabaseStorage implements IStorage {
           appName: customSettings?.appName || "Visitor Management System",
           logoUrl: customSettings?.logoUrl || null,
           countryCode: customSettings?.countryCode || "243", // Default country code
+          theme: customSettings?.theme || "light", // Default theme
         })
         .returning();
       

@@ -9,6 +9,7 @@ import { AdminVisitHistory } from "@/components/admin-visit-history";
 import { AdminSettings } from "@/components/admin-settings";
 import { DayOfWeekChart } from "@/components/analytics/day-of-week-chart";
 import { HourlyDistributionChart } from "@/components/analytics/hourly-distribution-chart";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 import { exportToCSV } from "@/lib/utils";
 import { Visit, Visitor } from "@shared/schema";
@@ -379,7 +380,8 @@ export default function AdminDashboard() {
                 {activeView === "settings" && "Settings"}
               </h2>
             </div>
-            <div className="mt-4 flex md:mt-0 md:ml-4">
+            <div className="mt-4 flex md:mt-0 md:ml-4 items-center space-x-2">
+              <ThemeToggle />
               <Button
                 variant="outline"
                 className="inline-flex items-center"

@@ -10,7 +10,8 @@ import { Visitor, Visit, Settings } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
 import { useIdleTimeout } from "@/hooks/use-idle-timeout";
 import { ErrorBoundary } from "@/components/error-boundary";
-import { Loader2 } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Loader2, Home } from "lucide-react";
 
 function VisitorPortalComponent() {
   const [checkedIn, setCheckedIn] = useState(false);
@@ -89,16 +90,27 @@ function VisitorPortalComponent() {
   const appName = settings?.appName || "Visitor Management System";
   
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Header with theme toggle and back button */}
+      <header className="pt-4 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto flex justify-between items-center">
+          <Link href="/" className="flex items-center text-muted-foreground hover:text-foreground">
+            <Home className="h-5 w-5 mr-1" />
+            <span>Back to Home</span>
+          </Link>
+          <ThemeToggle />
+        </div>
+      </header>
+      
       {/* Main Content */}
-      <main className="py-6 px-4 sm:px-6 lg:px-8">
+      <main className="py-4 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           {/* Page Title */}
           <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold">
               Visitor Check-in
             </h1>
-            <p className="mt-2 text-gray-600">
+            <p className="mt-2 text-muted-foreground">
               Please fill out the form below to register your visit
             </p>
           </div>

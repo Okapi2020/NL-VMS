@@ -8,6 +8,7 @@ import WelcomePage from "@/pages/welcome-page";
 import ThankYouPage from "@/pages/thank-you-page";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { AuthProvider } from "@/hooks/use-auth";
+import { ThemeProvider } from "@/hooks/use-theme";
 
 function Router() {
   return (
@@ -24,10 +25,12 @@ function Router() {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router />
-      <Toaster />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <Router />
+        <Toaster />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

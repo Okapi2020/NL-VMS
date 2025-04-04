@@ -7,9 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload } from "lucide-react";
+import { Loader2, Upload, Moon, Sun, Laptop } from "lucide-react";
+import { useTheme } from "@/hooks/use-theme";
 
 // Settings schema for the form
 const settingsSchema = z.object({
@@ -25,6 +27,9 @@ const settingsSchema = z.object({
     .refine(code => /^\d+$/.test(code), {
       message: "Country code should contain only digits"
     }),
+  theme: z.enum(["light", "dark", "system"], {
+    errorMap: () => ({ message: "Theme must be light, dark, or system" }),
+  }),
 });
 
 type SettingsFormValues = z.infer<typeof settingsSchema>;
@@ -77,11 +82,13 @@ export function AdminSettings() {
       appName: settings?.appName || "Visitor Management System",
       logoUrl: settings?.logoUrl || null,
       countryCode: settings?.countryCode || "243",
+      theme: settings?.theme as "light" | "dark" | "system" || "light",
     },
     values: settings ? {
       appName: settings.appName,
       logoUrl: settings.logoUrl,
       countryCode: settings.countryCode,
+      theme: settings.theme as "light" | "dark" | "system" || "light",
     } : undefined,
   });
   
@@ -281,6 +288,55 @@ export function AdminSettings() {
                 Upload a logo to display on the welcome page. Recommended size is 200×200 pixels.
               </FormDescription>
             </div>
+
+            <FormField
+              control={form.control}
+              name="theme"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>Theme Preference</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="light" />
+                        </FormControl>
+                        <FormLabel className="font-normal flex items-center">
+                          <Sun className="mr-2 h-4 w-4" />
+                          Light
+                        </FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="dark" />
+                        </FormControl>
+                        <FormLabel className="font-normal flex items-center">
+                          <Moon className="mr-2 h-4 w-4" />
+                          Dark
+                        </FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="system" />
+                        </FormControl>
+                        <FormLabel className="font-normal flex items-center">
+                          <Laptop className="mr-2 h-4 w-4" />
+                          System
+                        </FormLabel>
+                      </FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormDescription>
+                    Choose the appearance theme for your application.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             
             <Button
               type="submit"

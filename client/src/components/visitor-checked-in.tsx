@@ -86,18 +86,18 @@ export function VisitorCheckedIn({ visitor, visit, onCheckOut }: VisitorCheckedI
   return (
     <Card className="mt-8">
       <CardContent className="px-4 py-5 sm:p-6 text-center">
-        <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
-          <Check className="h-6 w-6 text-green-600" />
+        <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/30">
+          <Check className="h-6 w-6 text-green-600 dark:text-green-400" />
         </div>
 
-        <h3 className="mt-3 text-lg font-medium text-gray-900">Successfully Checked In</h3>
-        <p className="mt-2 text-sm text-gray-500">
+        <h3 className="mt-3 text-lg font-medium">Successfully Checked In</h3>
+        <p className="mt-2 text-sm text-muted-foreground">
           Thank you for checking in. You have been registered in the system.
         </p>
 
-        <div className="mt-4 border-t border-gray-200 pt-4">
-          <p className="text-sm font-medium text-gray-500">Your check-in details:</p>
-          <div className="mt-2 text-sm text-gray-900 grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4">
+        <div className="mt-4 border-t pt-4 border-border">
+          <p className="text-sm font-medium text-muted-foreground">Your check-in details:</p>
+          <div className="mt-2 text-sm grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4">
             <div>
               <span className="font-medium">Name:</span>{" "}
               <span>{visitor.fullName}</span>
@@ -108,13 +108,13 @@ export function VisitorCheckedIn({ visitor, visit, onCheckOut }: VisitorCheckedI
             </div>
 
             <div className="flex items-center">
-              <Tag className="h-4 w-4 mr-1 text-blue-600" />
+              <Tag className="h-4 w-4 mr-1 text-primary" />
               <span className="font-medium">Badge ID:</span>{" "}
-              <span className="font-mono text-blue-600 ml-1">{formatBadgeId(visitor.id)}</span>
+              <span className="font-mono text-primary ml-1">{formatBadgeId(visitor.id)}</span>
             </div>
             
             <div className="flex items-center">
-              <Phone className="h-4 w-4 mr-1 text-gray-500" />
+              <Phone className="h-4 w-4 mr-1 text-muted-foreground" />
               <span className="font-medium">Phone:</span>{" "}
               <span className="ml-1">
                 {visitor.phoneNumber ? (
@@ -127,26 +127,25 @@ export function VisitorCheckedIn({ visitor, visit, onCheckOut }: VisitorCheckedI
           </div>
         </div>
 
-        <div className="mt-3 text-sm text-gray-500">
+        <div className="mt-3 text-sm text-muted-foreground">
           <div className="flex items-center justify-center gap-2">
             <Timer className="h-4 w-4" />
             <span>Returning to home page in {countdown} seconds...</span>
             <button 
               onClick={() => setAutoRedirect(false)} 
-              className="text-blue-600 hover:text-blue-800 underline text-xs"
+              className="text-primary hover:text-primary/80 underline text-xs"
             >
               Cancel
             </button>
           </div>
           {!autoRedirect && (
-            <p className="mt-1 text-xs text-green-600">Auto-redirect cancelled. You can use the buttons below when ready.</p>
+            <p className="mt-1 text-xs text-green-600 dark:text-green-400">Auto-redirect cancelled. You can use the buttons below when ready.</p>
           )}
         </div>
 
         <div className="mt-5 flex flex-col sm:flex-row gap-4 justify-center">
           <Button 
             onClick={handleCheckOut}
-            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
             disabled={checkOutMutation.isPending}
           >
             {checkOutMutation.isPending ? "Processing..." : "Check Out"}

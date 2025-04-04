@@ -195,6 +195,7 @@ export const settings = pgTable("settings", {
   appName: varchar("app_name", { length: 255 }).default("Visitor Management System").notNull(),
   logoUrl: text("logo_url"),
   countryCode: varchar("country_code", { length: 10 }).default("243").notNull(),
+  theme: varchar("theme", { length: 10 }).default("light").notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
@@ -202,12 +203,16 @@ export const insertSettingsSchema = createInsertSchema(settings).pick({
   appName: true,
   logoUrl: true,
   countryCode: true,
+  theme: true,
 });
 
 export const updateSettingsSchema = z.object({
   appName: z.string().min(1, "Application name must not be empty"),
   logoUrl: z.string().nullable().optional(),
   countryCode: z.string().min(1, "Country code must not be empty").max(5, "Country code should be up to 5 digits"),
+  theme: z.enum(["light", "dark", "system"], {
+    errorMap: () => ({ message: "Theme must be light, dark, or system" }),
+  }),
 });
 
 export type Settings = typeof settings.$inferSelect;
