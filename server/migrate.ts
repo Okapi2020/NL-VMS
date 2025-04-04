@@ -20,6 +20,34 @@ async function migrate() {
       END $$;
     `);
     
+    // Add 'preferred_language' column to admins table if it doesn't exist
+    await db.execute(sql`
+      DO $$ 
+      BEGIN 
+        IF NOT EXISTS (
+          SELECT 1 
+          FROM information_schema.columns 
+          WHERE table_name = 'admins' AND column_name = 'preferred_language'
+        ) THEN 
+          ALTER TABLE admins ADD COLUMN preferred_language VARCHAR(10) NOT NULL DEFAULT 'en';
+        END IF;
+      END $$;
+    `);
+    
+    // Add 'default_language' column to settings table if it doesn't exist
+    await db.execute(sql`
+      DO $$ 
+      BEGIN 
+        IF NOT EXISTS (
+          SELECT 1 
+          FROM information_schema.columns 
+          WHERE table_name = 'settings' AND column_name = 'default_language'
+        ) THEN 
+          ALTER TABLE settings ADD COLUMN default_language VARCHAR(10) NOT NULL DEFAULT 'en';
+        END IF;
+      END $$;
+    `);
+    
     // Create settings table if it doesn't exist with all columns
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS settings (
@@ -47,7 +75,8 @@ async function migrate() {
         country_code, 
         theme, 
         admin_theme, 
-        visitor_theme
+        visitor_theme,
+        default_language
       )
       SELECT 
         'Visitor Management System', 
@@ -57,7 +86,8 @@ async function migrate() {
         '243', 
         'light', 
         'light', 
-        'light'
+        'light',
+        'en'
       WHERE NOT EXISTS (SELECT 1 FROM settings);
     `);
     

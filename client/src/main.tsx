@@ -27,19 +27,19 @@ function Root() {
   }
 
   return (
-    <ThemeProvider>
-      <LanguageProvider defaultLanguage={settings?.defaultLanguage || "en"}>
-        <App />
-        <Toaster />
-      </LanguageProvider>
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider>
+        <LanguageProvider defaultLanguage={settings?.defaultLanguage || "en"}>
+          <App />
+          <Toaster />
+        </LanguageProvider>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
 
 createRoot(document.getElementById("root")!).render(
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <Root />
-    </AuthProvider>
+    <Root />
   </QueryClientProvider>
 );
