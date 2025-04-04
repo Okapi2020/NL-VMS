@@ -7,6 +7,7 @@ import AuthPage from "@/pages/auth-page";
 import WelcomePage from "@/pages/welcome-page";
 import ThankYouPage from "@/pages/thank-you-page";
 import { ProtectedRoute } from "@/lib/protected-route";
+import { LanguageProvider } from "@/hooks/use-language";
 
 function Router() {
   return (
