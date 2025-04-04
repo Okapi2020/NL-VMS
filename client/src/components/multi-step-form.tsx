@@ -12,6 +12,8 @@ type MultiStepFormProps = {
   steps: Step[];
   onComplete: () => void;
   submitButtonText?: string;
+  previousButtonText?: string;
+  nextButtonText?: string;
   className?: string;
   renderCustomButtons?: (currentStepIndex: number, isFirstStep: boolean) => ReactNode;
 };
@@ -20,6 +22,8 @@ export function MultiStepForm({
   steps,
   onComplete,
   submitButtonText = "Submit",
+  previousButtonText = "Previous",
+  nextButtonText = "Next",
   className,
   renderCustomButtons,
 }: MultiStepFormProps) {
@@ -107,7 +111,7 @@ export function MultiStepForm({
             onClick={back}
             className="inline-flex items-center px-4 py-2 border border-input text-sm font-medium rounded-md shadow-sm text-foreground bg-background hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
           >
-            <span className="mr-2">←</span> Previous
+            <span className="mr-2">←</span> {previousButtonText}
           </button>
         )}
         <div className={isFirstStep ? 'ml-auto' : ''}>
@@ -123,7 +127,7 @@ export function MultiStepForm({
           >
             {isLastStep ? submitButtonText : (
               <>
-                Next <span className="ml-2">→</span>
+                {nextButtonText} <span className="ml-2">→</span>
               </>
             )}
           </button>
