@@ -4,43 +4,17 @@ import "./index.css";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { ThemeProvider } from "./hooks/use-theme";
-import { LanguageProvider } from "./hooks/use-language";
 import { AuthProvider } from "./hooks/use-auth";
 import { Toaster } from "@/components/ui/toaster";
-import { useState, useEffect } from "react";
 
 // Root component with providers
 function Root() {
-  const [defaultLanguage, setDefaultLanguage] = useState<'en' | 'fr'>('en');
-
-  // Fetch settings to get the default language
-  useEffect(() => {
-    // Try to get the settings to determine default language
-    const fetchSettings = async () => {
-      try {
-        const res = await fetch('/api/settings');
-        if (res.ok) {
-          const settings = await res.json();
-          if (settings.defaultLanguage === 'fr') {
-            setDefaultLanguage('fr');
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching settings:', error);
-      }
-    };
-
-    fetchSettings();
-  }, []);
-  
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ThemeProvider>
-          <LanguageProvider defaultLanguage={defaultLanguage}>
-            <App />
-            <Toaster />
-          </LanguageProvider>
+          <App />
+          <Toaster />
         </ThemeProvider>
       </AuthProvider>
     </QueryClientProvider>
