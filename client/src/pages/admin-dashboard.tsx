@@ -63,6 +63,7 @@ export default function AdminDashboard() {
   const [trashItemsPerPage, setTrashItemsPerPage] = useState(10);
   const [selectedVisitors, setSelectedVisitors] = useState<number[]>([]);
   const [isProcessingBulk, setIsProcessingBulk] = useState(false);
+  // Always keep analytics section expanded by default
   const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(true);
 
   // Define types for our API responses
@@ -494,6 +495,7 @@ export default function AdminDashboard() {
                 <Collapsible 
                   open={isAnalyticsOpen} 
                   onOpenChange={setIsAnalyticsOpen}
+                  defaultOpen={true}
                   className="mt-6 bg-white rounded-lg shadow overflow-hidden"
                 >
                   <div className="px-4 py-5 border-b border-gray-200 sm:px-6">
