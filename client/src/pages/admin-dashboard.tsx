@@ -12,7 +12,7 @@ import { HourlyDistributionChart } from "@/components/analytics/hourly-distribut
 import { ThemeToggle } from "@/components/theme-toggle";
 
 import { exportToCSV } from "@/lib/utils";
-import { Visit, Visitor } from "@shared/schema";
+import { Visit, Visitor, Settings } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -21,7 +21,7 @@ import {
   Clock,
   ClipboardList,
   LayoutDashboard,
-  Settings,
+  Settings as SettingsIcon,
   LogOut,
   Download,
   ExternalLink,
@@ -40,6 +40,23 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("current");
   const [activeView, setActiveView] = useState("dashboard");
+  
+  // Get application settings
+  const { 
+    data: settings 
+  } = useQuery<Settings>({
+    queryKey: ["/api/settings"],
+    queryFn: async () => {
+      const res = await fetch("/api/settings");
+      if (!res.ok) throw new Error("Failed to fetch settings");
+      return res.json();
+    },
+  });
+  
+  // Get application names from settings
+  const appName = settings?.appName || "Visitor Management System";
+  const headerAppName = settings?.headerAppName || appName;
+  const footerAppName = settings?.footerAppName || appName;
   
   // Pagination state
   const [trashPage, setTrashPage] = useState(1);
@@ -245,126 +262,127 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar navigation */}
-      <div className="w-64 bg-white shadow-md">
-        <div className="px-6 pt-6 pb-4">
-          <div className="flex items-center">
-            <svg
-              className="h-8 w-8 text-primary-600"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-              />
-            </svg>
-            <h2 className="ml-2 text-xl font-semibold text-gray-900">Admin Dashboard</h2>
+    <div className="flex flex-col h-screen bg-gray-100">
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar navigation */}
+        <div className="w-64 bg-white shadow-md">
+          <div className="px-6 pt-6 pb-4">
+            <div className="flex items-center">
+              <svg
+                className="h-8 w-8 text-primary-600"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                />
+              </svg>
+              <h2 className="ml-2 text-xl font-semibold text-gray-900">{headerAppName} Admin</h2>
+            </div>
+            <p className="mt-1 text-sm text-gray-600">Welcome, {user?.username}</p>
           </div>
-          <p className="mt-1 text-sm text-gray-600">Welcome, {user?.username}</p>
-        </div>
-        <nav className="mt-2 flex-1 px-2 bg-white space-y-1">
-          <a
-            href="#"
-            onClick={(e) => { e.preventDefault(); setActiveView("dashboard"); }}
-            className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-              activeView === "dashboard" 
-                ? "bg-primary-50 text-primary-700" 
-                : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-            }`}
-          >
-            <LayoutDashboard className={`mr-3 h-5 w-5 ${
-              activeView === "dashboard" ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
-            }`} />
-            Dashboard
-          </a>
-          <a
-            href="#"
-            onClick={(e) => { e.preventDefault(); setActiveView("visitors"); }}
-            className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-              activeView === "visitors" 
-                ? "bg-primary-50 text-primary-700" 
-                : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-            }`}
-          >
-            <UserRound className={`mr-3 h-5 w-5 ${
-              activeView === "visitors" ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
-            }`} />
-            Visitors
-          </a>
-
-          <a
-            href="#"
-            onClick={(e) => { e.preventDefault(); setActiveView("reports"); }}
-            className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-              activeView === "reports" 
-                ? "bg-primary-50 text-primary-700" 
-                : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-            }`}
-          >
-            <ClipboardList className={`mr-3 h-5 w-5 ${
-              activeView === "reports" ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
-            }`} />
-            Reports
-          </a>
-          <a
-            href="#"
-            onClick={(e) => { e.preventDefault(); setActiveView("settings"); }}
-            className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-              activeView === "settings" 
-                ? "bg-primary-50 text-primary-700" 
-                : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-            }`}
-          >
-            <Settings className={`mr-3 h-5 w-5 ${
-              activeView === "settings" ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
-            }`} />
-            Settings
-          </a>
-          <a
-            href="/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-          >
-            <ExternalLink className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
-            Visit Check-In Portal
-          </a>
-          
-          {/* Bottom section with Recycle Bin and Logout */}
-          <div className="pt-4 mt-auto border-t border-gray-200">
+          <nav className="mt-2 flex-1 px-2 bg-white space-y-1">
             <a
               href="#"
-              onClick={(e) => { e.preventDefault(); setActiveView("trash"); }}
+              onClick={(e) => { e.preventDefault(); setActiveView("dashboard"); }}
               className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                activeView === "trash" 
+                activeView === "dashboard" 
                   ? "bg-primary-50 text-primary-700" 
                   : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
               }`}
             >
-              <Trash2 className={`mr-3 h-5 w-5 ${
-                activeView === "trash" ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
+              <LayoutDashboard className={`mr-3 h-5 w-5 ${
+                activeView === "dashboard" ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
               }`} />
-              Recycle Bin
+              Dashboard
+            </a>
+            <a
+              href="#"
+              onClick={(e) => { e.preventDefault(); setActiveView("visitors"); }}
+              className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                activeView === "visitors" 
+                  ? "bg-primary-50 text-primary-700" 
+                  : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+              }`}
+            >
+              <UserRound className={`mr-3 h-5 w-5 ${
+                activeView === "visitors" ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
+              }`} />
+              Visitors
+            </a>
+
+            <a
+              href="#"
+              onClick={(e) => { e.preventDefault(); setActiveView("reports"); }}
+              className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                activeView === "reports" 
+                  ? "bg-primary-50 text-primary-700" 
+                  : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+              }`}
+            >
+              <ClipboardList className={`mr-3 h-5 w-5 ${
+                activeView === "reports" ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
+              }`} />
+              Reports
+            </a>
+            <a
+              href="#"
+              onClick={(e) => { e.preventDefault(); setActiveView("settings"); }}
+              className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                activeView === "settings" 
+                  ? "bg-primary-50 text-primary-700" 
+                  : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+              }`}
+            >
+              <SettingsIcon className={`mr-3 h-5 w-5 ${
+                activeView === "settings" ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
+              }`} />
+              Settings
+            </a>
+            <a
+              href="/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+            >
+              <ExternalLink className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
+              Visit Check-In Portal
             </a>
             
-            <Button
-              variant="ghost"
-              className="w-full justify-start group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-              onClick={() => logoutMutation.mutate()}
-              disabled={logoutMutation.isPending}
-            >
-              <LogOut className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
-              {logoutMutation.isPending ? "Logging out..." : "Logout"}
-            </Button>
-          </div>
-        </nav>
-      </div>
+            {/* Bottom section with Recycle Bin and Logout */}
+            <div className="pt-4 mt-auto border-t border-gray-200">
+              <a
+                href="#"
+                onClick={(e) => { e.preventDefault(); setActiveView("trash"); }}
+                className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                  activeView === "trash" 
+                    ? "bg-primary-50 text-primary-700" 
+                    : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                }`}
+              >
+                <Trash2 className={`mr-3 h-5 w-5 ${
+                  activeView === "trash" ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
+                }`} />
+                Recycle Bin
+              </a>
+              
+              <Button
+                variant="ghost"
+                className="w-full justify-start group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                onClick={() => logoutMutation.mutate()}
+                disabled={logoutMutation.isPending}
+              >
+                <LogOut className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
+                {logoutMutation.isPending ? "Logging out..." : "Logout"}
+              </Button>
+            </div>
+          </nav>
+        </div>
 
       {/* Main content area */}
       <div className="flex-1 overflow-auto">
@@ -989,7 +1007,16 @@ export default function AdminDashboard() {
             </div>
           )}
         </div>
+        </div>
       </div>
     </div>
+      
+    {/* Footer */}
+    <footer className="py-4 px-6 bg-white border-t border-gray-200 text-center mt-auto">
+      <p className="text-sm text-gray-500">
+        © {new Date().getFullYear()} {footerAppName} • All rights reserved
+      </p>
+    </footer>
+  </div>
   );
 }
