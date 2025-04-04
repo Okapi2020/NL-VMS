@@ -142,7 +142,7 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    <span>{isEnglish ? "Middle Name" : "Deuxième Prénom"}</span>
+                    <span>{isEnglish ? "Middle Name" : "Postnom"}</span>
                     <span className="ml-1 text-xs text-muted-foreground">
                       {isEnglish ? "(Optional)" : "(Optionnel)"}
                     </span>
@@ -367,7 +367,7 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
             <p className="text-sm text-muted-foreground">
               {isEnglish 
                 ? "By clicking \"Check In\", you confirm that the information above is correct."
-                : "En cliquant sur \"Enregistrer\", vous confirmez que les informations ci-dessus sont correctes."}
+                : "En cliquant sur \"ARRIVÉE\", vous confirmez que les informations ci-dessus sont correctes."}
             </p>
             <div className="bg-primary/10 p-3 rounded-md border border-primary/20">
               <p className="text-sm text-primary dark:text-primary-foreground">
@@ -393,7 +393,7 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
           <MultiStepForm 
             steps={steps} 
             onComplete={form.handleSubmit(onSubmit)}
-            submitButtonText={isEnglish ? "Check In" : "Enregistrer"}
+            submitButtonText={isEnglish ? "Check In" : "ARRIVÉE"}
             renderCustomButtons={(currentStepIndex, isFirstStep) => (
               isFirstStep ? (
                 <Link 
