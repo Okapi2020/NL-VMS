@@ -205,6 +205,9 @@ export type UpdateVisitor = z.infer<typeof updateVisitorSchema>;
 export const settings = pgTable("settings", {
   id: serial("id").primaryKey(),
   appName: varchar("app_name", { length: 255 }).default("Visitor Management System").notNull(),
+  // Add separate header and footer app names
+  headerAppName: varchar("header_app_name", { length: 255 }),
+  footerAppName: varchar("footer_app_name", { length: 255 }),
   logoUrl: text("logo_url"),
   countryCode: varchar("country_code", { length: 10 }).default("243").notNull(),
   adminTheme: varchar("admin_theme", { length: 10 }).default("light").notNull(),
@@ -216,6 +219,8 @@ export const settings = pgTable("settings", {
 
 export const insertSettingsSchema = createInsertSchema(settings).pick({
   appName: true,
+  headerAppName: true,
+  footerAppName: true,
   logoUrl: true,
   countryCode: true,
   adminTheme: true,
@@ -225,6 +230,8 @@ export const insertSettingsSchema = createInsertSchema(settings).pick({
 
 export const updateSettingsSchema = z.object({
   appName: z.string().min(1, "Application name must not be empty"),
+  headerAppName: z.string().optional(),
+  footerAppName: z.string().optional(),
   logoUrl: z.string().nullable().optional(),
   countryCode: z.string().min(1, "Country code must not be empty").max(5, "Country code should be up to 5 digits"),
   adminTheme: z.enum(["light", "dark", "twilight", "system"], {

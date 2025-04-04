@@ -88,6 +88,8 @@ export function AdminSettings() {
     resolver: zodResolver(settingsSchema),
     defaultValues: {
       appName: "Visitor Management System",
+      headerAppName: "",
+      footerAppName: "",
       logoUrl: null,
       countryCode: "243",
       adminTheme: "light" as const,
@@ -101,6 +103,8 @@ export function AdminSettings() {
     if (settings) {
       form.reset({
         appName: settings.appName,
+        headerAppName: settings.headerAppName || settings.appName,
+        footerAppName: settings.footerAppName || settings.appName,
         logoUrl: settings.logoUrl,
         countryCode: settings.countryCode,
         // Use the new fields if available, otherwise fallback to the legacy theme field
@@ -228,22 +232,70 @@ export function AdminSettings() {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="appName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Application Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Visitor Management System" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    This will be displayed throughout the application.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="border rounded-lg p-4 bg-card shadow-sm mb-6">
+              <h3 className="text-lg font-medium mb-2">Application Name Settings</h3>
+              
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="appName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Main Application Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Visitor Management System" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        This will be the default name if header or footer names are not specified.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="headerAppName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Header Application Name</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Main app name will be used if empty" 
+                          {...field} 
+                          value={field.value || ""}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        This will be displayed in the application header. Leave empty to use the main app name.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="footerAppName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Footer Application Name</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Main app name will be used if empty" 
+                          {...field} 
+                          value={field.value || ""}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        This will be displayed in the application footer. Leave empty to use the main app name.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
             
             <FormField
               control={form.control}
