@@ -19,6 +19,8 @@ const settingsSchema = z.object({
     .string()
     .min(1, { message: "Application name is required" })
     .max(50, { message: "Application name cannot exceed 50 characters" }),
+  headerAppName: z.string().optional(),
+  footerAppName: z.string().optional(),
   logoUrl: z.string().nullable().optional(),
   countryCode: z
     .string()
@@ -88,6 +90,8 @@ export function AdminSettings() {
     resolver: zodResolver(settingsSchema),
     defaultValues: {
       appName: "Visitor Management System",
+      headerAppName: "",
+      footerAppName: "",
       logoUrl: null,
       countryCode: "243",
       adminTheme: "light" as const,
@@ -101,6 +105,8 @@ export function AdminSettings() {
     if (settings) {
       form.reset({
         appName: settings.appName,
+        headerAppName: settings.headerAppName || settings.appName,
+        footerAppName: settings.footerAppName || settings.appName,
         logoUrl: settings.logoUrl,
         countryCode: settings.countryCode,
         // Use the new fields if available, otherwise fallback to the legacy theme field
@@ -186,8 +192,6 @@ export function AdminSettings() {
   };
   
   const onSubmit = (data: SettingsFormValues) => {
-    console.log("Submitting settings:", data);
-    
     // Ensure the legacy theme field is synchronized with adminTheme
     const submissionData = {
       ...data,
@@ -196,40 +200,14 @@ export function AdminSettings() {
     
     // Save the settings first
     updateSettingsMutation.mutate(submissionData, {
-      onSuccess: (updatedSettings) => {
+      onSuccess: () => {
         // After successfully saving, update the current theme since we're in the admin dashboard
         try {
-          console.log("Settings updated successfully:", updatedSettings);
-          console.log("Applying admin theme:", data.adminTheme);
-          
-          // Apply the theme change immediately
-          document.documentElement.classList.remove('light', 'dark', 'twilight');
-          
-          // Handle system preference differently
-          if (data.adminTheme === 'system') {
-            const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const sysTheme = isDarkMode ? 'dark' : 'light';
-            document.documentElement.classList.add(sysTheme);
-            console.log(`Applied system preference (${sysTheme}) theme to document`);
-          } else {
-            document.documentElement.classList.add(data.adminTheme);
-            console.log(`Applied ${data.adminTheme} theme to document`);
-          }
-          
-          // Update the theme in context
+          // We're in the admin interface, so use adminTheme
           setTheme(data.adminTheme);
           
           // Also update the localStorage for the theme
           localStorage.setItem("theme", data.adminTheme);
-          
-          // Force a re-paint to ensure the theme is fully applied
-          setTimeout(() => {
-            document.body.style.display = 'none';
-            setTimeout(() => {
-              document.body.style.display = '';
-            }, 10);
-          }, 50);
-          
         } catch (e) {
           console.warn("Could not immediately update theme:", e);
         }
@@ -256,22 +234,70 @@ export function AdminSettings() {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="appName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Application Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Visitor Management System" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    This will be displayed throughout the application.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="border rounded-lg p-4 bg-card shadow-sm mb-6">
+              <h3 className="text-lg font-medium mb-2">Application Name Settings</h3>
+              
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="appName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Main Application Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Visitor Management System" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        This will be the default name if header or footer names are not specified.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="headerAppName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Header Application Name</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Main app name will be used if empty" 
+                          {...field} 
+                          value={field.value || ""}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        This will be displayed in the application header. Leave empty to use the main app name.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="footerAppName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Footer Application Name</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Main app name will be used if empty" 
+                          {...field} 
+                          value={field.value || ""}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        This will be displayed in the application footer. Leave empty to use the main app name.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
             
             <FormField
               control={form.control}
@@ -530,6 +556,55 @@ export function AdminSettings() {
                   </FormItem>
                 )}
               />
+            </div>
+            
+            {/* Account Settings Section */}
+            <div className="border rounded-lg p-4 bg-card shadow-sm mt-6 mb-6">
+              <h3 className="text-lg font-medium mb-2">Account Settings</h3>
+              
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="text-sm font-medium mb-1">Change Password</h4>
+                    <p className="text-muted-foreground text-sm mb-2">
+                      Update your admin account password to maintain security.
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full lg:w-auto"
+                      onClick={() => {
+                        toast({
+                          title: "Feature in Development",
+                          description: "Password change functionality will be added in a future update.",
+                        });
+                      }}
+                    >
+                      Change Password
+                    </Button>
+                  </div>
+                  
+                  <div>
+                    <h4 className="text-sm font-medium mb-1">Create Admin Account</h4>
+                    <p className="text-muted-foreground text-sm mb-2">
+                      Add another administrator account to manage the system.
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full lg:w-auto"
+                      onClick={() => {
+                        toast({
+                          title: "Feature in Development",
+                          description: "User management functionality will be added in a future update.",
+                        });
+                      }}
+                    >
+                      Create Admin Account
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
             
             <Button

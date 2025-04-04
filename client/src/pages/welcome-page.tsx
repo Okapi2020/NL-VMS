@@ -22,8 +22,10 @@ export default function WelcomePage() {
     },
   });
 
-  // Default application name
+  // Application names
   const appName = settings?.appName || "Visitor Management System";
+  const headerAppName = settings?.headerAppName || appName;
+  const footerAppName = settings?.footerAppName || appName;
   
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
@@ -42,7 +44,7 @@ export default function WelcomePage() {
                 <Loader2 className="h-10 w-10 mr-3 text-primary animate-spin" />
               ) : null
             )}
-            <h1 className="text-3xl font-bold">{appName}</h1>
+            <h1 className="text-3xl font-bold">{headerAppName}</h1>
           </div>
           <div className="flex items-center space-x-2">
             <Link href="/auth" 
@@ -122,7 +124,7 @@ export default function WelcomePage() {
       <footer className="bg-muted/50">
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
           <div className="text-center text-muted-foreground text-sm">
-            <p>&copy; {new Date().getFullYear()} {appName}</p>
+            <p>&copy; {new Date().getFullYear()} {footerAppName}</p>
           </div>
         </div>
       </footer>
