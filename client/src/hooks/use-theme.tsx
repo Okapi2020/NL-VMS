@@ -26,16 +26,11 @@ type ThemeProviderProps = {
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [theme, setThemeState] = useState<Theme>(() => {
-    // Try to get theme from localStorage on initialization
-    try {
-      const savedTheme = localStorage.getItem("theme") as Theme | null;
-      return savedTheme || "light";
-    } catch (e) {
-      console.error("Failed to get theme from localStorage", e);
-      return "light";
-    }
-  });
+  // We'll initialize with light but immediately replace it when settings are loaded
+  const [theme, setThemeState] = useState<Theme>("light");
+  
+  // Track whether we've initialized from server settings
+  const [initializedFromServer, setInitializedFromServer] = useState<boolean>(false);
   const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark" | "twilight">("light");
 
   // Query for fetching settings
@@ -118,30 +113,45 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
   // Initialize theme from settings or localStorage based on context
   useEffect(() => {
-    if (settings) {
+    if (settings && !initializedFromServer) {
       // Determine which theme to use based on URL path
       const isAdmin = window.location.pathname.includes('/admin');
+      let themeToUse: Theme = 'light';
       
       // Use the specific theme if available, otherwise fall back to the legacy theme
       if (isAdmin && settings.adminTheme) {
-        setThemeState(settings.adminTheme as Theme);
+        themeToUse = settings.adminTheme as Theme;
+        console.log('Using admin theme from server:', themeToUse);
       } else if (!isAdmin && settings.visitorTheme) {
-        setThemeState(settings.visitorTheme as Theme);
+        themeToUse = settings.visitorTheme as Theme;
+        console.log('Using visitor theme from server:', themeToUse);
       } else if (settings.theme) {
         // Fall back to legacy theme if specific theme is not set
-        setThemeState(settings.theme as Theme);
+        themeToUse = settings.theme as Theme;
+        console.log('Using legacy theme from server:', themeToUse);
       }
-    } else {
+      
+      // Apply the theme obtained from server settings
+      setThemeState(themeToUse);
+      
+      // Also update localStorage to keep things in sync
+      localStorage.setItem("theme", themeToUse);
+      
+      // Mark as initialized from server so we don't override with localStorage later
+      setInitializedFromServer(true);
+    } else if (!settings && !initializedFromServer) {
+      // If settings aren't available yet, try localStorage as a temporary solution
       try {
         const savedTheme = localStorage.getItem("theme") as Theme | null;
         if (savedTheme) {
+          console.log('Using saved theme from localStorage:', savedTheme);
           setThemeState(savedTheme);
         }
       } catch (e) {
         console.error("Failed to get theme from localStorage", e);
       }
     }
-  }, [settings]);
+  }, [settings, initializedFromServer]);
 
   // Update resolvedTheme based on theme and system preference
   useEffect(() => {
@@ -175,14 +185,26 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     const root = document.documentElement;
     
     // Clear all theme classes first
-    root.classList.remove("dark", "twilight");
+    root.classList.remove("dark", "twilight", "light");
     
     // Apply appropriate class
     if (resolvedTheme === "dark") {
       root.classList.add("dark");
+      console.log('Applied dark theme to document');
     } else if (resolvedTheme === "twilight") {
       root.classList.add("twilight");
+      console.log('Applied twilight theme to document');
+    } else {
+      root.classList.add("light");
+      console.log('Applied light theme to document');
     }
+    
+    // Force a re-paint to ensure the theme is fully applied
+    document.body.style.display = 'none';
+    setTimeout(() => {
+      document.body.style.display = '';
+    }, 0);
+    
   }, [resolvedTheme]);
 
   const contextValue: ThemeContextType = {

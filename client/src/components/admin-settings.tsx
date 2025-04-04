@@ -186,6 +186,8 @@ export function AdminSettings() {
   };
   
   const onSubmit = (data: SettingsFormValues) => {
+    console.log("Submitting settings:", data);
+    
     // Ensure the legacy theme field is synchronized with adminTheme
     const submissionData = {
       ...data,
@@ -194,14 +196,40 @@ export function AdminSettings() {
     
     // Save the settings first
     updateSettingsMutation.mutate(submissionData, {
-      onSuccess: () => {
+      onSuccess: (updatedSettings) => {
         // After successfully saving, update the current theme since we're in the admin dashboard
         try {
-          // We're in the admin interface, so use adminTheme
+          console.log("Settings updated successfully:", updatedSettings);
+          console.log("Applying admin theme:", data.adminTheme);
+          
+          // Apply the theme change immediately
+          document.documentElement.classList.remove('light', 'dark', 'twilight');
+          
+          // Handle system preference differently
+          if (data.adminTheme === 'system') {
+            const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const sysTheme = isDarkMode ? 'dark' : 'light';
+            document.documentElement.classList.add(sysTheme);
+            console.log(`Applied system preference (${sysTheme}) theme to document`);
+          } else {
+            document.documentElement.classList.add(data.adminTheme);
+            console.log(`Applied ${data.adminTheme} theme to document`);
+          }
+          
+          // Update the theme in context
           setTheme(data.adminTheme);
           
           // Also update the localStorage for the theme
           localStorage.setItem("theme", data.adminTheme);
+          
+          // Force a re-paint to ensure the theme is fully applied
+          setTimeout(() => {
+            document.body.style.display = 'none';
+            setTimeout(() => {
+              document.body.style.display = '';
+            }, 10);
+          }, 50);
+          
         } catch (e) {
           console.warn("Could not immediately update theme:", e);
         }
