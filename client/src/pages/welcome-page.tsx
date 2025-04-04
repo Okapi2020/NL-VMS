@@ -103,7 +103,7 @@ export default function WelcomePage() {
                 <Link href="/visitor">
                   <Button size="lg" className="w-full text-lg py-6 font-medium">
                     <LogIn className="mr-2 h-6 w-6" />
-                    {isEnglish ? 'Check In Now' : 'ARRIVÉE'}
+                    {isEnglish ? 'Check In Now' : 'SIGNALER MON ARRIVÉE'}
                   </Button>
                 </Link>
               </CardContent>

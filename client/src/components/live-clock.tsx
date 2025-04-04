@@ -3,6 +3,8 @@ import { Clock } from 'lucide-react';
 
 export function LiveClock() {
   const [dateTime, setDateTime] = useState<Date>(new Date());
+  // Get language preference from localStorage (default to French)
+  const [isEnglish, setIsEnglish] = useState(false);
   
   useEffect(() => {
     // Update the time every second
@@ -10,13 +12,19 @@ export function LiveClock() {
       setDateTime(new Date());
     }, 1000);
     
+    // Load language preference from localStorage
+    const storedLang = localStorage.getItem('isEnglish');
+    if (storedLang !== null) {
+      setIsEnglish(storedLang === 'true');
+    }
+    
     // Clear the interval when component unmounts
     return () => clearInterval(timer);
   }, []);
   
   // Format the time in 24-hour format (HH:MM:SS)
   const formatTime = () => {
-    return dateTime.toLocaleTimeString([], { 
+    return dateTime.toLocaleTimeString(isEnglish ? 'en-US' : 'fr-FR', { 
       hour: '2-digit', 
       minute: '2-digit', 
       second: '2-digit',
@@ -26,7 +34,7 @@ export function LiveClock() {
   
   // Format the date (Weekday, Month Day, Year)
   const formatDate = () => {
-    return dateTime.toLocaleDateString([], { 
+    return dateTime.toLocaleDateString(isEnglish ? 'en-US' : 'fr-FR', { 
       weekday: 'long', 
       year: 'numeric', 
       month: 'long', 
