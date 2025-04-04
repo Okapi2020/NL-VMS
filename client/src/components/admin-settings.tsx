@@ -289,54 +289,81 @@ export function AdminSettings() {
               </FormDescription>
             </div>
 
-            <FormField
-              control={form.control}
-              name="theme"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <FormLabel>Theme Preference</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col space-y-1"
-                    >
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="light" />
-                        </FormControl>
-                        <FormLabel className="font-normal flex items-center">
-                          <Sun className="mr-2 h-4 w-4" />
-                          Light
-                        </FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="dark" />
-                        </FormControl>
-                        <FormLabel className="font-normal flex items-center">
-                          <Moon className="mr-2 h-4 w-4" />
-                          Dark
-                        </FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="system" />
-                        </FormControl>
-                        <FormLabel className="font-normal flex items-center">
-                          <Laptop className="mr-2 h-4 w-4" />
-                          System
-                        </FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormDescription>
-                    Choose the appearance theme for your application.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="border rounded-lg p-4 bg-card shadow-sm">
+              <h3 className="text-lg font-medium mb-2">Theme Settings</h3>
+              <p className="text-muted-foreground mb-4">
+                Select the default theme mode for both the admin dashboard and visitor portal. 
+                Individual users can still override this using the theme toggle in the header.
+              </p>
+              
+              <FormField
+                control={form.control}
+                name="theme"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>Default Theme Mode</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          // Also update the current theme if using useTheme
+                          try {
+                            const { setTheme } = useTheme();
+                            setTheme(value as "light" | "dark" | "system");
+                          } catch (e) {
+                            // Theme context might not be available, that's okay
+                            console.warn("Could not immediately update theme:", e);
+                          }
+                        }}
+                        defaultValue={field.value}
+                        className="flex flex-col space-y-1"
+                      >
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="light" />
+                          </FormControl>
+                          <FormLabel className="font-normal flex items-center">
+                            <Sun className="mr-2 h-5 w-5 text-yellow-500" />
+                            Light Mode
+                            <span className="ml-2 text-xs text-muted-foreground">
+                              (Light background, dark text)
+                            </span>
+                          </FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="dark" />
+                          </FormControl>
+                          <FormLabel className="font-normal flex items-center">
+                            <Moon className="mr-2 h-5 w-5 text-indigo-400" />
+                            Dark Mode
+                            <span className="ml-2 text-xs text-muted-foreground">
+                              (Dark background, light text)
+                            </span>
+                          </FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="system" />
+                          </FormControl>
+                          <FormLabel className="font-normal flex items-center">
+                            <Laptop className="mr-2 h-5 w-5 text-blue-500" />
+                            System Preference
+                            <span className="ml-2 text-xs text-muted-foreground">
+                              (Follows the user's device settings)
+                            </span>
+                          </FormLabel>
+                        </FormItem>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormDescription>
+                      This setting will be applied globally across all pages of the application.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             
             <Button
               type="submit"

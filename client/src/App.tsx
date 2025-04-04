@@ -8,7 +8,6 @@ import WelcomePage from "@/pages/welcome-page";
 import ThankYouPage from "@/pages/thank-you-page";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { AuthProvider } from "@/hooks/use-auth";
-import { ThemeProvider } from "@/hooks/use-theme";
 
 function Router() {
   return (
