@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { LogIn, UserCheck, ShieldCheck, Loader2 } from "lucide-react";
 import { Settings } from "@shared/schema";
 import { LiveClock } from "@/components/live-clock";
+import { useLanguage } from "@/hooks/use-language";
 // ThemeToggle removed - only admins can control theme
 
 export default function WelcomePage() {

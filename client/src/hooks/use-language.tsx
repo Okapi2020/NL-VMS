@@ -169,6 +169,50 @@ export const translations: TranslationMap = {
     en: 'Admin Portal',
     fr: 'Portail administrateur'
   },
+  thankYouForVisiting: {
+    en: 'Thank you for visiting',
+    fr: 'Merci de votre visite'
+  },
+  pleaseCheckInButtonBelow: {
+    en: 'Please check in by clicking the button below',
+    fr: 'Veuillez vous enregistrer en cliquant sur le bouton ci-dessous'
+  },
+  information: {
+    en: 'Information',
+    fr: 'Informations'
+  },
+  visitorSystemDescription: {
+    en: 'Our visitor management system helps us create a safe and efficient environment',
+    fr: 'Notre système de gestion des visiteurs nous aide à créer un environnement sûr et efficace'
+  },
+  benefits: {
+    en: 'Benefits',
+    fr: 'Avantages'
+  },
+  fastCheckInProcess: {
+    en: 'Fast and easy check-in process',
+    fr: 'Processus d\'enregistrement rapide et facile'
+  },
+  digitalVisitorRecords: {
+    en: 'Digital visitor records',
+    fr: 'Registres numériques des visiteurs'
+  },
+  improvedSecurity: {
+    en: 'Improved security and compliance',
+    fr: 'Sécurité et conformité améliorées'
+  },
+  professionalExperience: {
+    en: 'Professional visitor experience',
+    fr: 'Expérience professionnelle pour les visiteurs'
+  },
+  needHelp: {
+    en: 'Need Help?',
+    fr: 'Besoin d\'aide?'
+  },
+  approachFrontDesk: {
+    en: 'Please approach the front desk if you need any assistance with the check-in process',
+    fr: 'Veuillez vous adresser à la réception si vous avez besoin d\'aide avec le processus d\'enregistrement'
+  },
   
   // Admin dashboard
   overview: {
