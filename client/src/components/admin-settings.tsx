@@ -558,6 +558,55 @@ export function AdminSettings() {
               />
             </div>
             
+            {/* Account Settings Section */}
+            <div className="border rounded-lg p-4 bg-card shadow-sm mt-6 mb-6">
+              <h3 className="text-lg font-medium mb-2">Account Settings</h3>
+              
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="text-sm font-medium mb-1">Change Password</h4>
+                    <p className="text-muted-foreground text-sm mb-2">
+                      Update your admin account password to maintain security.
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full lg:w-auto"
+                      onClick={() => {
+                        toast({
+                          title: "Feature in Development",
+                          description: "Password change functionality will be added in a future update.",
+                        });
+                      }}
+                    >
+                      Change Password
+                    </Button>
+                  </div>
+                  
+                  <div>
+                    <h4 className="text-sm font-medium mb-1">Create Admin Account</h4>
+                    <p className="text-muted-foreground text-sm mb-2">
+                      Add another administrator account to manage the system.
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full lg:w-auto"
+                      onClick={() => {
+                        toast({
+                          title: "Feature in Development",
+                          description: "User management functionality will be added in a future update.",
+                        });
+                      }}
+                    >
+                      Create Admin Account
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
             <Button
               type="submit"
               disabled={updateSettingsMutation.isPending || uploading}

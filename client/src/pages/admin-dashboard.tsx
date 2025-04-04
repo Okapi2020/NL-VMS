@@ -744,7 +744,7 @@ export default function AdminDashboard() {
                             Phone
                           </th>
                           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Deleted At
+                            Created At
                           </th>
                           <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Actions
@@ -764,7 +764,7 @@ export default function AdminDashboard() {
                               {visitor.phoneNumber}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {visitor.deletedAt ? new Date(visitor.deletedAt).toLocaleString() : "-"}
+                              {visitor.deleted ? new Date(visitor.createdAt).toLocaleString() : "-"}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                               <Button
