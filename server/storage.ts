@@ -366,12 +366,17 @@ export class DatabaseStorage implements IStorage {
         }
         
         // Update existing settings
+        // Ensure backward compatibility by also updating the theme field
+        const dataToUpdate = { 
+          ...updateData, 
+          // If theme is not provided but one of the new fields is, use that
+          theme: updateData.theme || updateData.adminTheme || existingSettings.theme,
+          updatedAt: new Date() 
+        };
+        
         const [updatedSettings] = await db
           .update(settings)
-          .set({
-            ...updateData,
-            updatedAt: new Date()
-          })
+          .set(dataToUpdate)
           .where(eq(settings.id, existingSettings.id))
           .returning();
         
@@ -387,6 +392,8 @@ export class DatabaseStorage implements IStorage {
               logo_url TEXT,
               country_code VARCHAR(10) NOT NULL DEFAULT '243',
               theme VARCHAR(10) NOT NULL DEFAULT 'light',
+              admin_theme VARCHAR(10) NOT NULL DEFAULT 'light',
+              visitor_theme VARCHAR(10) NOT NULL DEFAULT 'light',
               updated_at TIMESTAMP NOT NULL DEFAULT NOW()
             );
           `);
@@ -405,13 +412,17 @@ export class DatabaseStorage implements IStorage {
   async createDefaultSettings(customSettings?: UpdateSettings): Promise<Settings | undefined> {
     try {
       // Create default settings
+      const themeValue = customSettings?.theme || "light";
+      
       const [createdSettings] = await db
         .insert(settings)
         .values({
           appName: customSettings?.appName || "Visitor Management System",
           logoUrl: customSettings?.logoUrl || null,
           countryCode: customSettings?.countryCode || "243", // Default country code
-          theme: customSettings?.theme || "light", // Default theme
+          theme: themeValue, // Default theme (legacy)
+          adminTheme: customSettings?.adminTheme || themeValue, // Admin theme
+          visitorTheme: customSettings?.visitorTheme || themeValue, // Visitor theme
         })
         .returning();
       

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,9 +27,16 @@ const settingsSchema = z.object({
     .refine(code => /^\d+$/.test(code), {
       message: "Country code should contain only digits"
     }),
-  theme: z.enum(["light", "dark", "twilight", "system"], {
+  adminTheme: z.enum(["light", "dark", "twilight", "system"], {
     errorMap: () => ({ message: "Theme must be light, dark, twilight, or system" }),
   }),
+  visitorTheme: z.enum(["light", "dark", "twilight", "system"], {
+    errorMap: () => ({ message: "Theme must be light, dark, twilight, or system" }),
+  }),
+  // Keep theme field for backward compatibility
+  theme: z.enum(["light", "dark", "twilight", "system"], {
+    errorMap: () => ({ message: "Theme must be light, dark, twilight, or system" }),
+  }).optional(),
 });
 
 type SettingsFormValues = z.infer<typeof settingsSchema>;
@@ -79,18 +86,29 @@ export function AdminSettings() {
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
-      appName: settings?.appName || "Visitor Management System",
-      logoUrl: settings?.logoUrl || null,
-      countryCode: settings?.countryCode || "243",
-      theme: settings?.theme as "light" | "dark" | "twilight" | "system" || "light",
+      appName: "Visitor Management System",
+      logoUrl: null,
+      countryCode: "243",
+      adminTheme: "light" as const,
+      visitorTheme: "light" as const,
+      theme: "light" as const,
     },
-    values: settings ? {
-      appName: settings.appName,
-      logoUrl: settings.logoUrl,
-      countryCode: settings.countryCode,
-      theme: settings.theme as "light" | "dark" | "twilight" | "system" || "light",
-    } : undefined,
   });
+  
+  // Update form when settings are loaded
+  useEffect(() => {
+    if (settings) {
+      form.reset({
+        appName: settings.appName,
+        logoUrl: settings.logoUrl,
+        countryCode: settings.countryCode,
+        // Use the new fields if available, otherwise fallback to the legacy theme field
+        adminTheme: (settings.adminTheme || settings.theme) as "light" | "dark" | "twilight" | "system",
+        visitorTheme: (settings.visitorTheme || settings.theme) as "light" | "dark" | "twilight" | "system",
+        theme: settings.theme as "light" | "dark" | "twilight" | "system",
+      });
+    }
+  }, [settings, form]);
   
   // Handle logo file upload
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -167,7 +185,12 @@ export function AdminSettings() {
   };
   
   const onSubmit = (data: SettingsFormValues) => {
-    updateSettingsMutation.mutate(data);
+    // Ensure the legacy theme field is synchronized with adminTheme
+    const submissionData = {
+      ...data,
+      theme: data.adminTheme // Keep theme field updated for backward compatibility
+    };
+    updateSettingsMutation.mutate(submissionData);
   };
   
   if (isLoading) {
@@ -292,86 +315,181 @@ export function AdminSettings() {
             <div className="border rounded-lg p-4 bg-card shadow-sm">
               <h3 className="text-lg font-medium mb-2">Theme Settings</h3>
               <p className="text-muted-foreground mb-4">
-                Select the default theme mode for both the admin dashboard and visitor portal. 
-                Individual users can still override this using the theme toggle in the header.
+                Configure separate theme defaults for the admin dashboard and visitor portal. 
+                Users can still override these using the theme toggle in the header.
               </p>
               
+              {/* Admin Theme Selection */}
+              <div className="mb-6">
+                <h4 className="text-md font-medium mb-2 text-primary">Admin Dashboard Theme</h4>
+                <FormField
+                  control={form.control}
+                  name="adminTheme"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            // Update the current theme if we're in the admin dashboard
+                            try {
+                              const { setTheme } = useTheme();
+                              // Just update the theme - this affects the current interface
+                              setTheme(value as "light" | "dark" | "twilight" | "system");
+                            } catch (e) {
+                              // Theme context might not be available, that's okay
+                              console.warn("Could not immediately update theme:", e);
+                            }
+                          }}
+                          defaultValue={field.value}
+                          className="flex flex-col space-y-1"
+                        >
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="light" />
+                            </FormControl>
+                            <FormLabel className="font-normal flex items-center">
+                              <Sun className="mr-2 h-5 w-5 text-yellow-500" />
+                              Light Mode
+                              <span className="ml-2 text-xs text-muted-foreground">
+                                (Light background, dark text)
+                              </span>
+                            </FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="twilight" />
+                            </FormControl>
+                            <FormLabel className="font-normal flex items-center">
+                              <SunDim className="mr-2 h-5 w-5 text-purple-400" />
+                              Twilight Mode
+                              <span className="ml-2 text-xs text-muted-foreground">
+                                (Soft dark mode with reduced contrast)
+                              </span>
+                            </FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="dark" />
+                            </FormControl>
+                            <FormLabel className="font-normal flex items-center">
+                              <Moon className="mr-2 h-5 w-5 text-indigo-400" />
+                              Dark Mode
+                              <span className="ml-2 text-xs text-muted-foreground">
+                                (Dark background, light text)
+                              </span>
+                            </FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="system" />
+                            </FormControl>
+                            <FormLabel className="font-normal flex items-center">
+                              <Laptop className="mr-2 h-5 w-5 text-blue-500" />
+                              System Preference
+                              <span className="ml-2 text-xs text-muted-foreground">
+                                (Follows the user's device settings)
+                              </span>
+                            </FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormDescription>
+                        This setting applies to all admin dashboard pages (login and admin interface).
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              {/* Visitor Theme Selection */}
+              <div className="mt-6 pt-4 border-t">
+                <h4 className="text-md font-medium mb-2 text-primary">Visitor Portal Theme</h4>
+                <FormField
+                  control={form.control}
+                  name="visitorTheme"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            // Just store the visitor theme value, don't update current theme
+                            // since we're already in admin context - visitor theme will be applied 
+                            // when visitor pages are loaded
+                          }}
+                          defaultValue={field.value}
+                          className="flex flex-col space-y-1"
+                        >
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="light" />
+                            </FormControl>
+                            <FormLabel className="font-normal flex items-center">
+                              <Sun className="mr-2 h-5 w-5 text-yellow-500" />
+                              Light Mode
+                              <span className="ml-2 text-xs text-muted-foreground">
+                                (Light background, dark text)
+                              </span>
+                            </FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="twilight" />
+                            </FormControl>
+                            <FormLabel className="font-normal flex items-center">
+                              <SunDim className="mr-2 h-5 w-5 text-purple-400" />
+                              Twilight Mode
+                              <span className="ml-2 text-xs text-muted-foreground">
+                                (Soft dark mode with reduced contrast)
+                              </span>
+                            </FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="dark" />
+                            </FormControl>
+                            <FormLabel className="font-normal flex items-center">
+                              <Moon className="mr-2 h-5 w-5 text-indigo-400" />
+                              Dark Mode
+                              <span className="ml-2 text-xs text-muted-foreground">
+                                (Dark background, light text)
+                              </span>
+                            </FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="system" />
+                            </FormControl>
+                            <FormLabel className="font-normal flex items-center">
+                              <Laptop className="mr-2 h-5 w-5 text-blue-500" />
+                              System Preference
+                              <span className="ml-2 text-xs text-muted-foreground">
+                                (Follows the user's device settings)
+                              </span>
+                            </FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormDescription>
+                        This setting applies to the welcome page and visitor check-in/out interfaces.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              {/* Hidden legacy theme field that gets automatically updated */}
               <FormField
                 control={form.control}
                 name="theme"
                 render={({ field }) => (
-                  <FormItem className="space-y-3">
-                    <FormLabel>Default Theme Mode</FormLabel>
+                  <FormItem className="hidden">
                     <FormControl>
-                      <RadioGroup
-                        onValueChange={(value) => {
-                          field.onChange(value);
-                          // Also update the current theme if using useTheme
-                          try {
-                            const { setTheme } = useTheme();
-                            setTheme(value as "light" | "dark" | "twilight" | "system");
-                          } catch (e) {
-                            // Theme context might not be available, that's okay
-                            console.warn("Could not immediately update theme:", e);
-                          }
-                        }}
-                        defaultValue={field.value}
-                        className="flex flex-col space-y-1"
-                      >
-                        <FormItem className="flex items-center space-x-3 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="light" />
-                          </FormControl>
-                          <FormLabel className="font-normal flex items-center">
-                            <Sun className="mr-2 h-5 w-5 text-yellow-500" />
-                            Light Mode
-                            <span className="ml-2 text-xs text-muted-foreground">
-                              (Light background, dark text)
-                            </span>
-                          </FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-3 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="twilight" />
-                          </FormControl>
-                          <FormLabel className="font-normal flex items-center">
-                            <SunDim className="mr-2 h-5 w-5 text-purple-400" />
-                            Twilight Mode
-                            <span className="ml-2 text-xs text-muted-foreground">
-                              (Soft dark mode with reduced contrast)
-                            </span>
-                          </FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-3 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="dark" />
-                          </FormControl>
-                          <FormLabel className="font-normal flex items-center">
-                            <Moon className="mr-2 h-5 w-5 text-indigo-400" />
-                            Dark Mode
-                            <span className="ml-2 text-xs text-muted-foreground">
-                              (Dark background, light text)
-                            </span>
-                          </FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-3 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="system" />
-                          </FormControl>
-                          <FormLabel className="font-normal flex items-center">
-                            <Laptop className="mr-2 h-5 w-5 text-blue-500" />
-                            System Preference
-                            <span className="ml-2 text-xs text-muted-foreground">
-                              (Follows the user's device settings)
-                            </span>
-                          </FormLabel>
-                        </FormItem>
-                      </RadioGroup>
+                      <Input type="hidden" {...field} />
                     </FormControl>
-                    <FormDescription>
-                      This setting will be applied globally across all pages of the application.
-                    </FormDescription>
-                    <FormMessage />
                   </FormItem>
                 )}
               />

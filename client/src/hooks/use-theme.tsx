@@ -68,10 +68,19 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
           return { theme: newTheme };
         }
 
+        // Determine if we need to update adminTheme or visitorTheme
+        // Check URL to determine context
+        const isAdmin = window.location.pathname.includes('/admin');
+        
         // Update settings with new theme
         const res = await apiRequest("POST", "/api/settings", {
           ...currentSettings,
+          // Update legacy theme for backward compatibility
           theme: newTheme,
+          // Update the specific theme based on context
+          ...(isAdmin 
+            ? { adminTheme: newTheme } 
+            : { visitorTheme: newTheme })
         });
         
         return res.json();
@@ -107,10 +116,21 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     }
   };
 
-  // Initialize theme from settings or localStorage
+  // Initialize theme from settings or localStorage based on context
   useEffect(() => {
-    if (settings?.theme) {
-      setThemeState(settings.theme as Theme);
+    if (settings) {
+      // Determine which theme to use based on URL path
+      const isAdmin = window.location.pathname.includes('/admin');
+      
+      // Use the specific theme if available, otherwise fall back to the legacy theme
+      if (isAdmin && settings.adminTheme) {
+        setThemeState(settings.adminTheme as Theme);
+      } else if (!isAdmin && settings.visitorTheme) {
+        setThemeState(settings.visitorTheme as Theme);
+      } else if (settings.theme) {
+        // Fall back to legacy theme if specific theme is not set
+        setThemeState(settings.theme as Theme);
+      }
     } else {
       try {
         const savedTheme = localStorage.getItem("theme") as Theme | null;
