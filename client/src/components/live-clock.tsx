@@ -1,8 +1,30 @@
 import { useState, useEffect } from 'react';
 import { Clock } from 'lucide-react';
 
-export function LiveClock() {
+type LiveClockProps = {
+  isEnglish?: boolean;
+};
+
+export function LiveClock({ isEnglish = true }: LiveClockProps) {
   const [dateTime, setDateTime] = useState<Date>(new Date());
+  
+  // Get the language preference from localStorage if not explicitly provided
+  const [languageState, setLanguageState] = useState<boolean>(isEnglish);
+  
+  useEffect(() => {
+    // Update state with the prop value if changed
+    setLanguageState(isEnglish);
+  }, [isEnglish]);
+  
+  // Check localStorage on component mount if no prop was provided
+  useEffect(() => {
+    if (isEnglish === undefined) {
+      const storedLang = localStorage.getItem('isEnglish');
+      if (storedLang !== null) {
+        setLanguageState(storedLang === 'true');
+      }
+    }
+  }, []);
   
   useEffect(() => {
     // Update the time every second
@@ -16,7 +38,7 @@ export function LiveClock() {
   
   // Format the time in 24-hour format (HH:MM:SS)
   const formatTime = () => {
-    return dateTime.toLocaleTimeString([], { 
+    return dateTime.toLocaleTimeString(languageState ? 'en-US' : 'fr-FR', { 
       hour: '2-digit', 
       minute: '2-digit', 
       second: '2-digit',
@@ -26,7 +48,7 @@ export function LiveClock() {
   
   // Format the date (Weekday, Month Day, Year)
   const formatDate = () => {
-    return dateTime.toLocaleDateString([], { 
+    return dateTime.toLocaleDateString(languageState ? 'en-US' : 'fr-FR', { 
       weekday: 'long', 
       year: 'numeric', 
       month: 'long', 

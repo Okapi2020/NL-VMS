@@ -97,7 +97,7 @@ export default function WelcomePage() {
                 
                 {/* Live Clock Display */}
                 <div className="mb-6 w-full flex justify-center">
-                  <LiveClock />
+                  <LiveClock isEnglish={isEnglish} />
                 </div>
                 
                 <Link href="/visitor">
