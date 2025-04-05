@@ -72,7 +72,7 @@ type AdminVisitHistoryProps = {
 export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistoryProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const [processingVerificationIds, setProcessingVerificationIds] = useState<Set<number>>(new Set());
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
@@ -839,8 +839,8 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                   )}
                 </div>
               </TableHead>
-              <TableHead>Sex</TableHead>
-              <TableHead>Email</TableHead>
+              <TableHead>{t("sex")}</TableHead>
+              <TableHead>{t("email")}</TableHead>
               <TableHead>
                 <div className="flex items-center">
                   <Phone className="mr-1 h-4 w-4" />
@@ -931,7 +931,9 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                   <TableCell>
                     <div className="font-medium">{visitor.fullName}</div>
                   </TableCell>
-                  <TableCell className="text-sm text-gray-500">{visitor.sex}</TableCell>
+                  <TableCell className="text-sm text-gray-500">
+                    {visitor.sex === "Masculin" ? t("male") : visitor.sex === "Feminin" ? t("female") : visitor.sex}
+                  </TableCell>
                   <TableCell className="text-sm text-gray-500">{visitor.email || "No email provided"}</TableCell>
                   <TableCell className="text-sm">
                     {visitor.phoneNumber ? (
