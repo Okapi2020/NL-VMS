@@ -10,8 +10,9 @@ export function calculateAge(yearOfBirth: number): number {
   return currentYear - yearOfBirth;
 }
 
-export function formatDate(date: Date | string): string {
-  return new Date(date).toLocaleString("en-US", {
+export function formatDate(date: Date | string, language: 'en' | 'fr' = 'en'): string {
+  const locale = language === 'fr' ? 'fr-FR' : 'en-US';
+  return new Date(date).toLocaleString(locale, {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
@@ -22,8 +23,9 @@ export function formatDate(date: Date | string): string {
   });
 }
 
-export function formatTimeOnly(date: Date | string): string {
-  return new Date(date).toLocaleString("en-US", {
+export function formatTimeOnly(date: Date | string, language: 'en' | 'fr' = 'en'): string {
+  const locale = language === 'fr' ? 'fr-FR' : 'en-US';
+  return new Date(date).toLocaleString(locale, {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
@@ -31,11 +33,12 @@ export function formatTimeOnly(date: Date | string): string {
   });
 }
 
-export function formatDuration(startDate: Date | string, endDate: Date | string): string {
+export function formatDuration(startDate: Date | string, endDate: Date | string, language: 'en' | 'fr' = 'en'): string {
   // Convert to Kinshasa timezone for duration calculation
+  const locale = language === 'fr' ? 'fr-FR' : 'en-US';
   const options = { timeZone: "Africa/Kinshasa" };
-  const startInKinshasa = new Date(new Date(startDate).toLocaleString("en-US", options));
-  const endInKinshasa = new Date(new Date(endDate).toLocaleString("en-US", options));
+  const startInKinshasa = new Date(new Date(startDate).toLocaleString(locale, options));
+  const endInKinshasa = new Date(new Date(endDate).toLocaleString(locale, options));
   
   const start = startInKinshasa.getTime();
   const end = endInKinshasa.getTime();
@@ -45,13 +48,15 @@ export function formatDuration(startDate: Date | string, endDate: Date | string)
   const minutes = Math.floor(durationMs / (1000 * 60));
   
   if (minutes < 60) {
-    return `${minutes} min`;
+    return `${minutes} ${language === 'fr' ? 'min' : 'min'}`;
   }
   
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
   
-  return `${hours}h ${remainingMinutes}m`;
+  // For French, use 'h' for hours and 'min' for minutes
+  // For English, use 'h' for hours and 'm' for minutes
+  return `${hours}h ${remainingMinutes}${language === 'fr' ? 'min' : 'm'}`;
 }
 
 export function formatBadgeId(visitorId: number): string {

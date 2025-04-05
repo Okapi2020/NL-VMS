@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
 import { CheckCircle, Clock, Home, Loader2 } from "lucide-react";
 import { formatDate, formatTimeOnly, formatDuration } from "@/lib/utils";
+import { useLanguage } from "@/hooks/use-language";
 import type { Visitor, Visit, Settings } from "@shared/schema";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { RouteComponentProps } from "wouter";
@@ -16,6 +17,7 @@ function ThankYouPageContent() {
   const [, navigate] = useLocation();
   const [visitor, setVisitor] = useState<Visitor | null>(null);
   const [visit, setVisit] = useState<Visit | null>(null);
+  const { language } = useLanguage();
   
   // Query to fetch application settings
   const { 
@@ -91,46 +93,52 @@ function ThankYouPageContent() {
               <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-4">
                 <CheckCircle className="h-10 w-10 text-green-600" />
               </div>
-              <h2 className="text-3xl font-extrabold text-gray-900">Thank You for Visiting</h2>
+              <h2 className="text-3xl font-extrabold text-gray-900">
+                {language === 'fr' ? 'Merci de votre visite' : 'Thank You for Visiting'}
+              </h2>
               <p className="mt-2 text-lg text-gray-600">
-                We appreciate your visit and hope to see you again soon.
+                {language === 'fr' 
+                  ? 'Nous apprécions votre visite et espérons vous revoir bientôt.'
+                  : 'We appreciate your visit and hope to see you again soon.'}
               </p>
             </div>
             
             {visitor && visit && (
               <div className="bg-gray-50 rounded-lg p-6 mb-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Visit Summary</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">
+                  {language === 'fr' ? 'Résumé de la visite' : 'Visit Summary'}
+                </h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Name:</span>
+                    <span className="text-gray-500">{language === 'fr' ? 'Nom:' : 'Name:'}</span>
                     <span className="text-gray-900 font-medium">{visitor.fullName}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Check-in Time:</span>
+                    <span className="text-gray-500">{language === 'fr' ? 'Heure d\'arrivée:' : 'Check-in Time:'}</span>
                     <span className="text-gray-900">
-                      {formatDate(visit.checkInTime)} at {formatTimeOnly(visit.checkInTime)}
+                      {formatDate(visit.checkInTime, language)} {language === 'fr' ? 'à' : 'at'} {formatTimeOnly(visit.checkInTime, language)}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Check-out Time:</span>
+                    <span className="text-gray-500">{language === 'fr' ? 'Heure de départ:' : 'Check-out Time:'}</span>
                     <span className="text-gray-900">
                       {visit.checkOutTime && (
                         <>
-                          {formatDate(visit.checkOutTime)} at {formatTimeOnly(visit.checkOutTime)}
+                          {formatDate(visit.checkOutTime, language)} {language === 'fr' ? 'à' : 'at'} {formatTimeOnly(visit.checkOutTime, language)}
                         </>
                       )}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Duration:</span>
+                    <span className="text-gray-500">{language === 'fr' ? 'Durée:' : 'Duration:'}</span>
                     <span className="text-gray-900">
                       {visit.checkOutTime && (
-                        formatDuration(visit.checkInTime, visit.checkOutTime)
+                        formatDuration(visit.checkInTime, visit.checkOutTime, language)
                       )}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Purpose:</span>
+                    <span className="text-gray-500">{language === 'fr' ? 'Motif:' : 'Purpose:'}</span>
                     <span className="text-gray-900">{visit.purpose}</span>
                   </div>
                 </div>
@@ -140,13 +148,17 @@ function ThankYouPageContent() {
             <div className="flex flex-col space-y-4">
               <div className="flex items-center justify-center text-sm text-gray-500">
                 <Clock className="h-4 w-4 mr-1" />
-                <span>This page will automatically redirect to the home page in 30 seconds</span>
+                <span>
+                  {language === 'fr' 
+                    ? 'Cette page sera automatiquement redirigée vers la page d\'accueil dans 30 secondes' 
+                    : 'This page will automatically redirect to the home page in 30 seconds'}
+                </span>
               </div>
               
               <Link href="/">
                 <Button className="w-full" size="lg">
                   <Home className="h-5 w-5 mr-2" />
-                  Return to Home
+                  {language === 'fr' ? 'Retour à l\'accueil' : 'Return to Home'}
                 </Button>
               </Link>
             </div>

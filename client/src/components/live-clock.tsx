@@ -1,22 +1,31 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { Clock } from 'lucide-react';
+import { useLanguage, LanguageContext } from '@/hooks/use-language';
 
 export function LiveClock() {
   const [dateTime, setDateTime] = useState<Date>(new Date());
-  // Get language preference from localStorage (default to French)
-  const [isEnglish, setIsEnglish] = useState(false);
+  
+  // Try to get language from context if available, otherwise default to 'en'
+  let language = 'en';
+  
+  // Check if LanguageContext exists in the component tree
+  const langContext = useContext(LanguageContext);
+  
+  if (langContext !== null) {
+    try {
+      const { language: contextLanguage } = useLanguage();
+      language = contextLanguage;
+    } catch (error) {
+      // If useLanguage fails, fallback to default language
+      console.error("Language context error:", error);
+    }
+  }
   
   useEffect(() => {
     // Update the time every second
     const timer = setInterval(() => {
       setDateTime(new Date());
     }, 1000);
-    
-    // Load language preference from localStorage
-    const storedLang = localStorage.getItem('isEnglish');
-    if (storedLang !== null) {
-      setIsEnglish(storedLang === 'true');
-    }
     
     // Clear the interval when component unmounts
     return () => clearInterval(timer);
@@ -32,7 +41,8 @@ export function LiveClock() {
       timeZone: 'Africa/Kinshasa'
     };
     
-    return dateTime.toLocaleTimeString(isEnglish ? 'en-US' : 'fr-FR', options);
+    const locale = language === 'fr' ? 'fr-FR' : 'en-US';
+    return dateTime.toLocaleTimeString(locale, options);
   };
   
   // Format the date (Weekday, Month Day, Year) using Kinshasa timezone
@@ -45,7 +55,8 @@ export function LiveClock() {
       timeZone: 'Africa/Kinshasa'
     };
     
-    return dateTime.toLocaleDateString(isEnglish ? 'en-US' : 'fr-FR', options);
+    const locale = language === 'fr' ? 'fr-FR' : 'en-US';
+    return dateTime.toLocaleDateString(locale, options);
   };
   
   return (

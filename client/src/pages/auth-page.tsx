@@ -3,6 +3,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth, AuthContext } from "@/hooks/use-auth";
+// Define Admin interface locally to avoid import issues
+interface Admin {
+  id: number;
+  username: string;
+  password: string;
+  preferredLanguage: string;
+}
 import { useLocation, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -67,7 +74,14 @@ export default function AuthPage() {
   };
 
   // Create a dummy authentication state if auth context is not available
-  let userState = {
+  let userState: {
+    user: Admin | null,
+    isLoading: boolean,
+    loginMutation: {
+      mutate: (data: LoginFormValues) => void,
+      isPending: boolean
+    }
+  } = {
     user: null,
     isLoading: false,
     loginMutation: {

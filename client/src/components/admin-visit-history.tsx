@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/table";
 import { formatDate, formatTimeOnly, formatDuration, formatBadgeId } from "@/lib/utils";
 import { Visit, Visitor } from "@shared/schema";
+import { useLanguage } from "@/hooks/use-language";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -71,6 +72,7 @@ type AdminVisitHistoryProps = {
 export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistoryProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { language } = useLanguage();
   const [processingVerificationIds, setProcessingVerificationIds] = useState<Set<number>>(new Set());
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
@@ -294,7 +296,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
         (visitor.email && visitor.email.toLowerCase().includes(searchTermLower)) ||
         visitor.phoneNumber.toLowerCase().includes(searchTermLower) ||
         badgeId.includes(searchTermLower) ||
-        formatDate(visit.checkInTime).toLowerCase().includes(searchTermLower);
+        formatDate(visit.checkInTime, language).toLowerCase().includes(searchTermLower);
       
       const matchesStatus = 
         filterStatus === "all" ||
@@ -932,17 +934,17 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                   </TableCell>
                   <TableCell className="font-mono text-xs text-blue-600 font-medium">{formatBadgeId(visitor.id)}</TableCell>
                   <TableCell>
-                    <div className="text-sm">{formatTimeOnly(visit.checkInTime)}</div>
+                    <div className="text-sm">{formatTimeOnly(visit.checkInTime, language)}</div>
                     <div className="text-xs text-gray-500">
-                      {formatDate(visit.checkInTime).split(',')[0]}
+                      {formatDate(visit.checkInTime, language).split(',')[0]}
                     </div>
                   </TableCell>
                   <TableCell>
                     {visit.checkOutTime ? (
                       <>
-                        <div className="text-sm">{formatTimeOnly(visit.checkOutTime)}</div>
+                        <div className="text-sm">{formatTimeOnly(visit.checkOutTime, language)}</div>
                         <div className="text-xs text-gray-500">
-                          {formatDate(visit.checkOutTime).split(',')[0]}
+                          {formatDate(visit.checkOutTime, language).split(',')[0]}
                         </div>
                       </>
                     ) : (
@@ -967,7 +969,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                   </TableCell>
                   <TableCell>
                     {visit.checkOutTime ? (
-                      formatDuration(visit.checkInTime, visit.checkOutTime)
+                      formatDuration(visit.checkInTime, visit.checkOutTime, language)
                     ) : (
                       "N/A"
                     )}
