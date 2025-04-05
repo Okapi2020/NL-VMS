@@ -336,10 +336,20 @@ export class DatabaseStorage implements IStorage {
     const activeVisits = await this.getActiveVisits();
     const result: { visit: Visit, visitor: Visitor }[] = [];
     
+    // Create a Set to track unique visitor-visit combinations to prevent duplicates
+    const visitedPairs = new Set<string>();
+    
     for (const visit of activeVisits) {
       const visitor = await this.getVisitor(visit.visitorId);
       if (visitor) {
-        result.push({ visit, visitor });
+        // Create a unique key for this visitor-visit pair
+        const pairKey = `${visitor.id}-${visit.id}`;
+        
+        // Only add this pair if we haven't seen it before
+        if (!visitedPairs.has(pairKey)) {
+          visitedPairs.add(pairKey);
+          result.push({ visit, visitor });
+        }
       }
     }
     
@@ -350,10 +360,20 @@ export class DatabaseStorage implements IStorage {
     const visitHistory = await this.getVisitHistory(limit);
     const result: { visit: Visit, visitor: Visitor }[] = [];
     
+    // Create a Set to track unique visitor-visit combinations to prevent duplicates
+    const visitedPairs = new Set<string>();
+    
     for (const visit of visitHistory) {
       const visitor = await this.getVisitor(visit.visitorId);
       if (visitor) {
-        result.push({ visit, visitor });
+        // Create a unique key for this visitor-visit pair
+        const pairKey = `${visitor.id}-${visit.id}`;
+        
+        // Only add this pair if we haven't seen it before
+        if (!visitedPairs.has(pairKey)) {
+          visitedPairs.add(pairKey);
+          result.push({ visit, visitor });
+        }
       }
     }
     
