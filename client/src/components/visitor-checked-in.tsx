@@ -160,18 +160,9 @@ export function VisitorCheckedIn({ visitor, visit, onCheckOut, isEnglish = true 
           )}
         </div>
 
-        <div className="mt-5 flex flex-col sm:flex-row gap-4 justify-center">
-          <Button 
-            onClick={handleCheckOut}
-            disabled={checkOutMutation.isPending}
-          >
-            {checkOutMutation.isPending 
-              ? (isEnglish ? "Processing..." : "Traitement...") 
-              : (isEnglish ? "Check Out" : "Se Déconnecter")}
-          </Button>
-          
+        <div className="mt-5 flex justify-center">
           <Link href="/">
-            <Button variant="outline" className="inline-flex items-center">
+            <Button variant="default" className="inline-flex items-center px-6">
               {isEnglish ? "Back to Home" : "Retour à l'Accueil"}
             </Button>
           </Link>
