@@ -68,7 +68,7 @@ export const insertVisitSchema = createInsertSchema(visits).pick({
 export const visitorFormSchema = z.object({
   firstName: z.string()
     .min(2, "First name is required")
-    .refine(name => /^[a-zA-Z.\-']+$/.test(name.trim()), {
+    .refine(name => /^[a-zA-ZÀ-ÖØ-öø-ÿ.\-']+$/.test(name.trim()), {
       message: "Name should contain only letters and basic characters"
     })
     .refine(name => !name.trim().includes(' '), {
@@ -77,12 +77,15 @@ export const visitorFormSchema = z.object({
   middleName: z.string()
     .optional()
     .transform(val => (!val || val.trim() === '') ? undefined : val)
+    .refine(name => !name || /^[a-zA-ZÀ-ÖØ-öø-ÿ.\-']+$/.test(name.trim()), {
+      message: "Name should contain only letters and basic characters"
+    })
     .refine(name => !name || !name.trim().includes(' '), {
       message: "Middle name should not contain spaces (enter only one name)"
     }),
   lastName: z.string()
     .min(2, "Last name is required")
-    .refine(name => /^[a-zA-Z.\-']+$/.test(name.trim()), {
+    .refine(name => /^[a-zA-ZÀ-ÖØ-öø-ÿ.\-']+$/.test(name.trim()), {
       message: "Name should contain only letters and basic characters"
     })
     .refine(name => !name.trim().includes(' '), {
@@ -186,7 +189,7 @@ export const updateVisitorSchema = z.object({
     .refine(name => {
       // Split the full name by spaces and check if each part contains only allowed characters
       const nameParts = name.trim().split(/\s+/);
-      return nameParts.every(part => /^[a-zA-Z.\-']+$/.test(part));
+      return nameParts.every(part => /^[a-zA-ZÀ-ÖØ-öø-ÿ.\-']+$/.test(part));
     }, {
       message: "Names should contain only letters and basic characters"
     }),
