@@ -409,7 +409,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
   return (
     <div>
       {/* Search and filter controls */}
-      <div className="mb-4 space-y-2">
+      <div className="mb-4 space-y-2 px-4 pt-4">
         <div className="flex flex-wrap gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
@@ -544,7 +544,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
       </div>
 
       {/* Action buttons and pagination controls */}
-      <div className="flex flex-wrap justify-between items-center gap-2 mb-3">
+      <div className="flex flex-wrap justify-between items-center gap-2 mb-3 px-4">
         <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
@@ -791,7 +791,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
       </div>
       
       {/* Results count */}
-      <div className="text-sm text-gray-500 mb-2">
+      <div className="text-sm text-gray-500 mb-2 px-4">
         Showing {paginatedVisits?.length || 0} of {sortedVisits?.length || 0} visits
         {showDeletedVisitors ? " (Trash Bin)" : ""}
         {selectedVisitors?.length > 0 ? ` • ${selectedVisitors.length} selected` : ""}
@@ -1040,6 +1040,9 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
           </TableBody>
         </Table>
       </div>
+      
+      {/* Bottom padding */}
+      <div className="pb-4"></div>
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
