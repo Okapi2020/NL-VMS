@@ -936,7 +936,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                     {visitor.sex === "Masculin" ? t("male") : visitor.sex === "Feminin" ? t("female") : visitor.sex}
                   </TableCell>
                   <TableCell className="text-sm text-gray-500">
-                    {formatYearWithAge(visitor.yearOfBirth)}
+                    {formatYearWithAge(visitor.yearOfBirth, language)}
                   </TableCell>
                   <TableCell className="text-sm text-gray-500">{visitor.email || "No email provided"}</TableCell>
                   <TableCell className="text-sm">

@@ -89,7 +89,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { handleApiError } = useGlobalErrorHandler();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [processingIds, setProcessingIds] = useState<Set<number>>(new Set());
   const [processingVerificationIds, setProcessingVerificationIds] = useState<Set<number>>(new Set());
   const [searchTerm, setSearchTerm] = useState("");
@@ -497,7 +497,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                     {visitor.sex === "Masculin" ? t("male") : visitor.sex === "Feminin" ? t("female") : visitor.sex}
                   </TableCell>
                   <TableCell className="text-sm text-gray-500">
-                    {formatYearWithAge(visitor.yearOfBirth)}
+                    {formatYearWithAge(visitor.yearOfBirth, language)}
                   </TableCell>
                   <TableCell className="text-sm text-gray-500">{visitor.email || t("noEmailProvided")}</TableCell>
                   <TableCell className="text-sm">
@@ -508,7 +508,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                     )}
                   </TableCell>
                   <TableCell className="font-mono text-xs text-blue-600 font-medium">{formatBadgeId(visitor.id)}</TableCell>
-                  <TableCell>{formatTimeOnly(visit.checkInTime)}</TableCell>
+                  <TableCell>{formatTimeOnly(visit.checkInTime, language)}</TableCell>
                   <TableCell className="text-center">
                     <Button
                       variant="ghost"
