@@ -391,9 +391,8 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto w-full">
-        <div className="table-container min-w-[800px]">
-          <Table className="w-full">
+      <div className="overflow-x-auto border rounded-md">
+        <Table className="w-full min-w-[800px]">
           <TableHeader>
             <TableRow>
               <TableHead className="w-[40px]">
@@ -567,7 +566,6 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
             )}
           </TableBody>
         </Table>
-        </div>
       </div>
       
       {/* Bulk actions and pagination controls */}

@@ -198,20 +198,25 @@
   /* Enhanced table scroll styles */
   .overflow-x-auto {
     @apply scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent;
-    @apply -mx-4 px-4; /* Negative margin to ensure scroll area extends past padding */
-    @apply pb-1; /* Add space for the scrollbar */
     @apply touch-pan-x; /* Enable smooth touch scrolling on mobile */
   }
   
-  /* Add a visual indication of scrollability on smaller screens */
+  /* Make sure tables in scrollable containers maintain fixed widths for columns */
+  .overflow-x-auto table {
+    @apply table-fixed;
+  }
+  
+  /* Add a shadow indicator for horizontal scrolling on smaller screens */
   @media (max-width: 1024px) {
-    .table-container {
+    .overflow-x-auto {
       @apply relative;
     }
     
-    .table-container::after {
+    .overflow-x-auto::after {
       content: "";
-      @apply absolute top-1/2 right-1 w-4 h-12 -mt-6 bg-gradient-to-r from-transparent to-background/80 pointer-events-none;
+      @apply absolute top-0 right-0 bottom-0 w-8 
+             bg-gradient-to-l from-background/70 to-transparent 
+             pointer-events-none opacity-50;
     }
   }
 }
