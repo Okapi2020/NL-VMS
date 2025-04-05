@@ -97,6 +97,9 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
     id: z.number(),
     fullName: z.string().min(2, "Full name must be at least 2 characters"),
     yearOfBirth: z.number().min(1900, "Year of birth must be after 1900").max(new Date().getFullYear(), "Year of birth cannot be in the future"),
+    sex: z.enum(["Masculin", "Feminin"], {
+      errorMap: () => ({ message: "Please select either Masculin or Feminin" }),
+    }),
     email: z.string().email("Invalid email format").nullable().optional(),
     phoneNumber: z.string().min(7, "Phone number must be at least 7 characters"),
   });
@@ -110,6 +113,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
       id: selectedVisitor.id,
       fullName: selectedVisitor.fullName,
       yearOfBirth: selectedVisitor.yearOfBirth,
+      sex: selectedVisitor.sex as "Masculin" | "Feminin",
       email: selectedVisitor.email,
       phoneNumber: selectedVisitor.phoneNumber
     } : undefined
@@ -122,6 +126,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
         id: selectedVisitor.id,
         fullName: selectedVisitor.fullName,
         yearOfBirth: selectedVisitor.yearOfBirth,
+        sex: selectedVisitor.sex as "Masculin" | "Feminin",
         email: selectedVisitor.email,
         phoneNumber: selectedVisitor.phoneNumber
       });
@@ -1079,6 +1084,31 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                         }}
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="sex"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Sex</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select sex" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Masculin">Male (Masculin)</SelectItem>
+                        <SelectItem value="Feminin">Female (Feminin)</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

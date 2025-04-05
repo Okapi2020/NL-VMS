@@ -52,7 +52,7 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
       middleName: "",
       lastName: "",
       yearOfBirth: undefined,
-      sex: "Masculin",
+      sex: undefined,
       email: "",
       phoneNumber: "",
     },
@@ -220,10 +220,13 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
               name="sex"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{isEnglish ? "Sex" : "Sexe"}</FormLabel>
+                  <FormLabel className="flex items-center">
+                    <span>{isEnglish ? "Sex" : "Sexe"}</span>
+                    <span className="ml-1 text-red-500">*</span>
+                  </FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>

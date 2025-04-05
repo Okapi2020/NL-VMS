@@ -22,7 +22,7 @@ export const visitors = pgTable("visitors", {
   id: serial("id").primaryKey(),
   fullName: varchar("full_name", { length: 255 }).notNull(),
   yearOfBirth: integer("year_of_birth").notNull(),
-  sex: varchar("sex", { length: 20 }).default("Masculin"),
+  sex: varchar("sex", { length: 20 }).notNull(),
   email: varchar("email", { length: 255 }),
   phoneNumber: varchar("phone_number", { length: 50 }).notNull(),
   verified: boolean("verified").default(false).notNull(),
@@ -93,7 +93,7 @@ export const visitorFormSchema = z.object({
     .max(new Date().getFullYear(), "Year cannot be in the future"),
   sex: z.enum(["Masculin", "Feminin"], {
     errorMap: () => ({ message: "Please select either Masculin or Feminin" }),
-  }).default("Masculin"),
+  }),
   email: z.string()
     .email("Please enter a valid email address")
     .refine(email => email === "" || /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email), {
