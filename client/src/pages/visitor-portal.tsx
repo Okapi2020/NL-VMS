@@ -107,20 +107,7 @@ function VisitorPortalComponent() {
   
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Language toggle without header */}
-      <div className="bg-background pt-4 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto flex justify-end">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={toggleLanguage} 
-            className="flex items-center gap-2"
-          >
-            <Languages size={18} />
-            <span>{isEnglish ? 'Français' : 'English'}</span>
-          </Button>
-        </div>
-      </div>
+      {/* Language toggle removed as requested */}
       
       {/* Main Content */}
       <main className="py-4 px-4 sm:px-6 lg:px-8">
