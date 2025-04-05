@@ -235,6 +235,38 @@ export const translations: TranslationMap = {
     en: 'Recycle Bin',
     fr: 'Corbeille'
   },
+  refresh: {
+    en: 'Refresh',
+    fr: 'Actualiser'
+  },
+  deletedVisitors: {
+    en: 'Deleted Visitors',
+    fr: 'Visiteurs supprimés'
+  },
+  deletedVisitorsDescription: {
+    en: 'View and manage deleted visitor records',
+    fr: 'Afficher et gérer les enregistrements de visiteurs supprimés'
+  },
+  page: {
+    en: 'Page',
+    fr: 'Page'
+  },
+  of: {
+    en: 'of',
+    fr: 'sur'
+  },
+  previous: {
+    en: 'Previous',
+    fr: 'Précédent'
+  },
+  next: {
+    en: 'Next',
+    fr: 'Suivant'
+  },
+  itemsPerPage: {
+    en: 'Items per page',
+    fr: 'Éléments par page'
+  },
   emptyBin: {
     en: 'Empty Bin',
     fr: 'Vider la corbeille'
@@ -246,6 +278,42 @@ export const translations: TranslationMap = {
   permanentlyDelete: {
     en: 'Permanently Delete',
     fr: 'Supprimer définitivement'
+  },
+  confirmPermanentDelete: {
+    en: 'Are you sure you want to permanently delete this visitor? This action cannot be undone.',
+    fr: 'Êtes-vous sûr de vouloir supprimer définitivement ce visiteur ? Cette action ne peut pas être annulée.'
+  },
+  confirmEmptyRecycleBin: {
+    en: 'Are you sure you want to empty the recycle bin? This action cannot be undone.',
+    fr: 'Êtes-vous sûr de vouloir vider la corbeille ? Cette action ne peut pas être annulée.'
+  },
+  noDeletedVisitors: {
+    en: 'No deleted visitors',
+    fr: 'Aucun visiteur supprimé'
+  },
+  recycleBinEmpty: {
+    en: 'The recycle bin is empty',
+    fr: 'La corbeille est vide'
+  },
+  allRightsReserved: {
+    en: 'All rights reserved',
+    fr: 'Tous droits réservés'
+  },
+  visitorName: {
+    en: 'Visitor Name',
+    fr: 'Nom du visiteur'
+  },
+  phone: {
+    en: 'Phone',
+    fr: 'Téléphone'
+  }, 
+  createdAt: {
+    en: 'Created At',
+    fr: 'Créé le'
+  },
+  actions: {
+    en: 'Actions',
+    fr: 'Actions'
   },
   
   // Analytics

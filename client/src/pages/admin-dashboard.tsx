@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
+import { useLanguage } from "@/hooks/use-language";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -54,6 +55,7 @@ export default function AdminDashboard() {
   }
   
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("current");
   const [activeView, setActiveView] = useState("dashboard");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -322,12 +324,12 @@ export default function AdminDashboard() {
                   ? "bg-primary-50 text-primary-700" 
                   : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
               } ${sidebarCollapsed ? 'justify-center' : ''}`}
-              title="Dashboard"
+              title={t("dashboard")}
             >
               <LayoutDashboard className={`${sidebarCollapsed ? '' : 'mr-3'} h-5 w-5 ${
                 activeView === "dashboard" ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
               }`} />
-              {!sidebarCollapsed && "Dashboard"}
+              {!sidebarCollapsed && t("dashboard")}
             </a>
             <a
               href="#"
@@ -337,12 +339,12 @@ export default function AdminDashboard() {
                   ? "bg-primary-50 text-primary-700" 
                   : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
               } ${sidebarCollapsed ? 'justify-center' : ''}`}
-              title="Visitors"
+              title={t("visitors")}
             >
               <UserRound className={`${sidebarCollapsed ? '' : 'mr-3'} h-5 w-5 ${
                 activeView === "visitors" ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
               }`} />
-              {!sidebarCollapsed && "Visitors"}
+              {!sidebarCollapsed && t("visitors")}
             </a>
 
             <a
@@ -353,12 +355,12 @@ export default function AdminDashboard() {
                   ? "bg-primary-50 text-primary-700" 
                   : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
               } ${sidebarCollapsed ? 'justify-center' : ''}`}
-              title="Reports"
+              title={t("reports")}
             >
               <ClipboardList className={`${sidebarCollapsed ? '' : 'mr-3'} h-5 w-5 ${
                 activeView === "reports" ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
               }`} />
-              {!sidebarCollapsed && "Reports"}
+              {!sidebarCollapsed && t("reports")}
             </a>
             <a
               href="#"
@@ -368,22 +370,22 @@ export default function AdminDashboard() {
                   ? "bg-primary-50 text-primary-700" 
                   : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
               } ${sidebarCollapsed ? 'justify-center' : ''}`}
-              title="Settings"
+              title={t("settings")}
             >
               <SettingsIcon className={`${sidebarCollapsed ? '' : 'mr-3'} h-5 w-5 ${
                 activeView === "settings" ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
               }`} />
-              {!sidebarCollapsed && "Settings"}
+              {!sidebarCollapsed && t("settings")}
             </a>
             <a
               href="/"
               target="_blank"
               rel="noopener noreferrer"
               className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 hover:text-gray-900 ${sidebarCollapsed ? 'justify-center' : ''}`}
-              title="Visit Check-In Portal"
+              title={t("visitPortal")}
             >
               <ExternalLink className={`${sidebarCollapsed ? '' : 'mr-3'} h-5 w-5 text-gray-400 group-hover:text-gray-500`} />
-              {!sidebarCollapsed && "Visit Check-In Portal"}
+              {!sidebarCollapsed && t("visitPortal")}
             </a>
             
             {/* Bottom section with Recycle Bin and Logout */}
@@ -396,12 +398,12 @@ export default function AdminDashboard() {
                     ? "bg-primary-50 text-primary-700" 
                     : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
                 } ${sidebarCollapsed ? 'justify-center' : ''}`}
-                title="Recycle Bin"
+                title={t("recycleBin")}
               >
                 <Trash2 className={`${sidebarCollapsed ? '' : 'mr-3'} h-5 w-5 ${
                   activeView === "trash" ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
                 }`} />
-                {!sidebarCollapsed && "Recycle Bin"}
+                {!sidebarCollapsed && t("recycleBin")}
               </a>
               
               <Button
@@ -409,10 +411,10 @@ export default function AdminDashboard() {
                 className={`w-full ${sidebarCollapsed ? 'justify-center' : 'justify-start'} group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 hover:text-gray-900`}
                 onClick={() => logoutMutation.mutate()}
                 disabled={logoutMutation.isPending}
-                title="Logout"
+                title={t("logout")}
               >
                 <LogOut className={`${sidebarCollapsed ? '' : 'mr-3'} h-5 w-5 text-gray-400 group-hover:text-gray-500`} />
-                {!sidebarCollapsed && (logoutMutation.isPending ? "Logging out..." : "Logout")}
+                {!sidebarCollapsed && (logoutMutation.isPending ? t("loggingOut") : t("logout"))}
               </Button>
             </div>
           </nav>
@@ -432,11 +434,11 @@ export default function AdminDashboard() {
                   <ChevronDown className={`h-5 w-5 transition-transform ${sidebarCollapsed ? 'rotate-270' : 'rotate-90'}`} />
                 </Button>
                 <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
-                  {activeView === "dashboard" && "Dashboard"}
-                  {activeView === "visitors" && "Visitors"}
-                  {activeView === "reports" && "Reports"}
-                  {activeView === "trash" && "Recycle Bin"}
-                  {activeView === "settings" && "Settings"}
+                  {activeView === "dashboard" && t("dashboard")}
+                  {activeView === "visitors" && t("visitors")}
+                  {activeView === "reports" && t("reports")}
+                  {activeView === "trash" && t("recycleBin")}
+                  {activeView === "settings" && t("settings")}
                 </h2>
               </div>
               <div className="mt-4 flex md:mt-0 md:ml-4 items-center space-x-2">
@@ -449,7 +451,7 @@ export default function AdminDashboard() {
                 >
                   <a href="/" target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="mr-2 h-4 w-4" />
-                    Visit Portal
+                    {t("visitPortal")}
                   </a>
                 </Button>
                 {activeView === "dashboard" && (
@@ -458,7 +460,7 @@ export default function AdminDashboard() {
                     className="ml-3 inline-flex items-center"
                   >
                     <Download className="mr-2 h-4 w-4" />
-                    Export Data
+                    {t("exportData")}
                   </Button>
                 )}
               </div>
@@ -478,7 +480,7 @@ export default function AdminDashboard() {
                         </div>
                         <div className="ml-5 w-0 flex-1">
                           <dt className="text-sm font-medium text-gray-500 truncate">
-                            Total Visitors Today
+                            {t("totalVisitorsToday")}
                           </dt>
                           <dd className="flex items-baseline">
                             <div className="text-2xl font-semibold text-gray-900">
@@ -499,7 +501,7 @@ export default function AdminDashboard() {
                         </div>
                         <div className="ml-5 w-0 flex-1">
                           <dt className="text-sm font-medium text-gray-500 truncate">
-                            Currently Checked In
+                            {t("currentlyCheckedIn")}
                           </dt>
                           <dd className="flex items-baseline">
                             <div className="text-2xl font-semibold text-gray-900">
@@ -520,11 +522,11 @@ export default function AdminDashboard() {
                         </div>
                         <div className="ml-5 w-0 flex-1">
                           <dt className="text-sm font-medium text-gray-500 truncate">
-                            Average Visit Duration
+                            {t("averageVisitDuration")}
                           </dt>
                           <dd className="flex items-baseline">
                             <div className="text-2xl font-semibold text-gray-900">
-                              {isLoadingStats ? "..." : `${stats.averageVisitDuration} min`}
+                              {isLoadingStats ? "..." : `${stats.averageVisitDuration} ${t("minutes")}`}
                             </div>
                           </dd>
                         </div>
@@ -545,10 +547,10 @@ export default function AdminDashboard() {
                         <div>
                           <h3 className="text-lg leading-6 font-medium text-gray-900 flex items-center">
                             <BarChart className="mr-2 h-5 w-5 text-gray-500" />
-                            Analytics Overview
+                            {t("analyticsOverview")}
                           </h3>
                           <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                            Insights into visitor patterns and trends
+                            {t("analyticsInsights")}
                           </p>
                         </div>
                         <ChevronDown 
@@ -568,10 +570,10 @@ export default function AdminDashboard() {
                           <CardHeader>
                             <CardTitle className="flex items-center">
                               <CalendarDays className="mr-2 h-5 w-5 text-gray-500" />
-                              Visitors by Day of Week
+                              {t("visitorsByDayOfWeek")}
                             </CardTitle>
                             <CardDescription>
-                              Pattern of visitor frequency by day
+                              {t("visitorFrequencyPattern")}
                             </CardDescription>
                           </CardHeader>
                           <CardContent>
@@ -579,7 +581,7 @@ export default function AdminDashboard() {
                               <DayOfWeekChart data={analyticsData.byDayOfWeek} />
                             ) : (
                               <div className="flex justify-center items-center h-64">
-                                <p className="text-gray-500">Loading chart data...</p>
+                                <p className="text-gray-500">{t("loadingChartData")}</p>
                               </div>
                             )}
                           </CardContent>
@@ -590,10 +592,10 @@ export default function AdminDashboard() {
                           <CardHeader>
                             <CardTitle className="flex items-center">
                               <TrendingUp className="mr-2 h-5 w-5 text-gray-500" />
-                              Visitors by Hour of Day
+                              {t("visitorsByHourOfDay")}
                             </CardTitle>
                             <CardDescription>
-                              Trend of check-ins throughout the day
+                              {t("checkInTrendByHour")}
                             </CardDescription>
                           </CardHeader>
                           <CardContent>
@@ -601,7 +603,7 @@ export default function AdminDashboard() {
                               <HourlyDistributionChart data={analyticsData.byHour} />
                             ) : (
                               <div className="flex justify-center items-center h-64">
-                                <p className="text-gray-500">Loading chart data...</p>
+                                <p className="text-gray-500">{t("loadingChartData")}</p>
                               </div>
                             )}
                           </CardContent>
@@ -614,8 +616,8 @@ export default function AdminDashboard() {
                 <div className="mt-8">
                   <Tabs defaultValue="current" onValueChange={(value) => setActiveTab(value)}>
                     <TabsList className="mb-4">
-                      <TabsTrigger value="current">Current Visitors</TabsTrigger>
-                      <TabsTrigger value="history">Visit History</TabsTrigger>
+                      <TabsTrigger value="current">{t("currentVisitors")}</TabsTrigger>
+                      <TabsTrigger value="history">{t("visitHistory")}</TabsTrigger>
                     </TabsList>
                     <TabsContent value="current">
                       <Card>
@@ -646,15 +648,15 @@ export default function AdminDashboard() {
             {activeView === "visitors" && (
               <Tabs defaultValue="current" onValueChange={(value) => setActiveTab(value)}>
                 <TabsList className="mb-4">
-                  <TabsTrigger value="current">Current Visitors</TabsTrigger>
-                  <TabsTrigger value="history">Visit History</TabsTrigger>
+                  <TabsTrigger value="current">{t("currentVisitors")}</TabsTrigger>
+                  <TabsTrigger value="history">{t("visitHistory")}</TabsTrigger>
                 </TabsList>
                 <TabsContent value="current">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Currently Checked In</CardTitle>
+                      <CardTitle>{t("currentlyCheckedIn")}</CardTitle>
                       <CardDescription>
-                        Visitors currently in the building
+                        {t("visitorsCurrentlyInBuilding")}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="p-0">
@@ -668,9 +670,9 @@ export default function AdminDashboard() {
                 <TabsContent value="history">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Visit History</CardTitle>
+                      <CardTitle>{t("visitHistory")}</CardTitle>
                       <CardDescription>
-                        Complete record of all visits
+                        {t("completeVisitRecord")}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="p-0">
@@ -688,39 +690,39 @@ export default function AdminDashboard() {
             {activeView === "reports" && (
               <div className="bg-white shadow rounded-lg divide-y divide-gray-200">
                 <div className="px-4 py-5 sm:px-6">
-                  <h2 className="text-lg font-medium text-gray-900">Export Options</h2>
+                  <h2 className="text-lg font-medium text-gray-900">{t("exportOptions")}</h2>
                   <p className="mt-1 text-sm text-gray-500">
-                    Generate and download reports from your visitor data
+                    {t("generateReportsDescription")}
                   </p>
                 </div>
                 <div className="px-4 py-5 sm:p-6">
                   <div className="space-y-6">
                     <div>
-                      <h3 className="text-md font-medium text-gray-900">Visit History Report</h3>
+                      <h3 className="text-md font-medium text-gray-900">{t("visitHistoryReport")}</h3>
                       <div className="mt-2 max-w-xl text-sm text-gray-500">
                         <p>
-                          Export complete visit history including visitor details and check-in/out times
+                          {t("exportVisitHistoryDescription")}
                         </p>
                       </div>
                       <div className="mt-3">
                         <Button onClick={handleExportData}>
                           <Download className="mr-2 h-4 w-4" />
-                          Export to CSV
+                          {t("exportToCsv")}
                         </Button>
                       </div>
                     </div>
                     
                     <div className="border-t border-gray-200 pt-5">
-                      <h3 className="text-md font-medium text-gray-900">Analytics Report</h3>
+                      <h3 className="text-md font-medium text-gray-900">{t("analyticsReport")}</h3>
                       <div className="mt-2 max-w-xl text-sm text-gray-500">
                         <p>
-                          Export analytics data including visitor patterns and trends
+                          {t("exportAnalyticsDescription")}
                         </p>
                       </div>
                       <div className="mt-3">
                         <Button variant="outline">
                           <Download className="mr-2 h-4 w-4" />
-                          Export Analytics
+                          {t("exportAnalytics")}
                         </Button>
                       </div>
                     </div>
@@ -741,9 +743,9 @@ export default function AdminDashboard() {
               <div className="bg-white shadow rounded-lg overflow-hidden">
                 <div className="px-4 py-5 border-b border-gray-200 sm:px-6 flex justify-between items-center">
                   <div>
-                    <h3 className="text-lg leading-6 font-medium text-gray-900">Deleted Visitors</h3>
+                    <h3 className="text-lg leading-6 font-medium text-gray-900">{t("deletedVisitors")}</h3>
                     <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                      Visitors that have been deleted can be restored or permanently removed
+                      {t("deletedVisitorsDescription")}
                     </p>
                   </div>
                   <div className="flex space-x-3">
@@ -754,20 +756,20 @@ export default function AdminDashboard() {
                       disabled={isLoadingDeletedVisitors}
                     >
                       <RefreshCw className="mr-2 h-4 w-4" />
-                      Refresh
+                      {t("refresh")}
                     </Button>
                     <Button 
                       variant="destructive" 
                       size="sm" 
                       onClick={() => {
-                        if (window.confirm("Are you sure you want to empty the recycle bin? This action cannot be undone.")) {
+                        if (window.confirm(t("confirmEmptyRecycleBin"))) {
                           emptyBinMutation.mutate();
                         }
                       }}
                       disabled={deletedVisitors.length === 0 || emptyBinMutation.isPending}
                     >
                       <Trash className="mr-2 h-4 w-4" />
-                      Empty Bin
+                      {t("emptyBin")}
                     </Button>
                   </div>
                 </div>
@@ -778,19 +780,19 @@ export default function AdminDashboard() {
                       <thead className="bg-gray-50">
                         <tr>
                           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Visitor Name
+                            {t("visitorName")}
                           </th>
                           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Email
+                            {t("email")}
                           </th>
                           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Phone
+                            {t("phone")}
                           </th>
                           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Created At
+                            {t("createdAt")}
                           </th>
                           <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Actions
+                            {t("actions")}
                           </th>
                         </tr>
                       </thead>
@@ -817,19 +819,19 @@ export default function AdminDashboard() {
                                 onClick={() => restoreVisitorMutation.mutate(visitor.id)}
                                 disabled={restoreVisitorMutation.isPending}
                               >
-                                Restore
+                                {t("restore")}
                               </Button>
                               <Button
                                 variant="destructive"
                                 size="sm"
                                 onClick={() => {
-                                  if (window.confirm("Are you sure you want to permanently delete this visitor? This action cannot be undone.")) {
+                                  if (window.confirm(t("confirmPermanentDelete"))) {
                                     permanentlyDeleteMutation.mutate(visitor.id);
                                   }
                                 }}
                                 disabled={permanentlyDeleteMutation.isPending}
                               >
-                                Delete
+                                {t("delete")}
                               </Button>
                             </td>
                           </tr>
@@ -840,9 +842,9 @@ export default function AdminDashboard() {
                 ) : (
                   <div className="py-12 text-center">
                     <Trash2 className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-gray-900">No deleted visitors</h3>
+                    <h3 className="mt-2 text-sm font-medium text-gray-900">{t("noDeletedVisitors")}</h3>
                     <p className="mt-1 text-sm text-gray-500">
-                      The recycle bin is empty
+                      {t("recycleBinEmpty")}
                     </p>
                   </div>
                 )}
@@ -853,7 +855,7 @@ export default function AdminDashboard() {
           {/* Footer */}
           <footer className="py-4 px-6 bg-white border-t border-gray-200 text-center mt-auto">
             <p className="text-sm text-gray-500">
-              © {new Date().getFullYear()} {footerAppName} • All rights reserved
+              © {new Date().getFullYear()} {footerAppName} • {t("allRightsReserved")}
             </p>
           </footer>
         </div>
