@@ -110,6 +110,11 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
   };
 
   const onSubmit = (data: VisitorFormValues) => {
+    // Prevent duplicate submissions
+    if (checkInMutation.isPending) {
+      return;
+    }
+    
     // Merge contact details with form data
     const formData = {
       ...data,
@@ -449,6 +454,7 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
             submitButtonText={isEnglish ? "Check In" : "Enregistrez-vous"}
             previousButtonText={isEnglish ? "Previous" : "Précédent"}
             nextButtonText={isEnglish ? "Next" : "Suivant"}
+            isSubmitting={checkInMutation.isPending}
             renderCustomButtons={(currentStepIndex, isFirstStep) => (
               isFirstStep ? (
                 <Link 
