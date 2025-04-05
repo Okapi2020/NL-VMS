@@ -117,4 +117,40 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+  
+  /* Admin dashboard text size improvements */
+  .admin-dashboard {
+    @apply text-base;
+  }
+  
+  .admin-dashboard h1, 
+  .admin-dashboard h2 {
+    @apply text-2xl font-semibold;
+  }
+  
+  .admin-dashboard h3 {
+    @apply text-xl font-medium;
+  }
+  
+  .admin-dashboard .card-title {
+    @apply text-lg font-semibold;
+  }
+  
+  .admin-dashboard p {
+    @apply text-base;
+  }
+  
+  .admin-dashboard .text-sm {
+    @apply text-base;
+  }
+  
+  .admin-dashboard td,
+  .admin-dashboard th {
+    @apply text-base;
+  }
+  
+  /* Chart and analytics text */
+  .admin-dashboard .recharts-text {
+    @apply text-base;
+  }
 }

@@ -91,6 +91,18 @@ export const translations: TranslationMap = {
     en: 'Edit',
     fr: 'Modifier'
   },
+  editVisitor: {
+    en: 'Edit Visitor',
+    fr: 'Modifier le visiteur'
+  },
+  editVisitorDescription: {
+    en: 'Update visitor information',
+    fr: 'Mettre à jour les informations du visiteur'
+  },
+  saveChanges: {
+    en: 'Save Changes',
+    fr: 'Enregistrer les modifications'
+  },
   add: {
     en: 'Add',
     fr: 'Ajouter'
@@ -147,9 +159,29 @@ export const translations: TranslationMap = {
     en: 'Last Name',
     fr: 'Nom de famille'
   },
+  fullName: {
+    en: 'Full Name',
+    fr: 'Nom complet'
+  },
   yearOfBirth: {
     en: 'Year of Birth',
     fr: 'Année de naissance'
+  },
+  sex: {
+    en: 'Sex',
+    fr: 'Sexe'
+  },
+  selectSex: {
+    en: 'Select sex',
+    fr: 'Sélectionner le sexe'
+  },
+  male: {
+    en: 'Male (Masculin)',
+    fr: 'Masculin'
+  },
+  female: {
+    en: 'Female (Feminin)',
+    fr: 'Feminin'
   },
   phoneNumber: {
     en: 'Phone Number',
@@ -158,6 +190,10 @@ export const translations: TranslationMap = {
   email: {
     en: 'Email',
     fr: 'Courriel'
+  },
+  emailAddressOptional: {
+    en: 'Email Address (Optional)',
+    fr: 'Adresse courriel (Optionnel)'
   },
   purpose: {
     en: 'Purpose of Visit',
@@ -304,8 +340,8 @@ export const translations: TranslationMap = {
     fr: 'sur'
   },
   itemsPerPage: {
-    en: 'Items per page',
-    fr: 'Éléments par page'
+    en: 'per page',
+    fr: 'par page'
   },
   emptyBin: {
     en: 'Empty Bin',
@@ -356,7 +392,83 @@ export const translations: TranslationMap = {
     fr: 'Actions'
   },
   
+  // Reports section
+  reports: {
+    en: 'Reports',
+    fr: 'Rapports'
+  },
+  exportOptions: {
+    en: 'Export Options',
+    fr: 'Options d\'exportation'
+  },
+  generateReportsDescription: {
+    en: 'Generate reports for different time periods',
+    fr: 'Générer des rapports pour différentes périodes'
+  },
+  visitHistoryReport: {
+    en: 'Visit History Report',
+    fr: 'Rapport d\'historique des visites'
+  },
+  exportVisitHistoryDescription: {
+    en: 'Export complete visit history to CSV',
+    fr: 'Exporter l\'historique complet des visites en CSV'
+  },
+  exportToCsv: {
+    en: 'Export to CSV',
+    fr: 'Exporter en CSV'
+  },
+  analyticsReport: {
+    en: 'Analytics Report',
+    fr: 'Rapport d\'analytique'
+  },
+  exportAnalyticsDescription: {
+    en: 'Export analytics data to CSV',
+    fr: 'Exporter les données analytiques en CSV'
+  },
+  exportAnalytics: {
+    en: 'Export Analytics',
+    fr: 'Exporter les analytiques'
+  },
+  
+  // Visit history tabs
+  visitHistory: {
+    en: 'Visit History',
+    fr: 'Historique des visites'
+  },
+  completeVisitRecord: {
+    en: 'Complete record of all visitor check-ins',
+    fr: 'Registre complet de tous les enregistrements de visiteurs'
+  },
+  visitorsCurrentlyInBuilding: {
+    en: 'Visitors Currently in Building',
+    fr: 'Visiteurs actuellement dans le bâtiment'
+  },
+  
   // Analytics
+  analyticsInsights: {
+    en: 'Visitor traffic patterns and peak times',
+    fr: 'Tendances de trafic des visiteurs et heures de pointe'
+  },
+  visitorsByDayOfWeek: {
+    en: 'Visitors by Day of Week',
+    fr: 'Visiteurs par jour de la semaine'
+  },
+  visitorFrequencyPattern: {
+    en: 'Visitor frequency pattern through the week',
+    fr: 'Modèle de fréquence des visiteurs pendant la semaine'
+  },
+  visitorsByHourOfDay: {
+    en: 'Visitors by Hour of Day',
+    fr: 'Visiteurs par heure de la journée'
+  },
+  checkInTrendByHour: {
+    en: 'Check-in trend by hour of day',
+    fr: 'Tendance des enregistrements par heure de la journée'
+  },
+  loadingChartData: {
+    en: 'Loading chart data...',
+    fr: 'Chargement des données graphiques...'
+  },
   visitorsByDay: {
     en: 'Visitors by Day',
     fr: 'Visiteurs par jour'
@@ -486,7 +598,7 @@ export const translations: TranslationMap = {
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, any>) => string;
   updateLanguagePreference: (lang: Language) => void;
   isUpdating: boolean;
 }
@@ -563,13 +675,23 @@ export function LanguageProvider({
     mutate(lang);
   };
 
-  // Helper function to translate text
-  const t = (key: string): string => {
+  // Helper function to translate text with parameter substitution
+  const t = (key: string, params?: Record<string, any>): string => {
     if (!translations[key]) {
       console.warn(`Translation key not found: ${key}`);
       return key;
     }
-    return translations[key][language] || key;
+    
+    let translated = translations[key][language] || key;
+    
+    // Replace parameters if provided
+    if (params) {
+      Object.keys(params).forEach(param => {
+        translated = translated.replace(`{${param}}`, params[param]);
+      });
+    }
+    
+    return translated;
   };
 
   return (

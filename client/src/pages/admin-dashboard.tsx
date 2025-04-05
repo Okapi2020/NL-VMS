@@ -281,7 +281,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
+    <div className="flex flex-col h-screen bg-gray-100 admin-dashboard">
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar navigation */}
         <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-white shadow-md transition-all duration-300 ease-in-out`}>

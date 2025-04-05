@@ -19,6 +19,7 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import { Loading, ButtonLoading } from "@/components/ui/loading";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useLanguage } from "@/hooks/use-language";
 import { 
   Search, 
   UserRound, 
@@ -88,6 +89,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { handleApiError } = useGlobalErrorHandler();
+  const { t } = useLanguage();
   const [processingIds, setProcessingIds] = useState<Set<number>>(new Set());
   const [processingVerificationIds, setProcessingVerificationIds] = useState<Set<number>>(new Set());
   const [searchTerm, setSearchTerm] = useState("");
@@ -355,15 +357,15 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
 
   // Safely show loading state
   if (isLoading) {
-    return <Loading text="Loading current visitors..." />;
+    return <Loading text={t("loadingCurrentVisitors")} />;
   }
 
   // Safely show empty state
   if (visits.length === 0) {
     return (
       <div className="py-6 text-center">
-        <div className="text-gray-500 mb-2">No visitors currently checked in</div>
-        <div className="text-sm text-gray-400">When visitors check in, they will appear here</div>
+        <div className="text-gray-500 mb-2">{t("noVisitorsCurrentlyCheckedIn")}</div>
+        <div className="text-sm text-gray-400">{t("whenVisitorsCheckIn")}</div>
       </div>
     );
   }
@@ -375,7 +377,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
         <div className="relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
           <Input
-            placeholder="Search by name, badge, phone, email..."
+            placeholder={t("searchByNameBadgePhoneEmail")}
             className="w-full pl-9"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -385,7 +387,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
 
       {/* Results count */}
       <div className="text-sm text-gray-500 mb-2">
-        Showing {paginatedVisits.length} of {sortedVisits.length} active visitors
+        {t("showing")} {paginatedVisits.length} {t("of")} {sortedVisits.length} {t("activeVisitors")}
       </div>
 
       {/* Table */}
@@ -411,7 +413,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
               >
                 <div className="flex items-center">
                   <UserRound className="mr-1 h-4 w-4" />
-                  Name
+                  {t("name")}
                   {sortField === "name" && (
                     sortDirection === "asc" ? 
                     <ChevronUp className="ml-1 h-4 w-4" /> : 
@@ -419,17 +421,17 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   )}
                 </div>
               </TableHead>
-              <TableHead>Email</TableHead>
+              <TableHead>{t("email")}</TableHead>
               <TableHead>
                 <div className="flex items-center">
                   <Phone className="mr-1 h-4 w-4" />
-                  Phone
+                  {t("phone")}
                 </div>
               </TableHead>
               <TableHead>
                 <div className="flex items-center">
                   <Tag className="mr-1 h-4 w-4" />
-                  Badge ID
+                  {t("badgeId")}
                 </div>
               </TableHead>
               <TableHead 
@@ -438,7 +440,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
               >
                 <div className="flex items-center">
                   <CalendarClock className="mr-1 h-4 w-4" />
-                  Check-in
+                  {t("checkIn")}
                   {sortField === "checkIn" && (
                     sortDirection === "asc" ? 
                     <ChevronUp className="ml-1 h-4 w-4" /> : 
@@ -449,7 +451,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
               <TableHead>
                 <div className="flex items-center">
                   <ShieldCheck className="mr-1 h-4 w-4" />
-                  Verified Badge
+                  {t("verifiedBadge")}
                 </div>
               </TableHead>
               <TableHead 
@@ -458,7 +460,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
               >
                 <div className="flex items-center">
                   <Clock className="mr-1 h-4 w-4" />
-                  Duration
+                  {t("duration")}
                   {sortField === "duration" && (
                     sortDirection === "asc" ? 
                     <ChevronUp className="ml-1 h-4 w-4" /> : 
@@ -466,7 +468,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   )}
                 </div>
               </TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="text-right">{t("actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -488,12 +490,12 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   <TableCell>
                     <div className="font-medium">{visitor.fullName}</div>
                   </TableCell>
-                  <TableCell className="text-sm text-gray-500">{visitor.email || "No email provided"}</TableCell>
+                  <TableCell className="text-sm text-gray-500">{visitor.email || t("noEmailProvided")}</TableCell>
                   <TableCell className="text-sm">
                     {visitor.phoneNumber ? (
                       <PhoneNumberLink phoneNumber={visitor.phoneNumber} />
                     ) : (
-                      "No phone provided"
+                      t("noPhoneProvided")
                     )}
                   </TableCell>
                   <TableCell className="font-mono text-xs text-blue-600 font-medium">{formatBadgeId(visitor.id)}</TableCell>
@@ -541,7 +543,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                         disabled={processingIds.has(visit.id)}
                         className="text-primary-600 hover:text-primary-900"
                       >
-                        {processingIds.has(visit.id) ? "Processing..." : "Check out"}
+                        {processingIds.has(visit.id) ? t("processing") : t("checkOut")}
                       </Button>
                     </div>
                   </TableCell>
@@ -550,7 +552,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
             ) : (
               <TableRow>
                 <TableCell colSpan={8} className="text-center py-4 text-gray-500">
-                  No visitors match your search criteria
+                  {t("noVisitorsMatch")}
                 </TableCell>
               </TableRow>
             )}
@@ -594,7 +596,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 }
               }}
             >
-              Delete Selected ({selectedVisitors.length})
+              {t("deleteSelected")} ({selectedVisitors.length})
             </Button>
           )}
         </div>
@@ -608,14 +610,14 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
             }}
           >
             <SelectTrigger className="h-8 w-[130px]">
-              <SelectValue placeholder="10 per page" />
+              <SelectValue placeholder={`10 ${t("itemsPerPage")}`} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="10">10 per page</SelectItem>
-              <SelectItem value="20">20 per page</SelectItem>
-              <SelectItem value="30">30 per page</SelectItem>
-              <SelectItem value="50">50 per page</SelectItem>
-              <SelectItem value="100">100 per page</SelectItem>
+              <SelectItem value="10">10 {t("itemsPerPage")}</SelectItem>
+              <SelectItem value="20">20 {t("itemsPerPage")}</SelectItem>
+              <SelectItem value="30">30 {t("itemsPerPage")}</SelectItem>
+              <SelectItem value="50">50 {t("itemsPerPage")}</SelectItem>
+              <SelectItem value="100">100 {t("itemsPerPage")}</SelectItem>
             </SelectContent>
           </Select>
           
@@ -630,7 +632,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
               &lt;
             </Button>
             <div className="border-y px-3 flex items-center text-sm">
-              <span className="text-gray-500">Page {page || 1} of {Math.max(1, totalPages || 1)}</span>
+              <span className="text-gray-500">{t("page")} {page || 1} {t("of")} {Math.max(1, totalPages || 1)}</span>
             </div>
             <Button
               variant="outline"
@@ -649,9 +651,9 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Edit Visitor</DialogTitle>
+            <DialogTitle>{t("editVisitor")}</DialogTitle>
             <DialogDescription>
-              Make changes to the visitor information below
+              {t("editVisitorDescription")}
             </DialogDescription>
           </DialogHeader>
           
@@ -662,7 +664,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 name="fullName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Full Name</FormLabel>
+                    <FormLabel>{t("fullName")}</FormLabel>
                     <FormControl>
                       <Input placeholder="John Smith" {...field} />
                     </FormControl>
@@ -676,7 +678,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 name="yearOfBirth"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Year of Birth</FormLabel>
+                    <FormLabel>{t("yearOfBirth")}</FormLabel>
                     <FormControl>
                       <Input 
                         type="number" 
@@ -695,19 +697,19 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 name="sex"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Sex</FormLabel>
+                    <FormLabel>{t("sex")}</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       value={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select sex" />
+                          <SelectValue placeholder={t("selectSex")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Masculin">Male (Masculin)</SelectItem>
-                        <SelectItem value="Feminin">Female (Feminin)</SelectItem>
+                        <SelectItem value="Masculin">{t("male")}</SelectItem>
+                        <SelectItem value="Feminin">{t("female")}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -720,7 +722,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email Address (Optional)</FormLabel>
+                    <FormLabel>{t("emailAddressOptional")}</FormLabel>
                     <FormControl>
                       <Input 
                         placeholder="john@example.com" 
@@ -739,7 +741,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 name="phoneNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
+                    <FormLabel>{t("phoneNumber")}</FormLabel>
                     <FormControl>
                       <Input placeholder="+1 123 456 7890" {...field} />
                     </FormControl>
@@ -751,7 +753,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
               <DialogFooter className="sm:justify-between">
                 <DialogClose asChild>
                   <Button type="button" variant="outline">
-                    Cancel
+                    {t("cancel")}
                   </Button>
                 </DialogClose>
                 <Button 
@@ -761,7 +763,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 >
                   {editVisitorMutation.isPending ? 
                     <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent mx-auto" /> : 
-                    "Save Changes"
+                    <>{t("saveChanges")}</>
                   }
                 </Button>
               </DialogFooter>
