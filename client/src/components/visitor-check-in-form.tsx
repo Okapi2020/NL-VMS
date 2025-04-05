@@ -123,48 +123,51 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
         <div className="space-y-4">
           {/* Name fields in a simple vertical layout */}
           <div className="space-y-4">
-            <FormField
-              control={form.control}
-              name="firstName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center">
-                    <span>{isEnglish ? "First Name" : "Prénom"}</span>
-                    <span className="ml-1 text-red-500">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder={isEnglish ? "John" : "Jean"} 
-                      {...field} 
-                      className="border-blue-200 focus:border-blue-400"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="middleName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    <span>{isEnglish ? "Middle Name" : "Postnom"}</span>
-                    <span className="ml-1 text-xs text-muted-foreground">
-                      {isEnglish ? "(Optional)" : "(Optionnel)"}
-                    </span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder={isEnglish ? "Robert" : "Pierre"} 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* First name and middle name in the same row */}
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="firstName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center">
+                      <span>{isEnglish ? "First Name" : "Prénom"}</span>
+                      <span className="ml-1 text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder={isEnglish ? "John" : "Jean"} 
+                        {...field} 
+                        className="border-blue-200 focus:border-blue-400"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="middleName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      <span>{isEnglish ? "Middle Name" : "Postnom"}</span>
+                      <span className="ml-1 text-xs text-muted-foreground">
+                        {isEnglish ? "(Optional)" : "(Optionnel)"}
+                      </span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder={isEnglish ? "Robert" : "Pierre"} 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             
             <FormField
               control={form.control}
