@@ -9,7 +9,21 @@ export function ProtectedRoute({
   path: string;
   component: () => React.JSX.Element;
 }) {
-  const { user, isLoading } = useAuth();
+  let auth;
+  
+  try {
+    auth = useAuth();
+  } catch (error) {
+    console.error("Error using auth hook:", error);
+    // Fallback to redirect to auth page if auth context is not available
+    return (
+      <Route path={path}>
+        <Redirect to="/auth" />
+      </Route>
+    );
+  }
+  
+  const { user, isLoading } = auth;
 
   if (isLoading) {
     return (
