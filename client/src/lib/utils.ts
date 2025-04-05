@@ -18,6 +18,7 @@ export function formatDate(date: Date | string): string {
     month: "short",
     day: "numeric",
     year: "numeric",
+    timeZone: "Africa/Kinshasa"
   });
 }
 
@@ -26,12 +27,18 @@ export function formatTimeOnly(date: Date | string): string {
     hour: "numeric",
     minute: "numeric",
     hour12: true,
+    timeZone: "Africa/Kinshasa"
   });
 }
 
 export function formatDuration(startDate: Date | string, endDate: Date | string): string {
-  const start = new Date(startDate).getTime();
-  const end = new Date(endDate).getTime();
+  // Convert to Kinshasa timezone for duration calculation
+  const options = { timeZone: "Africa/Kinshasa" };
+  const startInKinshasa = new Date(new Date(startDate).toLocaleString("en-US", options));
+  const endInKinshasa = new Date(new Date(endDate).toLocaleString("en-US", options));
+  
+  const start = startInKinshasa.getTime();
+  const end = endInKinshasa.getTime();
   const durationMs = end - start;
   
   // Convert to minutes
