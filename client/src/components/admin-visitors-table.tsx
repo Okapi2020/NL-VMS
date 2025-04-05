@@ -373,7 +373,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
   return (
     <div>
       {/* Search bar */}
-      <div className="mb-4">
+      <div className="mb-4 px-4 pt-4">
         <div className="relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
           <Input
@@ -386,7 +386,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
       </div>
 
       {/* Results count */}
-      <div className="text-sm text-gray-500 mb-2">
+      <div className="text-sm text-gray-500 mb-4 px-4">
         {t("showing")} {paginatedVisits.length} {t("of")} {sortedVisits.length} {t("activeVisitors")}
       </div>
 
@@ -565,7 +565,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
       </div>
       
       {/* Bulk actions and pagination controls */}
-      <div className="flex flex-wrap justify-between items-center gap-2 mt-4">
+      <div className="flex flex-wrap justify-between items-center gap-2 mt-4 px-4 pb-4">
         <div className="flex flex-wrap gap-2">
           {selectedVisitors.length > 0 && (
             <Button
