@@ -370,14 +370,11 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
                 ? "By clicking \"Check In\", you confirm that the information above is correct."
                 : "En cliquant sur \"Enregistrez-vous\", vous confirmez que les informations ci-dessus sont correctes."}
             </p>
-            <div className="bg-primary/20 dark:bg-primary/30 p-3 rounded-md border border-primary/30 dark:border-primary/40">
-              <p className="text-sm font-medium text-primary dark:text-white">
-                <span className="font-bold underline">
-                  {isEnglish ? "Returning visitor?" : "Déjà visiteur?"}
-                </span>{" "}
+            <div className="bg-gray-100/20 dark:bg-gray-800/30 p-2.5 rounded-md border border-gray-200/30 dark:border-gray-700/40">
+              <p className="text-xs text-gray-600 dark:text-gray-300 italic">
                 {isEnglish
-                  ? "If you've checked in before using the same email or phone number, our system will recognize you and update your information."
-                  : "Si vous vous êtes déjà enregistré avec la même adresse email ou le même numéro de téléphone, notre système vous reconnaîtra et mettra à jour vos informations."}
+                  ? "Your information will be securely stored and used only for visitor management purposes. We respect your privacy and will not share your data with third parties."
+                  : "Vos informations seront stockées en toute sécurité et utilisées uniquement à des fins de gestion des visiteurs. Nous respectons votre vie privée et ne partagerons pas vos données avec des tiers."}
               </p>
             </div>
           </div>
