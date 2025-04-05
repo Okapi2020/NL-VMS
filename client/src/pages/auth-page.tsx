@@ -86,9 +86,34 @@ export default function AuthPage() {
     },
   });
 
-  const onLoginSubmit = (data: LoginFormValues) => {
+  const onLoginSubmit = async (data: LoginFormValues) => {
     console.log("Submitting login form with data:", data);
-    loginMutation.mutate(data);
+    
+    // Direct login approach instead of using the mutation
+    try {
+      console.log("Attempting direct login with credentials");
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include"
+      });
+      
+      if (!res.ok) {
+        console.error("Login failed with status", res.status);
+        alert("Login failed: Invalid username or password");
+        return;
+      }
+      
+      const userData = await res.json();
+      console.log("Login successful, user data:", userData);
+      
+      // Redirect to admin dashboard
+      navigate("/admin");
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("Login failed: An error occurred");
+    }
   };
 
   // Default application name

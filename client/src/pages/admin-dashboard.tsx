@@ -37,7 +37,22 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export default function AdminDashboard() {
-  const { user, logoutMutation } = useAuth();
+  // Safely handle auth context
+  let user = null;
+  let logoutMutation = {
+    mutate: () => { console.error("Logout not available"); },
+    isPending: false
+  };
+  
+  try {
+    const auth = useAuth();
+    user = auth.user;
+    logoutMutation = auth.logoutMutation;
+  } catch (error) {
+    console.error("Error accessing auth context:", error);
+    // Auth error will be handled by the protected route wrapper
+  }
+  
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("current");
   const [activeView, setActiveView] = useState("dashboard");
