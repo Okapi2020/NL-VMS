@@ -201,7 +201,7 @@ export const translations: TranslationMap = {
   },
   checkIn: {
     en: 'Check In',
-    fr: 'Enregistrement'
+    fr: 'Arrivée'
   },
   checkOut: {
     en: 'Check Out',
