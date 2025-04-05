@@ -37,6 +37,11 @@
     --sidebar-accent-foreground: 221.2 83.2% 53.3%;
     --sidebar-border: 217.2 32.6% 17.5%;
     --sidebar-ring: 210 40% 98%;
+    --table-header-bg: 0 0% 98%;
+    --table-row-even: 0 0% 100%;
+    --table-row-odd: 210 40% 98%;
+    --table-row-hover: 210 40% 96%;
+    --table-border: 214.3 31.8% 91.4%;
   }
 
   .dark {
@@ -72,6 +77,11 @@
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217.2 32.6% 17.5%;
     --sidebar-ring: 224.3 76.3% 48%;
+    --table-header-bg: 222.2 70% 8%;
+    --table-row-even: 222.2 84% 4.9%;
+    --table-row-odd: 222.2 70% 7%;
+    --table-row-hover: 222.2 50% 12%;
+    --table-border: 217.2 32.6% 15%;
   }
 
   /* Twilight mode (less harsh than dark mode) */
@@ -108,6 +118,11 @@
     --sidebar-accent-foreground: 220 15% 90%;
     --sidebar-border: 220 20% 27%;
     --sidebar-ring: 260 50% 55%;
+    --table-header-bg: 220 25% 10%;
+    --table-row-even: 220 20% 15%;
+    --table-row-odd: 220 20% 18%;
+    --table-row-hover: 260 30% 20%;
+    --table-border: 220 25% 20%;
   }
 
   * {
@@ -139,5 +154,44 @@
   /* Chart and analytics text */
   .admin-dashboard .recharts-text {
     @apply text-xs;
+  }
+  
+  /* Premium Table Styling */
+  .table-container {
+    @apply rounded-md border overflow-hidden;
+  }
+  
+  /* Table Header */
+  thead {
+    @apply bg-[hsl(var(--table-header-bg))] font-medium text-foreground;
+  }
+  
+  /* Table Row */
+  tbody tr {
+    @apply border-b border-[hsl(var(--table-border))];
+  }
+  
+  /* Striped rows */
+  tbody tr:nth-child(even) {
+    @apply bg-[hsl(var(--table-row-even))];
+  }
+  
+  tbody tr:nth-child(odd) {
+    @apply bg-[hsl(var(--table-row-odd))];
+  }
+  
+  /* Row hover effect */
+  tbody tr:hover {
+    @apply bg-[hsl(var(--table-row-hover))] transition-colors duration-150;
+  }
+  
+  /* Table cells */
+  td, th {
+    @apply border-[hsl(var(--table-border))];
+  }
+  
+  /* Table header cells */
+  th {
+    @apply px-4 py-3 text-left font-medium;
   }
 }

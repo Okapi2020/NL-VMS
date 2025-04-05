@@ -392,7 +392,8 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <Table>
+        <div className="table-container">
+          <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-[40px]">
@@ -562,6 +563,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
             )}
           </TableBody>
         </Table>
+        </div>
       </div>
       
       {/* Bulk actions and pagination controls */}
@@ -779,4 +781,8 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
   );
 }
 
-export const AdminVisitorsTable = AdminVisitorsTableComponent;
+// Export the component directly
+export type { AdminVisitorsTableProps };
+export function AdminVisitorsTable(props: AdminVisitorsTableProps) {
+  return <AdminVisitorsTableComponent {...props} />;
+}

@@ -799,7 +799,8 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <Table>
+        <div className="table-container">
+          <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-[40px]">
@@ -1041,6 +1042,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
             )}
           </TableBody>
         </Table>
+        </div>
       </div>
       
       {/* Bottom padding */}
