@@ -130,7 +130,7 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
                 name="firstName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center">
+                    <FormLabel className="flex items-center h-6"> {/* Fixed height for alignment */}
                       <span>{isEnglish ? "First Name" : "Prénom"}</span>
                       <span className="ml-1 text-red-500">*</span>
                     </FormLabel>
@@ -151,7 +151,7 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
                 name="middleName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>
+                    <FormLabel className="h-6 flex items-center"> {/* Fixed height for alignment */}
                       <span>{isEnglish ? "Middle Name" : "Postnom"}</span>
                       <span className="ml-1 text-xs text-muted-foreground">
                         {isEnglish ? "(Optional)" : "(Optionnel)"}
@@ -174,7 +174,7 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
               name="lastName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center">
+                  <FormLabel className="h-6 flex items-center">
                     <span>{isEnglish ? "Last Name" : "Nom de Famille"}</span>
                     <span className="ml-1 text-red-500">*</span>
                   </FormLabel>
@@ -197,7 +197,7 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
               name="yearOfBirth"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{isEnglish ? "Year of Birth" : "Année de Naissance"}</FormLabel>
+                  <FormLabel className="h-6 flex items-center">{isEnglish ? "Year of Birth" : "Année de Naissance"}</FormLabel>
                   <FormControl>
                     <Input 
                       type="number" 
@@ -223,7 +223,7 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
               name="sex"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center">
+                  <FormLabel className="h-6 flex items-center">
                     <span>{isEnglish ? "Sex" : "Sexe"}</span>
                     <span className="ml-1 text-red-500">*</span>
                   </FormLabel>
@@ -252,7 +252,7 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
           </div>
           
           <div>
-            <FormLabel>{isEnglish ? "Age" : "Âge"}</FormLabel>
+            <FormLabel className="h-6 flex items-center">{isEnglish ? "Age" : "Âge"}</FormLabel>
             <div className="mt-1 py-2 px-3 bg-muted text-foreground rounded-md border border-border">
               {ageValue}
             </div>
@@ -274,7 +274,7 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
+                <FormLabel className="h-6 flex items-center">
                   <span>{isEnglish ? "Email Address" : "Adresse Email"}</span>
                   <span className="ml-1 text-xs text-muted-foreground">
                     {isEnglish ? "(Optional)" : "(Optionnel)"}
@@ -334,7 +334,7 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
             name="phoneNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{isEnglish ? "Phone Number" : "Numéro de Téléphone"}</FormLabel>
+                <FormLabel className="h-6 flex items-center">{isEnglish ? "Phone Number" : "Numéro de Téléphone"}</FormLabel>
                 <FormControl>
                   <div>
                     <Input 
