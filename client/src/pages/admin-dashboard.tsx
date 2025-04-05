@@ -58,7 +58,7 @@ export default function AdminDashboard() {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("current");
   const [activeView, setActiveView] = useState("dashboard");
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   
   // Get application settings
   const { 
