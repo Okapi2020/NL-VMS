@@ -319,6 +319,10 @@ export const translations: TranslationMap = {
     en: 'Recycle Bin',
     fr: 'Corbeille'
   },
+  recycleBin: {
+    en: 'Recycle Bin',
+    fr: 'Corbeille'
+  },
   refresh: {
     en: 'Refresh',
     fr: 'Actualiser'
