@@ -838,6 +838,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                   )}
                 </div>
               </TableHead>
+              <TableHead>Sex</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>
                 <div className="flex items-center">
@@ -929,6 +930,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                   <TableCell>
                     <div className="font-medium">{visitor.fullName}</div>
                   </TableCell>
+                  <TableCell className="text-sm text-gray-500">{visitor.sex}</TableCell>
                   <TableCell className="text-sm text-gray-500">{visitor.email || "No email provided"}</TableCell>
                   <TableCell className="text-sm">
                     {visitor.phoneNumber ? (
@@ -1030,7 +1032,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={10} className="text-center py-4 text-gray-500">
+                <TableCell colSpan={11} className="text-center py-4 text-gray-500">
                   {showDeletedVisitors 
                     ? "Trash bin is empty" 
                     : "No visits match your search or filters"}
