@@ -3,7 +3,8 @@ import { Clock } from 'lucide-react';
 
 export function LiveClock() {
   const [dateTime, setDateTime] = useState<Date>(new Date());
-  const [isEnglish, setIsEnglish] = useState(true);
+  // Get language preference from localStorage (default to French)
+  const [isEnglish, setIsEnglish] = useState(false);
   
   useEffect(() => {
     // Update the time every second
@@ -12,58 +13,42 @@ export function LiveClock() {
     }, 1000);
     
     // Load language preference from localStorage
-    const storedLang = localStorage.getItem('preferredLanguage');
-    if (storedLang === 'fr') {
-      setIsEnglish(false);
+    const storedLang = localStorage.getItem('isEnglish');
+    if (storedLang !== null) {
+      setIsEnglish(storedLang === 'true');
     }
     
     // Clear the interval when component unmounts
     return () => clearInterval(timer);
   }, []);
   
-  // Get the current time in Kinshasa timezone (UTC+1)
-  const getKinshasaTime = () => {
-    const date = new Date(dateTime);
-    
-    // Convert to UTC+1 (Kinshasa timezone)
-    const options: Intl.DateTimeFormatOptions = {
-      timeZone: 'Africa/Kinshasa',
+  // Format the time in 24-hour format (HH:MM:SS)
+  const formatTime = () => {
+    return dateTime.toLocaleTimeString(isEnglish ? 'en-US' : 'fr-FR', { 
       hour: '2-digit', 
       minute: '2-digit', 
       second: '2-digit',
       hour12: false
-    };
-    
-    return new Intl.DateTimeFormat(isEnglish ? 'en-GB' : 'fr-FR', options).format(date);
+    });
   };
   
-  // Format the date for Kinshasa timezone
-  const getKinshasaDate = () => {
-    const date = new Date(dateTime);
-    
-    const options: Intl.DateTimeFormatOptions = {
-      timeZone: 'Africa/Kinshasa',
+  // Format the date (Weekday, Month Day, Year)
+  const formatDate = () => {
+    return dateTime.toLocaleDateString(isEnglish ? 'en-US' : 'fr-FR', { 
       weekday: 'long', 
       year: 'numeric', 
       month: 'long', 
-      day: 'numeric'
-    };
-    
-    return new Intl.DateTimeFormat(isEnglish ? 'en-GB' : 'fr-FR', options).format(date);
+      day: 'numeric' 
+    });
   };
   
   return (
     <div className="flex flex-col items-center">
       <div className="flex items-center gap-1.5 mb-1">
         <Clock className="h-5 w-5 text-muted-foreground" />
-        <div className="text-lg font-medium">{getKinshasaTime()}</div>
+        <div className="text-lg font-medium">{formatTime()}</div>
       </div>
-      <div className="text-sm text-muted-foreground">
-        {getKinshasaDate()}
-        <div className="text-xs text-muted-foreground/70 text-center mt-0.5">
-          Kinshasa, DRC
-        </div>
-      </div>
+      <div className="text-sm text-muted-foreground">{formatDate()}</div>
     </div>
   );
 }

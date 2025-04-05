@@ -67,14 +67,7 @@ export default function AuthPage() {
   };
 
   // Create a dummy authentication state if auth context is not available
-  let userState: {
-    user: any | null,
-    isLoading: boolean,
-    loginMutation: {
-      mutate: (data: LoginFormValues) => void,
-      isPending: boolean
-    }
-  } = {
+  let userState = {
     user: null,
     isLoading: false,
     loginMutation: {
