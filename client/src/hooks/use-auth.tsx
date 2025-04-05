@@ -7,6 +7,7 @@ import {
 import { Admin } from "@shared/schema";
 import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 type AuthContextType = {
   user: Admin | null;
@@ -25,6 +26,8 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
+  const [, navigate] = useLocation();
+  
   const {
     data: user,
     error,
@@ -79,6 +82,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Logged in successfully",
         description: `Welcome back, ${user.username}!`,
       });
+      
+      // Navigate to admin dashboard
+      console.log("Redirecting to admin dashboard");
+      navigate("/admin");
       
       // Verify user data was set correctly
       setTimeout(() => {
