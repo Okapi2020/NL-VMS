@@ -56,6 +56,7 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("current");
   const [activeView, setActiveView] = useState("dashboard");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
   // Get application settings
   const { 
@@ -281,28 +282,38 @@ export default function AdminDashboard() {
     <div className="flex flex-col h-screen bg-gray-100">
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar navigation */}
-        <div className="w-64 bg-white shadow-md">
-          <div className="px-6 pt-6 pb-4">
-            <div className="flex items-center">
-              <svg
-                className="h-8 w-8 text-primary-600"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+        <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-white shadow-md transition-all duration-300 ease-in-out`}>
+          <div className={`${sidebarCollapsed ? 'px-3' : 'px-6'} pt-6 pb-4`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <svg
+                  className="h-8 w-8 text-primary-600"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                  />
+                </svg>
+                {!sidebarCollapsed && <h2 className="ml-2 text-xl font-semibold text-gray-900">{headerAppName} Admin</h2>}
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                className="p-1 rounded-full hover:bg-gray-100"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                />
-              </svg>
-              <h2 className="ml-2 text-xl font-semibold text-gray-900">{headerAppName} Admin</h2>
+                <ChevronDown className={`h-5 w-5 transition-transform ${sidebarCollapsed ? 'rotate-90' : 'rotate-270'}`} />
+              </Button>
             </div>
-            <p className="mt-1 text-sm text-gray-600">Welcome, {user?.username}</p>
+            {!sidebarCollapsed && <p className="mt-1 text-sm text-gray-600">Welcome, {user?.username}</p>}
           </div>
-          <nav className="mt-2 flex-1 px-2 bg-white space-y-1">
+          <nav className={`${sidebarCollapsed ? 'px-1' : 'px-2'} mt-2 flex-1 bg-white space-y-1`}>
             <a
               href="#"
               onClick={(e) => { e.preventDefault(); setActiveView("dashboard"); }}
@@ -310,12 +321,13 @@ export default function AdminDashboard() {
                 activeView === "dashboard" 
                   ? "bg-primary-50 text-primary-700" 
                   : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-              }`}
+              } ${sidebarCollapsed ? 'justify-center' : ''}`}
+              title="Dashboard"
             >
-              <LayoutDashboard className={`mr-3 h-5 w-5 ${
+              <LayoutDashboard className={`${sidebarCollapsed ? '' : 'mr-3'} h-5 w-5 ${
                 activeView === "dashboard" ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
               }`} />
-              Dashboard
+              {!sidebarCollapsed && "Dashboard"}
             </a>
             <a
               href="#"
@@ -324,12 +336,13 @@ export default function AdminDashboard() {
                 activeView === "visitors" 
                   ? "bg-primary-50 text-primary-700" 
                   : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-              }`}
+              } ${sidebarCollapsed ? 'justify-center' : ''}`}
+              title="Visitors"
             >
-              <UserRound className={`mr-3 h-5 w-5 ${
+              <UserRound className={`${sidebarCollapsed ? '' : 'mr-3'} h-5 w-5 ${
                 activeView === "visitors" ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
               }`} />
-              Visitors
+              {!sidebarCollapsed && "Visitors"}
             </a>
 
             <a
@@ -339,12 +352,13 @@ export default function AdminDashboard() {
                 activeView === "reports" 
                   ? "bg-primary-50 text-primary-700" 
                   : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-              }`}
+              } ${sidebarCollapsed ? 'justify-center' : ''}`}
+              title="Reports"
             >
-              <ClipboardList className={`mr-3 h-5 w-5 ${
+              <ClipboardList className={`${sidebarCollapsed ? '' : 'mr-3'} h-5 w-5 ${
                 activeView === "reports" ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
               }`} />
-              Reports
+              {!sidebarCollapsed && "Reports"}
             </a>
             <a
               href="#"
@@ -353,21 +367,23 @@ export default function AdminDashboard() {
                 activeView === "settings" 
                   ? "bg-primary-50 text-primary-700" 
                   : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-              }`}
+              } ${sidebarCollapsed ? 'justify-center' : ''}`}
+              title="Settings"
             >
-              <SettingsIcon className={`mr-3 h-5 w-5 ${
+              <SettingsIcon className={`${sidebarCollapsed ? '' : 'mr-3'} h-5 w-5 ${
                 activeView === "settings" ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
               }`} />
-              Settings
+              {!sidebarCollapsed && "Settings"}
             </a>
             <a
               href="/"
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+              className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 hover:text-gray-900 ${sidebarCollapsed ? 'justify-center' : ''}`}
+              title="Visit Check-In Portal"
             >
-              <ExternalLink className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
-              Visit Check-In Portal
+              <ExternalLink className={`${sidebarCollapsed ? '' : 'mr-3'} h-5 w-5 text-gray-400 group-hover:text-gray-500`} />
+              {!sidebarCollapsed && "Visit Check-In Portal"}
             </a>
             
             {/* Bottom section with Recycle Bin and Logout */}
@@ -379,22 +395,24 @@ export default function AdminDashboard() {
                   activeView === "trash" 
                     ? "bg-primary-50 text-primary-700" 
                     : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                }`}
+                } ${sidebarCollapsed ? 'justify-center' : ''}`}
+                title="Recycle Bin"
               >
-                <Trash2 className={`mr-3 h-5 w-5 ${
+                <Trash2 className={`${sidebarCollapsed ? '' : 'mr-3'} h-5 w-5 ${
                   activeView === "trash" ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
                 }`} />
-                Recycle Bin
+                {!sidebarCollapsed && "Recycle Bin"}
               </a>
               
               <Button
                 variant="ghost"
-                className="w-full justify-start group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                className={`w-full ${sidebarCollapsed ? 'justify-center' : 'justify-start'} group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 hover:text-gray-900`}
                 onClick={() => logoutMutation.mutate()}
                 disabled={logoutMutation.isPending}
+                title="Logout"
               >
-                <LogOut className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
-                {logoutMutation.isPending ? "Logging out..." : "Logout"}
+                <LogOut className={`${sidebarCollapsed ? '' : 'mr-3'} h-5 w-5 text-gray-400 group-hover:text-gray-500`} />
+                {!sidebarCollapsed && (logoutMutation.isPending ? "Logging out..." : "Logout")}
               </Button>
             </div>
           </nav>
@@ -404,7 +422,15 @@ export default function AdminDashboard() {
         <div className="flex-1 overflow-auto flex flex-col">
           <div className="py-6 px-4 sm:px-6 lg:px-8 flex-1">
             <div className="mb-6 md:flex md:items-center md:justify-between">
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 flex items-center">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                  className="p-1 mr-3 rounded-full hover:bg-gray-100 md:hidden"
+                >
+                  <ChevronDown className={`h-5 w-5 transition-transform ${sidebarCollapsed ? 'rotate-270' : 'rotate-90'}`} />
+                </Button>
                 <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
                   {activeView === "dashboard" && "Dashboard"}
                   {activeView === "visitors" && "Visitors"}
