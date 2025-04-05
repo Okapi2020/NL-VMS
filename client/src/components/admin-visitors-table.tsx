@@ -114,7 +114,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
     onSuccess: () => {
       toast({
         title: "Success",
-        description: "Visitor checked out successfully",
+        description: t("checkoutSuccess"),
       });
       // Refresh both current visitors and visit history
       queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
@@ -123,8 +123,8 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: "Failed to check out visitor: " + error.message,
+        title: t("error"),
+        description: `Failed to check out visitor: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -147,8 +147,8 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
     },
     onSuccess: (_, { verified }) => {
       toast({
-        title: "Success",
-        description: `Visitor ${verified ? "verified" : "unverified"} successfully`,
+        title: t("success"),
+        description: verified ? t("visitorVerified") : t("visitorUnverified"),
       });
       // Refresh both current visitors and visit history
       queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
@@ -156,8 +156,8 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: "Failed to update verification status: " + error.message,
+        title: t("error"),
+        description: `Failed to update verification status: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -185,8 +185,8 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
     },
     onSuccess: () => {
       toast({
-        title: "Success",
-        description: "Visitor information updated successfully",
+        title: t("success"),
+        description: t("visitorUpdated"),
       });
       // Close the dialog
       setIsEditDialogOpen(false);
@@ -196,8 +196,8 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: "Failed to update visitor: " + error.message,
+        title: t("error"),
+        description: `Failed to update visitor: ${error.message}`,
         variant: "destructive",
       });
     }
@@ -211,8 +211,8 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
     },
     onSuccess: (data) => {
       toast({
-        title: "Success",
-        description: data.message || "Visitor deleted successfully",
+        title: t("success"),
+        description: data.message || t("visitorDeleted"),
       });
       // Refresh data
       queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
@@ -220,8 +220,8 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: "Failed to delete visitor: " + error.message,
+        title: t("error"),
+        description: `Failed to delete visitor: ${error.message}`,
         variant: "destructive",
       });
     }
@@ -235,7 +235,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
   
   // Handle delete visitor
   const handleDeleteVisitor = (visitorId: number, fullName: string) => {
-    if (confirm(`Are you sure you want to delete ${fullName}? This cannot be undone.`)) {
+    if (confirm(t("confirmDeleteVisitor", { name: fullName }))) {
       deleteVisitorMutation.mutate(visitorId);
     }
   };
@@ -272,7 +272,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
   };
   
   const handleCheckOut = (visitId: number) => {
-    if (confirm("Are you sure you want to check out this visitor?")) {
+    if (confirm(t("confirmCheckout"))) {
       checkOutMutation.mutate(visitId);
     }
   };
@@ -569,7 +569,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
               size="sm"
               className="text-red-600 border-red-200 hover:bg-red-50"
               onClick={() => {
-                if (window.confirm(`Are you sure you want to delete ${selectedVisitors.length} selected visitor(s)? This will move them to the trash bin.`)) {
+                if (window.confirm(t("confirmDeleteSelected", { count: selectedVisitors.length }))) {
                   Promise.all(
                     selectedVisitors.map(id => 
                       apiRequest("DELETE", `/api/admin/delete-visitor/${id}`)
@@ -578,8 +578,8 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   )
                     .then(() => {
                       toast({
-                        title: "Success",
-                        description: `${selectedVisitors.length} visitor(s) deleted successfully`,
+                        title: t("success"),
+                        description: t("visitorsDeleted", { count: selectedVisitors.length }),
                       });
                       setSelectedVisitors([]);
                       // Refresh data
@@ -588,7 +588,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                     })
                     .catch(error => {
                       toast({
-                        title: "Error",
+                        title: t("error"),
                         description: `Failed to delete visitors: ${error.message}`,
                         variant: "destructive",
                       });

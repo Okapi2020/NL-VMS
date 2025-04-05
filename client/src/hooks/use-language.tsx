@@ -391,6 +391,122 @@ export const translations: TranslationMap = {
     en: 'Actions',
     fr: 'Actions'
   },
+  searchByNameBadgePhoneEmail: {
+    en: 'Search by name, badge, phone or email',
+    fr: 'Rechercher par nom, badge, téléphone ou courriel'
+  },
+  name: {
+    en: 'Name',
+    fr: 'Nom'
+  },
+  badgeId: {
+    en: 'Badge ID',
+    fr: 'ID Badge'
+  },
+  verifiedBadge: {
+    en: 'Verified Badge',
+    fr: 'Badge vérifié'
+  },
+  duration: {
+    en: 'Duration',
+    fr: 'Durée'
+  },
+  showingXofY: {
+    en: 'showing {x} of {y} {entity}',
+    fr: 'affichage de {x} sur {y} {entity}'
+  },
+  activeVisitors: {
+    en: 'active visitors',
+    fr: 'visiteurs actifs'
+  },
+  registration: {
+    en: 'Registration',
+    fr: 'Enregistrement'
+  },
+  showing: {
+    en: 'showing',
+    fr: 'affichage de'
+  },
+  loadingCurrentVisitors: {
+    en: 'Loading current visitors...',
+    fr: 'Chargement des visiteurs actuels...'
+  },
+  noVisitorsCurrentlyCheckedIn: {
+    en: 'No visitors currently checked in',
+    fr: 'Aucun visiteur actuellement enregistré'
+  },
+  whenVisitorsCheckIn: {
+    en: 'When visitors check in, they will appear here',
+    fr: 'Lorsque les visiteurs s\'enregistrent, ils apparaîtront ici'
+  },
+  noEmailProvided: {
+    en: 'No email provided',
+    fr: 'Aucun courriel fourni'
+  },
+  noPhoneProvided: {
+    en: 'No phone provided',
+    fr: 'Aucun téléphone fourni'
+  },
+  checkOut: {
+    en: 'Check Out',
+    fr: 'Départ'
+  },
+  confirmCheckout: {
+    en: 'Are you sure you want to check out this visitor?',
+    fr: 'Êtes-vous sûr de vouloir procéder au départ de ce visiteur?'
+  },
+  checkoutSuccess: {
+    en: 'Visitor checked out successfully',
+    fr: 'Départ du visiteur enregistré avec succès'
+  },
+  success: {
+    en: 'Success',
+    fr: 'Succès'
+  },
+  error: {
+    en: 'Error',
+    fr: 'Erreur'
+  },
+  processing: {
+    en: 'Processing...',
+    fr: 'Traitement...'
+  },
+  visitorVerified: {
+    en: 'Visitor verified successfully',
+    fr: 'Visiteur vérifié avec succès'
+  },
+  visitorUnverified: {
+    en: 'Visitor unverified successfully',
+    fr: 'Vérification du visiteur retirée avec succès'
+  },
+  visitorUpdated: {
+    en: 'Visitor information updated successfully',
+    fr: 'Informations du visiteur mises à jour avec succès'
+  },
+  visitorDeleted: {
+    en: 'Visitor deleted successfully',
+    fr: 'Visiteur supprimé avec succès'
+  },
+  confirmDeleteVisitor: {
+    en: 'Are you sure you want to delete {name}? This cannot be undone.',
+    fr: 'Êtes-vous sûr de vouloir supprimer {name}? Cette action ne peut pas être annulée.'
+  },
+  confirmDeleteSelected: {
+    en: 'Are you sure you want to delete {count} selected visitor(s)? This will move them to the trash bin.',
+    fr: 'Êtes-vous sûr de vouloir supprimer {count} visiteur(s) sélectionné(s)? Ils seront déplacés vers la corbeille.'
+  },
+  deleteSelected: {
+    en: 'Delete Selected',
+    fr: 'Supprimer la sélection'
+  },
+  visitorsDeleted: {
+    en: '{count} visitor(s) deleted successfully',
+    fr: '{count} visiteur(s) supprimé(s) avec succès'
+  },
+  noVisitorsMatch: {
+    en: 'No visitors match your search criteria',
+    fr: 'Aucun visiteur ne correspond à vos critères de recherche'
+  },
   
   // Reports section
   reports: {
