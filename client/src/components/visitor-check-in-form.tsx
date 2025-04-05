@@ -33,7 +33,8 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
   // Create separate state for step 2 to avoid overlapping values
   const [contactDetailsValues, setContactDetailsValues] = useState({
     email: "",
-    phoneNumber: ""
+    phoneNumber: "",
+    purpose: ""
   });
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
@@ -75,7 +76,7 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
       // Save data in session first
       onSuccess(data.visitor, data.visit);
       form.reset();
-      setContactDetailsValues({ email: "", phoneNumber: "" });
+      setContactDetailsValues({ email: "", phoneNumber: "", purpose: "" });
       
       // No immediate redirect - visitor will see confirmation screen first
     },
@@ -329,6 +330,47 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
           <h3 className="text-lg font-medium">
             {isEnglish ? "Please review your information" : "Veuillez vérifier vos informations"}
           </h3>
+          
+          <FormField
+            control={form.control}
+            name="purpose"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center">
+                  <span>{isEnglish ? "Purpose of Visit" : "But de la Visite"}</span>
+                  <span className="ml-1 text-red-500">*</span>
+                </FormLabel>
+                <FormControl>
+                  <select
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    value={contactDetailsValues.purpose}
+                    onChange={(e) => handleContactDetailsChange("purpose", e.target.value)}
+                  >
+                    <option value="" disabled>
+                      {isEnglish ? "Select purpose..." : "Sélectionnez le but..."}
+                    </option>
+                    <option value="meeting">
+                      {isEnglish ? "Meeting" : "Réunion"}
+                    </option>
+                    <option value="interview">
+                      {isEnglish ? "Interview" : "Entretien"}
+                    </option>
+                    <option value="delivery">
+                      {isEnglish ? "Delivery" : "Livraison"}
+                    </option>
+                    <option value="tour">
+                      {isEnglish ? "Facility Tour" : "Visite des Installations"}
+                    </option>
+                    <option value="other">
+                      {isEnglish ? "Other" : "Autre"}
+                    </option>
+                  </select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
           <Card className="bg-muted/50">
             <CardContent className="pt-6">
               <div className="grid grid-cols-2 gap-4">
@@ -382,7 +424,17 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
           </div>
         </div>
       ),
-      validate: () => true
+      validate: async () => {
+        // Validate the purpose field
+        if (!contactDetailsValues.purpose) {
+          form.setError("purpose", { 
+            type: "required", 
+            message: isEnglish ? "Purpose is required" : "But de la visite est requis" 
+          });
+          return false;
+        }
+        return true;
+      }
     }
   ];
 
