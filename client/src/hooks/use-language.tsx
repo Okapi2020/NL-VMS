@@ -255,14 +255,6 @@ export const translations: TranslationMap = {
     en: 'of',
     fr: 'sur'
   },
-  previous: {
-    en: 'Previous',
-    fr: 'Précédent'
-  },
-  next: {
-    en: 'Next',
-    fr: 'Suivant'
-  },
   itemsPerPage: {
     en: 'Items per page',
     fr: 'Éléments par page'

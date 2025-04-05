@@ -848,6 +848,35 @@ export default function AdminDashboard() {
                     </p>
                   </div>
                 )}
+                
+                {/* Pagination Controls */}
+                {deletedVisitors.length > 0 && (
+                  <div className="px-6 py-4 flex flex-col sm:flex-row justify-between items-center border-t border-gray-200">
+                    <div className="flex items-center mb-4 sm:mb-0">
+                      <span className="text-sm text-gray-700">
+                        {t("page")} {trashPage} {t("of")} {Math.ceil(deletedVisitors.length / trashItemsPerPage)}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setTrashPage(prev => Math.max(prev - 1, 1))}
+                        disabled={trashPage <= 1}
+                      >
+                        {t("previous")}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setTrashPage(prev => Math.min(prev + 1, Math.ceil(deletedVisitors.length / trashItemsPerPage)))}
+                        disabled={trashPage >= Math.ceil(deletedVisitors.length / trashItemsPerPage)}
+                      >
+                        {t("next")}
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
