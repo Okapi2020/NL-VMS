@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { formatTimeOnly, formatDuration, formatBadgeId, formatYearWithAge } from "@/lib/utils";
+import { formatTimeOnly, formatDuration, formatBadgeId, formatYearWithAge, normalizeText } from "@/lib/utils";
 import { Visit, Visitor, UpdateVisitor } from "@shared/schema";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -317,13 +317,13 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
     
     // Generate badge ID for searching
     const badgeId = formatBadgeId(visitor.id).toLowerCase();
-    const searchLower = debouncedSearchTerm.toLowerCase();
+    const normalizedSearchTerm = normalizeText(debouncedSearchTerm);
     
     return (
-      visitor.fullName.toLowerCase().includes(searchLower) ||
-      (visitor.email && visitor.email.toLowerCase().includes(searchLower)) ||
-      visitor.phoneNumber.toLowerCase().includes(searchLower) ||
-      badgeId.includes(searchLower)
+      normalizeText(visitor.fullName).includes(normalizedSearchTerm) ||
+      (visitor.email && normalizeText(visitor.email).includes(normalizedSearchTerm)) ||
+      normalizeText(visitor.phoneNumber).includes(normalizedSearchTerm) ||
+      badgeId.includes(normalizedSearchTerm)
     );
   });
 

@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatDate, formatTimeOnly, formatDuration, formatBadgeId, formatYearWithAge } from "@/lib/utils";
+import { formatDate, formatTimeOnly, formatDuration, formatBadgeId, formatYearWithAge, normalizeText } from "@/lib/utils";
 import { Visit, Visitor } from "@shared/schema";
 import { useLanguage } from "@/hooks/use-language";
 import { Input } from "@/components/ui/input";
@@ -294,14 +294,14 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
       
       // Generate badge ID for searching
       const badgeId = formatBadgeId(visitor.id).toLowerCase();
-      const searchTermLower = searchTerm.toLowerCase();
+      const normalizedSearchTerm = normalizeText(searchTerm);
       
       const matchesSearch = searchTerm === '' || 
-        visitor.fullName.toLowerCase().includes(searchTermLower) ||
-        (visitor.email && visitor.email.toLowerCase().includes(searchTermLower)) ||
-        visitor.phoneNumber.toLowerCase().includes(searchTermLower) ||
-        badgeId.includes(searchTermLower) ||
-        formatDate(visit.checkInTime, language).toLowerCase().includes(searchTermLower);
+        normalizeText(visitor.fullName).includes(normalizedSearchTerm) ||
+        (visitor.email && normalizeText(visitor.email).includes(normalizedSearchTerm)) ||
+        normalizeText(visitor.phoneNumber).includes(normalizedSearchTerm) ||
+        badgeId.includes(normalizedSearchTerm) ||
+        normalizeText(formatDate(visit.checkInTime, language)).includes(normalizedSearchTerm);
       
       const matchesStatus = 
         filterStatus === "all" ||

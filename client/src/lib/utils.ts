@@ -89,6 +89,19 @@ export function getWhatsAppUrl(phoneNumber: string, countryCode: string): string
 }
 
 // Helper function to convert objects to CSV format
+// Function to normalize text by removing accents for search
+export function normalizeText(text: string): string {
+  if (!text) return '';
+  
+  // Normalize to decomposed form (accents separated from letters)
+  // then replace accented characters with their base letter
+  // and convert to lowercase for case-insensitive comparison
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
 export function exportToCSV(data: any[], filename: string) {
   if (!data || !data.length) {
     return;
