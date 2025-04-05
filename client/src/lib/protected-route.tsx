@@ -1,6 +1,8 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 import { Redirect, Route } from "wouter";
+import { useContext } from "react";
+import { AuthContext } from "@/hooks/use-auth";
 
 export function ProtectedRoute({
   path,
@@ -9,13 +11,12 @@ export function ProtectedRoute({
   path: string;
   component: () => React.JSX.Element;
 }) {
-  let auth;
+  // First check if auth context exists before using the hook
+  const authContext = useContext(AuthContext);
   
-  try {
-    auth = useAuth();
-  } catch (error) {
-    console.error("Error using auth hook:", error);
-    // Fallback to redirect to auth page if auth context is not available
+  if (authContext === null) {
+    console.error("Auth context is null - provider missing");
+    // Redirect to auth page if auth context is not available
     return (
       <Route path={path}>
         <Redirect to="/auth" />
@@ -23,7 +24,8 @@ export function ProtectedRoute({
     );
   }
   
-  const { user, isLoading } = auth;
+  // Now use the hook safely
+  const { user, isLoading } = useAuth();
 
   if (isLoading) {
     return (

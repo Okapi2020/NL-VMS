@@ -15,16 +15,8 @@ function Router() {
       <Route path="/" component={WelcomePage} />
       <Route path="/visitor" component={VisitorPortal} />
       <Route path="/thank-you" component={ThankYouPage} />
-      {/* Wrapped in a try-catch to handle potential context errors */}
       <Route path="/admin">
-        {() => {
-          try {
-            return <ProtectedRoute path="/admin" component={AdminDashboard} />;
-          } catch (error) {
-            console.error("Error in protected route:", error);
-            return <Redirect to="/auth" />;
-          }
-        }}
+        {() => <ProtectedRoute path="/admin" component={AdminDashboard} />}
       </Route>
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
