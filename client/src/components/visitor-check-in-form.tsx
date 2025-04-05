@@ -18,6 +18,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLocation, Link } from "wouter";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 
 type VisitorCheckInFormProps = {
   onSuccess: (visitor: Visitor, visit: Visit) => void;
@@ -45,6 +52,7 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
       middleName: "",
       lastName: "",
       yearOfBirth: undefined,
+      sex: "Masculin",
       email: "",
       phoneNumber: "",
     },
@@ -180,31 +188,62 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
             />
           </div>
           
-          <FormField
-            control={form.control}
-            name="yearOfBirth"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{isEnglish ? "Year of Birth" : "Année de Naissance"}</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="number" 
-                    placeholder="1985" 
-                    min="1900" 
-                    max={new Date().getFullYear()}
-                    {...field}
-                    value={field.value || ""}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value);
-                      field.onChange(value);
-                      handleYearOfBirthChange(value);
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="yearOfBirth"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{isEnglish ? "Year of Birth" : "Année de Naissance"}</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      placeholder="1985" 
+                      min="1900" 
+                      max={new Date().getFullYear()}
+                      {...field}
+                      value={field.value || ""}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value);
+                        field.onChange(value);
+                        handleYearOfBirthChange(value);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="sex"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{isEnglish ? "Sex" : "Sexe"}</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={isEnglish ? "Select sex" : "Sélectionner le sexe"} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Masculin">
+                        {isEnglish ? "Male (Masculin)" : "Masculin"}
+                      </SelectItem>
+                      <SelectItem value="Feminin">
+                        {isEnglish ? "Female (Feminin)" : "Feminin"}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
           
           <div>
             <FormLabel>{isEnglish ? "Age" : "Âge"}</FormLabel>
@@ -215,7 +254,7 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
         </div>
       ),
       validate: async () => {
-        const result = await form.trigger(["firstName", "lastName", "yearOfBirth"]);
+        const result = await form.trigger(["firstName", "lastName", "yearOfBirth", "sex"]);
         return result;
       }
     },
@@ -348,6 +387,12 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
                     {isEnglish ? "Age" : "Âge"}
                   </h4>
                   <p className="mt-1">{ageValue}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-muted-foreground">
+                    {isEnglish ? "Sex" : "Sexe"}
+                  </h4>
+                  <p className="mt-1">{form.getValues("sex")}</p>
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold text-muted-foreground">
