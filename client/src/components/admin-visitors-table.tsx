@@ -392,7 +392,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <Table>
+        <Table className="border-collapse">
           <TableHeader>
             <TableRow>
               <TableHead className="w-[40px]">
@@ -407,11 +407,8 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   }}
                 />
               </TableHead>
-              <TableHead 
-                className="cursor-pointer" 
-                onClick={() => handleSortChange("name")}
-              >
-                <div className="flex items-center">
+              <TableHead className="cursor-pointer w-[180px]" onClick={() => handleSortChange("name")}>
+                <div className="flex items-center uppercase text-xs font-medium text-gray-500">
                   <UserRound className="mr-1 h-4 w-4" />
                   {t("name")}
                   {sortField === "name" && (
@@ -421,45 +418,34 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   )}
                 </div>
               </TableHead>
-              <TableHead>{t("sex")}</TableHead>
-              <TableHead>{t("email")}</TableHead>
-              <TableHead>
-                <div className="flex items-center">
+              <TableHead className="w-[80px]">
+                <div className="uppercase text-xs font-medium text-gray-500">{t("sex")}</div>
+              </TableHead>
+              <TableHead className="w-[180px]">
+                <div className="uppercase text-xs font-medium text-gray-500">{t("email")}</div>
+              </TableHead>
+              <TableHead className="w-[150px]">
+                <div className="flex items-center uppercase text-xs font-medium text-gray-500">
                   <Phone className="mr-1 h-4 w-4" />
                   {t("phone")}
                 </div>
               </TableHead>
-              <TableHead>
-                <div className="flex items-center">
+              <TableHead className="w-[100px]">
+                <div className="flex items-center uppercase text-xs font-medium text-gray-500">
                   <Tag className="mr-1 h-4 w-4" />
                   {t("badgeId")}
                 </div>
               </TableHead>
-              <TableHead 
-                className="cursor-pointer" 
-                onClick={() => handleSortChange("checkIn")}
-              >
-                <div className="flex items-center">
-                  <CalendarClock className="mr-1 h-4 w-4" />
-                  {t("checkIn")}
-                  {sortField === "checkIn" && (
-                    sortDirection === "asc" ? 
-                    <ChevronUp className="ml-1 h-4 w-4" /> : 
-                    <ChevronDown className="ml-1 h-4 w-4" />
-                  )}
+              <TableHead className="w-[120px]">
+                <div className="flex items-center uppercase text-xs font-medium text-gray-500">
+                  {t("checkIn")} / {t("checkOut")}
                 </div>
               </TableHead>
-              <TableHead>
-                <div className="flex items-center">
-                  <ShieldCheck className="mr-1 h-4 w-4" />
-                  {t("verifiedBadge")}
-                </div>
+              <TableHead className="w-[80px]">
+                <div className="uppercase text-xs font-medium text-gray-500">{t("status")}</div>
               </TableHead>
-              <TableHead 
-                className="cursor-pointer" 
-                onClick={() => handleSortChange("duration")}
-              >
-                <div className="flex items-center">
+              <TableHead className="w-[100px] cursor-pointer" onClick={() => handleSortChange("duration")}>
+                <div className="flex items-center uppercase text-xs font-medium text-gray-500">
                   <Clock className="mr-1 h-4 w-4" />
                   {t("duration")}
                   {sortField === "duration" && (
@@ -469,13 +455,15 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   )}
                 </div>
               </TableHead>
-              <TableHead className="text-right">{t("actions")}</TableHead>
+              <TableHead className="text-right w-[120px]">
+                <div className="uppercase text-xs font-medium text-gray-500">{t("actions")}</div>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {paginatedVisits.length > 0 ? (
               paginatedVisits.map(({ visitor, visit }) => (
-                <TableRow key={visit.id}>
+                <TableRow key={visit.id} className="hover:bg-gray-50">
                   <TableCell className="py-2">
                     <Checkbox
                       checked={selectedVisitors.includes(visitor.id)}
@@ -491,11 +479,11 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   <TableCell>
                     <div className="font-medium">{visitor.fullName}</div>
                   </TableCell>
-                  <TableCell className="text-sm">
+                  <TableCell>
                     {visitor.sex === "Masculin" ? t("male") : visitor.sex === "Feminin" ? t("female") : visitor.sex}
                   </TableCell>
-                  <TableCell className="text-sm text-gray-500">{visitor.email || t("noEmailProvided")}</TableCell>
-                  <TableCell className="text-sm">
+                  <TableCell className="text-gray-500">{visitor.email || t("noEmailProvided")}</TableCell>
+                  <TableCell>
                     {visitor.phoneNumber ? (
                       <PhoneNumberLink phoneNumber={visitor.phoneNumber} />
                     ) : (
@@ -503,32 +491,32 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                     )}
                   </TableCell>
                   <TableCell className="font-mono text-xs text-blue-600 font-medium">{formatBadgeId(visitor.id)}</TableCell>
-                  <TableCell>{formatTimeOnly(visit.checkInTime)}</TableCell>
-                  <TableCell className="text-center">
-                    <Button
-                      variant="ghost"
-                      className={`p-1 rounded-full ${visitor.verified ? "bg-green-50" : "bg-gray-50"}`}
-                      onClick={() => handleVerifyToggle(visitor.id, visitor.verified)}
-                      disabled={processingVerificationIds.has(visitor.id)}
-                    >
-                      {processingVerificationIds.has(visitor.id) ? (
-                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                      ) : visitor.verified ? (
-                        <ShieldCheck className="h-5 w-5 text-green-500" />
+                  <TableCell>
+                    <div>{formatTimeOnly(visit.checkInTime)}</div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center">
+                      {visitor.verified ? (
+                        <span className="bg-green-100 text-green-800 text-xs px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                          <ShieldCheck className="h-3 w-3" />
+                          {t("active")}
+                        </span>
                       ) : (
-                        <ShieldCheck className="h-5 w-5 text-gray-300" />
+                        <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-full">
+                          {t("active")}
+                        </span>
                       )}
-                    </Button>
+                    </div>
                   </TableCell>
                   <TableCell>{calculateDuration(visit.checkInTime)}</TableCell>
                   <TableCell>
-                    <div className="flex justify-end space-x-2 items-center">
+                    <div className="flex justify-end space-x-1 items-center">
                       <Button
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-blue-600"
                         onClick={() => handleEditVisitor(visitor)}
-                        title="Edit visitor"
+                        title={t("editVisitor")}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -537,17 +525,23 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                         size="icon"
                         className="h-8 w-8 text-red-600"
                         onClick={() => handleDeleteVisitor(visitor.id, visitor.fullName)}
-                        title="Delete visitor"
+                        title={t("deleteVisitor")}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-green-600"
                         onClick={() => handleCheckOut(visit.id)}
                         disabled={processingIds.has(visit.id)}
-                        className="text-primary-600 hover:text-primary-900"
+                        title={t("checkOut")}
                       >
-                        {processingIds.has(visit.id) ? t("processing") : t("checkOut")}
+                        {processingIds.has(visit.id) ? (
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-600 border-t-transparent" />
+                        ) : (
+                          <LogOut className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </TableCell>
@@ -555,7 +549,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-4 text-gray-500">
+                <TableCell colSpan={10} className="text-center py-4 text-gray-500">
                   {t("noVisitorsMatch")}
                 </TableCell>
               </TableRow>
