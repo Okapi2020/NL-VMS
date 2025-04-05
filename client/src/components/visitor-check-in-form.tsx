@@ -5,7 +5,8 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { calculateAge } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { Visitor, Visit, visitorFormSchema, VisitorFormValues } from "@shared/schema";
+import { Visitor, Visit, VisitorFormValues } from "@shared/schema";
+import { useLocalizedFormSchema } from "@/hooks/use-localized-form-schema";
 import { MultiStepForm } from "@/components/multi-step-form";
 import {
   Form,
@@ -45,6 +46,9 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
 
+  // Get the localized schema based on current language
+  const visitorFormSchema = useLocalizedFormSchema(isEnglish);
+  
   const form = useForm<VisitorFormValues>({
     resolver: zodResolver(visitorFormSchema),
     defaultValues: {
