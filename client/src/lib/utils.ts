@@ -10,6 +10,12 @@ export function calculateAge(yearOfBirth: number): number {
   return currentYear - yearOfBirth;
 }
 
+// Function to format year of birth with age
+export function formatYearWithAge(yearOfBirth: number): string {
+  const age = calculateAge(yearOfBirth);
+  return `${yearOfBirth} (${age} ${age === 1 ? 'yr' : 'yrs'})`;
+}
+
 export function formatDate(date: Date | string, language: 'en' | 'fr' = 'en'): string {
   const locale = language === 'fr' ? 'fr-FR' : 'en-US';
   return new Date(date).toLocaleString(locale, {

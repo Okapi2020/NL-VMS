@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { formatTimeOnly, formatDuration, formatBadgeId } from "@/lib/utils";
+import { formatTimeOnly, formatDuration, formatBadgeId, formatYearWithAge } from "@/lib/utils";
 import { Visit, Visitor, UpdateVisitor } from "@shared/schema";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -423,6 +423,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 </div>
               </TableHead>
               <TableHead>{t("sex")}</TableHead>
+              <TableHead>{t("yearOfBirth")}</TableHead>
               <TableHead>{t("email")}</TableHead>
               <TableHead>
                 <div className="flex items-center">
@@ -495,6 +496,9 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   <TableCell className="text-sm">
                     {visitor.sex === "Masculin" ? t("male") : visitor.sex === "Feminin" ? t("female") : visitor.sex}
                   </TableCell>
+                  <TableCell className="text-sm text-gray-500">
+                    {formatYearWithAge(visitor.yearOfBirth)}
+                  </TableCell>
                   <TableCell className="text-sm text-gray-500">{visitor.email || t("noEmailProvided")}</TableCell>
                   <TableCell className="text-sm">
                     {visitor.phoneNumber ? (
@@ -556,7 +560,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-4 text-gray-500">
+                <TableCell colSpan={10} className="text-center py-4 text-gray-500">
                   {t("noVisitorsMatch")}
                 </TableCell>
               </TableRow>

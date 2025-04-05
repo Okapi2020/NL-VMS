@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatDate, formatTimeOnly, formatDuration, formatBadgeId } from "@/lib/utils";
+import { formatDate, formatTimeOnly, formatDuration, formatBadgeId, formatYearWithAge } from "@/lib/utils";
 import { Visit, Visitor } from "@shared/schema";
 import { useLanguage } from "@/hooks/use-language";
 import { Input } from "@/components/ui/input";
@@ -840,6 +840,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                 </div>
               </TableHead>
               <TableHead>{t("sex")}</TableHead>
+              <TableHead>{t("yearOfBirth")}</TableHead>
               <TableHead>{t("email")}</TableHead>
               <TableHead>
                 <div className="flex items-center">
@@ -933,6 +934,9 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                   </TableCell>
                   <TableCell className="text-sm text-gray-500">
                     {visitor.sex === "Masculin" ? t("male") : visitor.sex === "Feminin" ? t("female") : visitor.sex}
+                  </TableCell>
+                  <TableCell className="text-sm text-gray-500">
+                    {formatYearWithAge(visitor.yearOfBirth)}
                   </TableCell>
                   <TableCell className="text-sm text-gray-500">{visitor.email || "No email provided"}</TableCell>
                   <TableCell className="text-sm">
@@ -1035,7 +1039,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={11} className="text-center py-4 text-gray-500">
+                <TableCell colSpan={12} className="text-center py-4 text-gray-500">
                   {showDeletedVisitors 
                     ? "Trash bin is empty" 
                     : "No visits match your search or filters"}
