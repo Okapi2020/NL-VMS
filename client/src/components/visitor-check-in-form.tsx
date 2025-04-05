@@ -370,9 +370,9 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
                 ? "By clicking \"Check In\", you confirm that the information above is correct."
                 : "En cliquant sur \"Enregistrez-vous\", vous confirmez que les informations ci-dessus sont correctes."}
             </p>
-            <div className="bg-primary/10 p-3 rounded-md border border-primary/20">
-              <p className="text-sm text-primary dark:text-primary-foreground">
-                <span className="font-semibold">
+            <div className="bg-primary/20 dark:bg-primary/30 p-3 rounded-md border border-primary/30 dark:border-primary/40">
+              <p className="text-sm font-medium text-primary dark:text-white">
+                <span className="font-bold underline">
                   {isEnglish ? "Returning visitor?" : "Déjà visiteur?"}
                 </span>{" "}
                 {isEnglish
