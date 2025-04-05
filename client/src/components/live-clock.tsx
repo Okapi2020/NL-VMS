@@ -22,24 +22,30 @@ export function LiveClock() {
     return () => clearInterval(timer);
   }, []);
   
-  // Format the time in 24-hour format (HH:MM:SS)
+  // Format the time in 24-hour format using Kinshasa timezone (UTC+1)
   const formatTime = () => {
-    return dateTime.toLocaleTimeString(isEnglish ? 'en-US' : 'fr-FR', { 
+    const options: Intl.DateTimeFormatOptions = { 
       hour: '2-digit', 
       minute: '2-digit', 
       second: '2-digit',
-      hour12: false
-    });
+      hour12: false,
+      timeZone: 'Africa/Kinshasa'
+    };
+    
+    return dateTime.toLocaleTimeString(isEnglish ? 'en-US' : 'fr-FR', options);
   };
   
-  // Format the date (Weekday, Month Day, Year)
+  // Format the date (Weekday, Month Day, Year) using Kinshasa timezone
   const formatDate = () => {
-    return dateTime.toLocaleDateString(isEnglish ? 'en-US' : 'fr-FR', { 
+    const options: Intl.DateTimeFormatOptions = { 
       weekday: 'long', 
       year: 'numeric', 
       month: 'long', 
-      day: 'numeric' 
-    });
+      day: 'numeric',
+      timeZone: 'Africa/Kinshasa'
+    };
+    
+    return dateTime.toLocaleDateString(isEnglish ? 'en-US' : 'fr-FR', options);
   };
   
   return (
