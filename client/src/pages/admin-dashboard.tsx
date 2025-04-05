@@ -80,7 +80,7 @@ export default function AdminDashboard() {
   const [trashItemsPerPage, setTrashItemsPerPage] = useState(10);
   const [selectedVisitors, setSelectedVisitors] = useState<number[]>([]);
   const [isProcessingBulk, setIsProcessingBulk] = useState(false);
-  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(true);
+  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
 
   // Define types for our API responses
   type VisitWithVisitor = { 
