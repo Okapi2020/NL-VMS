@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, AuthContext } from "@/hooks/use-auth";
 import { useLocation, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -39,8 +39,24 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function AuthPage() {
-  const { user, loginMutation } = useAuth();
   const [, navigate] = useLocation();
+  
+  // Safely access auth context with error handling
+  let user = null;
+  let loginMutation: any = {
+    mutate: (data: any) => {
+      console.error("Login mutation not available - Auth context missing");
+    },
+    isPending: false
+  };
+  
+  try {
+    const auth = useAuth();
+    user = auth.user;
+    loginMutation = auth.loginMutation;
+  } catch (error) {
+    console.error("Error accessing auth context:", error);
+  }
   
   // Query to fetch application settings
   const { 

@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Redirect } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import VisitorPortal from "@/pages/visitor-portal";
@@ -15,7 +15,17 @@ function Router() {
       <Route path="/" component={WelcomePage} />
       <Route path="/visitor" component={VisitorPortal} />
       <Route path="/thank-you" component={ThankYouPage} />
-      <ProtectedRoute path="/admin" component={AdminDashboard} />
+      {/* Wrapped in a try-catch to handle potential context errors */}
+      <Route path="/admin">
+        {() => {
+          try {
+            return <ProtectedRoute path="/admin" component={AdminDashboard} />;
+          } catch (error) {
+            console.error("Error in protected route:", error);
+            return <Redirect to="/auth" />;
+          }
+        }}
+      </Route>
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>
