@@ -126,6 +126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         visitor = await storage.createVisitor({
           fullName: formData.fullName,
           yearOfBirth: formData.yearOfBirth,
+          sex: formData.sex, // Add the sex field
           email: formData.email || null,
           phoneNumber: formData.phoneNumber,
         });
@@ -139,6 +140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const needsUpdate = (
           visitor.fullName !== formData.fullName ||
           visitor.yearOfBirth !== formData.yearOfBirth ||
+          visitor.sex !== formData.sex || // Add check for sex field
           (formData.email && visitor.email !== formData.email) ||
           visitor.phoneNumber !== formData.phoneNumber
         );
@@ -148,6 +150,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             id: visitor.id,
             fullName: formData.fullName,
             yearOfBirth: formData.yearOfBirth,
+            sex: formData.sex, // Add the sex field here too
             email: formData.email || visitor.email,
             phoneNumber: formData.phoneNumber
           });
