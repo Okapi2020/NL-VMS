@@ -7,7 +7,10 @@ export function useLocalizedFormSchema(isEnglish: boolean = true) {
   const localizedSchema = z.object({
     firstName: z.string()
       .min(2, isEnglish ? "First name is required" : "Le prénom est requis")
-      .refine(name => /^[a-zA-Z.\-']+$/.test(name.trim()), {
+      .refine(name => {
+        // This simple regex accepts all Latin letters, accented characters and basic punctuation
+        return /^[a-zA-Z\u00C0-\u017F.\-']+$/.test(name.trim());
+      }, {
         message: isEnglish 
           ? "Name should contain only letters and basic characters"
           : "Le nom ne doit contenir que des lettres et des caractères basiques"
@@ -20,6 +23,15 @@ export function useLocalizedFormSchema(isEnglish: boolean = true) {
     middleName: z.string()
       .optional()
       .transform(val => (!val || val.trim() === '') ? undefined : val)
+      .refine(name => {
+        if (!name) return true;
+        // This simple regex accepts all Latin letters, accented characters and basic punctuation
+        return /^[a-zA-Z\u00C0-\u017F.\-']*$/.test(name.trim());
+      }, {
+        message: isEnglish 
+          ? "Name should contain only letters and basic characters"
+          : "Le nom ne doit contenir que des lettres et des caractères basiques"
+      })
       .refine(name => !name || !name.trim().includes(' '), {
         message: isEnglish 
           ? "Middle name should not contain spaces (enter only one name)"
@@ -27,7 +39,10 @@ export function useLocalizedFormSchema(isEnglish: boolean = true) {
       }),
     lastName: z.string()
       .min(2, isEnglish ? "Last name is required" : "Le nom de famille est requis")
-      .refine(name => /^[a-zA-Z.\-']+$/.test(name.trim()), {
+      .refine(name => {
+        // This simple regex accepts all Latin letters, accented characters and basic punctuation
+        return /^[a-zA-Z\u00C0-\u017F.\-']+$/.test(name.trim());
+      }, {
         message: isEnglish 
           ? "Name should contain only letters and basic characters"
           : "Le nom ne doit contenir que des lettres et des caractères basiques"
