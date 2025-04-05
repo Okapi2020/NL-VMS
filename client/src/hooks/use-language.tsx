@@ -20,6 +20,34 @@ interface TranslationMap {
 
 // Common translations shared across all components
 export const translations: TranslationMap = {
+  // Time
+  minutes: {
+    en: 'minutes',
+    fr: 'minutes'
+  },
+  hours: {
+    en: 'hours',
+    fr: 'heures'
+  },
+  days: {
+    en: 'days',
+    fr: 'jours'
+  },
+  
+  visitPortal: {
+    en: 'Visit Portal',
+    fr: 'Portail des visites'
+  },
+  
+  exportData: {
+    en: 'Export Data',
+    fr: 'Exporter les données'
+  },
+  
+  loggingOut: {
+    en: 'Logging out...',
+    fr: 'Déconnexion...'
+  },
   // Navigation
   home: {
     en: 'Home',
@@ -222,6 +250,26 @@ export const translations: TranslationMap = {
   analytics: {
     en: 'Analytics',
     fr: 'Analytique'
+  },
+  totalVisitorsToday: {
+    en: 'Total Visitors Today',
+    fr: 'Total des visiteurs aujourd\'hui'
+  },
+  currentlyCheckedIn: {
+    en: 'Currently Checked In',
+    fr: 'Actuellement enregistrés'
+  },
+  averageVisitDuration: {
+    en: 'Average Visit Duration',
+    fr: 'Durée moyenne de visite'
+  },
+  analyticsOverview: {
+    en: 'Analytics Overview',
+    fr: 'Aperçu analytique'
+  },
+  visitInsights: {
+    en: 'Visit Insights',
+    fr: 'Analyse des visites'
   },
   currentVisitors: {
     en: 'Current Visitors',
