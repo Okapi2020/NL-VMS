@@ -392,8 +392,8 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
 
       {/* Table */}
       <div className="overflow-x-auto w-full">
-        <div className="table-container min-w-[800px]">
-          <Table className="w-full">
+        <div className="table-container">
+          <Table className="w-full min-w-[800px]">
           <TableHeader>
             <TableRow>
               <TableHead className="w-[40px]">
