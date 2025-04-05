@@ -421,6 +421,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   )}
                 </div>
               </TableHead>
+              <TableHead>{t("sex")}</TableHead>
               <TableHead>{t("email")}</TableHead>
               <TableHead>
                 <div className="flex items-center">
@@ -490,6 +491,9 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   <TableCell>
                     <div className="font-medium">{visitor.fullName}</div>
                   </TableCell>
+                  <TableCell className="text-sm">
+                    {visitor.sex === "Masculin" ? t("male") : visitor.sex === "Feminin" ? t("female") : visitor.sex}
+                  </TableCell>
                   <TableCell className="text-sm text-gray-500">{visitor.email || t("noEmailProvided")}</TableCell>
                   <TableCell className="text-sm">
                     {visitor.phoneNumber ? (
@@ -551,7 +555,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-4 text-gray-500">
+                <TableCell colSpan={9} className="text-center py-4 text-gray-500">
                   {t("noVisitorsMatch")}
                 </TableCell>
               </TableRow>

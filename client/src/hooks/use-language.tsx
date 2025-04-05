@@ -447,10 +447,6 @@ export const translations: TranslationMap = {
     en: 'No phone provided',
     fr: 'Aucun téléphone fourni'
   },
-  checkOut: {
-    en: 'Check Out',
-    fr: 'Départ'
-  },
   confirmCheckout: {
     en: 'Are you sure you want to check out this visitor?',
     fr: 'Êtes-vous sûr de vouloir procéder au départ de ce visiteur?'
