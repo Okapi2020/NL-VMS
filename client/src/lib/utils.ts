@@ -12,9 +12,9 @@ export function calculateAge(yearOfBirth: number): number {
 
 export function formatDate(date: Date | string): string {
   return new Date(date).toLocaleString("en-US", {
-    hour: "numeric",
-    minute: "numeric",
-    hour12: true,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -24,9 +24,9 @@ export function formatDate(date: Date | string): string {
 
 export function formatTimeOnly(date: Date | string): string {
   return new Date(date).toLocaleString("en-US", {
-    hour: "numeric",
-    minute: "numeric",
-    hour12: true,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
     timeZone: "Africa/Kinshasa"
   });
 }
