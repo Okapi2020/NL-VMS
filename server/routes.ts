@@ -121,6 +121,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         visitor = await storage.getVisitorByPhoneNumber(formData.phoneNumber);
       }
       
+      // Track if this is a returning visitor
+      let isReturningVisitor = false;
+      
       // If visitor doesn't exist, create a new one
       if (!visitor) {
         visitor = await storage.createVisitor({
@@ -135,32 +138,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ message: "Failed to create visitor record" });
         }
       } else {
-        // If visitor exists but some details have changed, update their record
-        // Only update if there are actual changes
-        const needsUpdate = (
-          visitor.fullName !== formData.fullName ||
-          visitor.yearOfBirth !== formData.yearOfBirth ||
-          visitor.sex !== formData.sex || // Add check for sex field
-          (formData.email && visitor.email !== formData.email) ||
-          visitor.phoneNumber !== formData.phoneNumber
-        );
+        // Flag that this is a returning visitor
+        isReturningVisitor = true;
         
-        if (needsUpdate) {
-          const updatedVisitor = await storage.updateVisitor({
-            id: visitor.id,
-            fullName: formData.fullName,
-            yearOfBirth: formData.yearOfBirth,
-            sex: formData.sex, // Add the sex field here too
-            email: formData.email || visitor.email,
-            phoneNumber: formData.phoneNumber
-          });
-          
-          if (!updatedVisitor) {
-            return res.status(500).json({ message: "Failed to update visitor record" });
-          }
-          
-          visitor = updatedVisitor;
-        }
+        // Log the returning visitor for admin awareness
+        await storage.createSystemLog({
+          action: "RETURNING_VISITOR",
+          details: `Returning visitor "${visitor.fullName}" (ID: ${visitor.id}) checked in.`,
+          userId: null // No admin involved, this is visitor self-check-in
+        });
       }
       
       // Create a new visit record
@@ -174,7 +160,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         global.broadcastCheckIn(visitor, formData.purpose || undefined);
       }
       
-      res.status(201).json({ visitor, visit });
+      res.status(201).json({ 
+        visitor, 
+        visit,
+        isReturningVisitor 
+      });
     } catch (error) {
       return handleZodError(error, res);
     }

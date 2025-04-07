@@ -78,12 +78,24 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
       return await res.json();
     },
     onSuccess: (data) => {
-      toast({
-        title: isEnglish ? "Check-in successful" : "Enregistrement réussi",
-        description: isEnglish 
-          ? "You have been checked in successfully!" 
-          : "Vous avez été enregistré avec succès !",
-      });
+      // Check if this is a returning visitor
+      if (data.isReturningVisitor) {
+        toast({
+          title: isEnglish ? "Welcome back!" : "Bon retour!",
+          description: isEnglish 
+            ? "You've been recognized as a returning visitor. Your existing information has been used."
+            : "Vous avez été reconnu comme un visiteur régulier. Vos informations existantes ont été utilisées.",
+          duration: 6000 // Longer display time for this important message
+        });
+      } else {
+        toast({
+          title: isEnglish ? "Check-in successful" : "Enregistrement réussi",
+          description: isEnglish 
+            ? "You have been checked in successfully!" 
+            : "Vous avez été enregistré avec succès !",
+        });
+      }
+      
       // Save data in session first
       onSuccess(data.visitor, data.visit);
       form.reset();
