@@ -879,6 +879,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
             setIsDetailModalOpen(false);
             handleDeleteVisitor(selectedVisitDetails.visitor.id, selectedVisitDetails.visitor.fullName);
           }}
+          showDeleteButton={false} // Hide delete button for current visitors
         />
       )}
     </div>

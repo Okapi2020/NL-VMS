@@ -19,6 +19,7 @@ type VisitorDetailModalProps = {
   onClose: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  showDeleteButton?: boolean;
 };
 
 export function VisitorDetailModal({
@@ -28,6 +29,7 @@ export function VisitorDetailModal({
   onClose,
   onEdit,
   onDelete,
+  showDeleteButton = true, // Default to showing the delete button
 }: VisitorDetailModalProps) {
   const { t, language } = useLanguage();
 
@@ -106,7 +108,7 @@ export function VisitorDetailModal({
               <div className="space-y-4 bg-gray-50 p-4 rounded-md">
                 <div>
                   <div className="text-sm text-gray-500">{t("email")}</div>
-                  <div className="text-blue-600">
+                  <div className="text-blue-600 break-words">
                     {visitor.email ? (
                       <a href={`mailto:${visitor.email}`} className="hover:underline">
                         {visitor.email}
@@ -184,24 +186,27 @@ export function VisitorDetailModal({
               <div className="flex gap-4 justify-between">
                 <Button
                   variant="outline"
-                  className="w-1/2 gap-2 bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
+                  className={showDeleteButton ? "w-1/2 gap-2 bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100" : "w-full gap-2 bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"}
                   onClick={onEdit}
                 >
                   <Pencil className="h-4 w-4" />
                   {t("editDetails")}
                 </Button>
-                <Button
-                  variant="outline"
-                  className="w-1/2 gap-2 bg-red-50 border-red-200 text-red-600 hover:bg-red-100 whitespace-nowrap"
-                  onClick={() => {
-                    if (confirm(t("confirmDeleteVisitor", { name: visitor.fullName }))) {
-                      onDelete();
-                    }
-                  }}
-                >
-                  <Trash2 className="h-4 w-4 flex-shrink-0" />
-                  <span className="truncate">{t("deleteRecord")}</span>
-                </Button>
+                
+                {showDeleteButton && (
+                  <Button
+                    variant="outline"
+                    className="w-1/2 gap-2 bg-red-50 border-red-200 text-red-600 hover:bg-red-100 whitespace-nowrap"
+                    onClick={() => {
+                      if (confirm(t("confirmDeleteVisitor", { name: visitor.fullName }))) {
+                        onDelete();
+                      }
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">{t("deleteRecord")}</span>
+                  </Button>
+                )}
               </div>
             </div>
           </div>
