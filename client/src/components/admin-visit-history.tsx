@@ -675,9 +675,16 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                     
                     {/* Badge ID */}
                     <TableCell className="py-4">
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-sm font-medium bg-blue-50 text-blue-800">
-                        {formatBadgeId(visitor.id)}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-sm font-medium bg-blue-50 text-blue-800">
+                          {formatBadgeId(visitor.id)}
+                        </span>
+                        {visitor.verified && (
+                          <span title={t("verifiedVisitor")}>
+                            <ShieldCheck className="h-4 w-4 text-blue-500" />
+                          </span>
+                        )}
+                      </div>
                     </TableCell>
                     
                     {/* Visit Time */}
