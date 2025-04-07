@@ -28,18 +28,39 @@ export function VisitorDetailModal({
   onEdit,
   onDelete,
 }: VisitorDetailModalProps) {
-  const { language } = useLanguage();
+  const { t, language } = useLanguage();
 
   if (!visitor || !visit) {
     return null;
   }
 
+  // Calculate the current duration if visitor is still checked in
+  const getCurrentDuration = () => {
+    if (!visit.checkOutTime) {
+      const now = new Date();
+      const checkIn = new Date(visit.checkInTime);
+      const diffMs = now.getTime() - checkIn.getTime();
+      const diffMin = Math.floor(diffMs / 60000);
+      
+      // Format to hours and minutes
+      const hours = Math.floor(diffMin / 60);
+      const mins = diffMin % 60;
+      
+      if (hours > 0) {
+        return `${hours}h ${mins}min`;
+      } else {
+        return `${mins}min`;
+      }
+    }
+    return formatDuration(visit.checkInTime, visit.checkOutTime, language);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader className="border-b pb-2">
           <div className="flex justify-between items-center">
-            <DialogTitle className="text-xl">Visitor Details</DialogTitle>
+            <DialogTitle className="text-xl">{t("visitorDetails")}</DialogTitle>
             <Button
               variant="ghost"
               size="icon"
@@ -52,29 +73,29 @@ export function VisitorDetailModal({
           </div>
         </DialogHeader>
 
-        <div className="grid grid-cols-2 gap-6 py-4">
+        <div className="grid grid-cols-2 gap-8 py-6">
           {/* Left Column - Personal & Contact */}
-          <div className="space-y-6">
+          <div>
             {/* Personal Information Section */}
-            <div>
-              <h3 className="text-md font-medium border-b pb-2">Personal Information</h3>
-              <div className="space-y-4 mt-3">
+            <div className="mb-8">
+              <h3 className="text-md font-semibold border-b pb-2 mb-4 text-gray-700">{t("personalInformation")}</h3>
+              <div className="space-y-4 bg-gray-50 p-4 rounded-md">
                 <div>
-                  <div className="text-sm text-gray-500">Name</div>
+                  <div className="text-sm text-gray-500">{t("name")}</div>
                   <div className="font-medium">{visitor.fullName}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-gray-500">Gender</div>
+                  <div className="text-sm text-gray-500">{t("gender")}</div>
                   <div>
                     {visitor.sex === "Masculin"
-                      ? "Masculin"
+                      ? t("male")
                       : visitor.sex === "Feminin"
-                      ? "Feminin"
+                      ? t("female")
                       : visitor.sex}
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm text-gray-500">Birth Year</div>
+                  <div className="text-sm text-gray-500">{t("birthYear")}</div>
                   <div>{formatYearWithAge(visitor.yearOfBirth, language)}</div>
                 </div>
               </div>
@@ -82,29 +103,29 @@ export function VisitorDetailModal({
             
             {/* Contact Information Section */}
             <div>
-              <h3 className="text-md font-medium border-b pb-2">Contact Details</h3>
-              <div className="space-y-4 mt-3">
+              <h3 className="text-md font-semibold border-b pb-2 mb-4 text-gray-700">{t("contactDetails")}</h3>
+              <div className="space-y-4 bg-gray-50 p-4 rounded-md">
                 <div>
-                  <div className="text-sm text-gray-500">Email</div>
+                  <div className="text-sm text-gray-500">{t("email")}</div>
                   <div className="text-blue-600">
                     {visitor.email ? (
                       <a href={`mailto:${visitor.email}`} className="hover:underline">
                         {visitor.email}
                       </a>
                     ) : (
-                      "No email provided"
+                      <span className="text-gray-500 italic">{t("noEmailProvided")}</span>
                     )}
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm text-gray-500">Phone</div>
+                  <div className="text-sm text-gray-500">{t("phone")}</div>
                   <div className="text-blue-600">
                     {visitor.phoneNumber ? (
-                      <a href={`tel:${visitor.phoneNumber}`} className="hover:underline">
+                      <a href={`tel:+${visitor.phoneNumber}`} className="hover:underline">
                         +{visitor.phoneNumber}
                       </a>
                     ) : (
-                      "No phone provided"
+                      <span className="text-gray-500 italic">{t("noPhoneProvided")}</span>
                     )}
                   </div>
                 </div>
@@ -114,73 +135,75 @@ export function VisitorDetailModal({
           
           {/* Right Column - Visit Information */}
           <div>
-            <h3 className="text-md font-medium border-b pb-2">Visit Information</h3>
-            <div className="space-y-4 mt-3">
-              <div>
-                <div className="text-sm text-gray-500">Badge ID</div>
-                <div className="font-mono text-blue-600">{formatBadgeId(visitor.id)}</div>
-              </div>
-              <div>
-                <div className="text-sm text-gray-500">Check-in</div>
-                <div className="flex items-center">
-                  <span className="inline-flex items-center pr-2">
-                    <span className="h-2 w-2 rounded-full bg-green-500 mr-2"></span>
-                    {formatTimeOnly(visit.checkInTime, language)}
-                  </span>
-                  <span className="text-sm text-gray-500">
-                    {formatDateShort(visit.checkInTime, language)}
-                  </span>
+            <div className="mb-8">
+              <h3 className="text-md font-semibold border-b pb-2 mb-4 text-gray-700">{t("visitInformation")}</h3>
+              <div className="space-y-4 bg-gray-50 p-4 rounded-md">
+                <div>
+                  <div className="text-sm text-gray-500">{t("badgeId")}</div>
+                  <div className="font-mono text-blue-600">{formatBadgeId(visitor.id)}</div>
                 </div>
-              </div>
-              <div>
-                <div className="text-sm text-gray-500">Check-out</div>
-                <div className="flex items-center">
+                <div>
+                  <div className="text-sm text-gray-500">{t("checkIn")}</div>
+                  <div className="flex items-center">
+                    <span className="inline-flex items-center">
+                      <span className="h-2 w-2 rounded-full bg-green-500 mr-2"></span>
+                      <span className="font-medium">{formatTimeOnly(visit.checkInTime, language)}</span>
+                    </span>
+                    <span className="ml-2 text-sm text-gray-500">
+                      {formatDateShort(visit.checkInTime, language)}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">{t("checkOut")}</div>
                   {visit.checkOutTime ? (
-                    <>
-                      <span className="inline-flex items-center pr-2">
+                    <div className="flex items-center">
+                      <span className="inline-flex items-center">
                         <span className="h-2 w-2 rounded-full bg-red-500 mr-2"></span>
-                        {formatTimeOnly(visit.checkOutTime, language)}
+                        <span className="font-medium">{formatTimeOnly(visit.checkOutTime, language)}</span>
                       </span>
-                      <span className="text-sm text-gray-500">
+                      <span className="ml-2 text-sm text-gray-500">
                         {formatDateShort(visit.checkOutTime, language)}
                       </span>
-                    </>
+                    </div>
                   ) : (
-                    <span className="text-amber-600">Active</span>
+                    <div className="text-amber-600 font-medium">{t("ongoing")}</div>
                   )}
                 </div>
-              </div>
-              <div>
-                <div className="text-sm text-gray-500">Duration</div>
                 <div>
-                  {visit.checkOutTime ? (
-                    formatDuration(visit.checkInTime, visit.checkOutTime, language)
-                  ) : (
-                    "Active"
-                  )}
+                  <div className="text-sm text-gray-500">{t("duration")}</div>
+                  <div className="font-medium">
+                    {visit.checkOutTime ? 
+                      formatDuration(visit.checkInTime, visit.checkOutTime, language) : 
+                      getCurrentDuration()}
+                  </div>
                 </div>
               </div>
             </div>
             
             {/* Actions Section */}
-            <div className="mt-8">
-              <h3 className="text-md font-medium border-b pb-2">Actions</h3>
-              <div className="flex gap-2 mt-3">
+            <div>
+              <h3 className="text-md font-semibold border-b pb-2 mb-4 text-gray-700">{t("actions")}</h3>
+              <div className="flex gap-4 justify-between">
                 <Button
                   variant="outline"
-                  className="flex-1 gap-1 bg-blue-50 border-blue-100 text-blue-600 hover:bg-blue-100"
+                  className="w-1/2 gap-2 bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
                   onClick={onEdit}
                 >
                   <Pencil className="h-4 w-4" />
-                  Edit Details
+                  {t("editDetails")}
                 </Button>
                 <Button
                   variant="outline"
-                  className="flex-1 gap-1 bg-red-50 border-red-100 text-red-600 hover:bg-red-100"
-                  onClick={onDelete}
+                  className="w-1/2 gap-2 bg-red-50 border-red-200 text-red-600 hover:bg-red-100"
+                  onClick={() => {
+                    if (confirm(t("confirmDeleteVisitor", { name: visitor.fullName }))) {
+                      onDelete();
+                    }
+                  }}
                 >
                   <Trash2 className="h-4 w-4" />
-                  Delete Record
+                  {t("deleteRecord")}
                 </Button>
               </div>
             </div>

@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/hooks/use-language";
+import { VisitorDetailModal } from "./visitor-detail-modal";
 import { 
   Search, 
   UserRound, 
@@ -37,7 +38,6 @@ import {
   LogOut,
   Eye
 } from "lucide-react";
-import { VisitorDetailModal } from "./visitor-detail-modal";
 
 import {
   Dialog,
