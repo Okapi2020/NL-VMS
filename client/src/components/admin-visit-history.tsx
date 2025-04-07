@@ -1049,6 +1049,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
             }
           }
         }}
+        showDeleteButton={true} // Show delete button for visit history
       />
     </div>
   );
