@@ -549,7 +549,14 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   {/* Visitor Information */}
                   <TableCell>
                     <div className="flex flex-col">
-                      <div className="font-medium">{visitor.fullName}</div>
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium">{visitor.fullName}</span>
+                        {visitor.verified && (
+                          <span title={t("verifiedVisitor")}>
+                            <ShieldCheck className="h-4 w-4 text-blue-500" />
+                          </span>
+                        )}
+                      </div>
                       <div className="text-sm text-gray-500">
                         {visitor.sex === "Masculin" ? t("male") : visitor.sex === "Feminin" ? t("female") : visitor.sex}
                         {' '}
@@ -582,8 +589,11 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   {/* Visit Time */}
                   <TableCell>
                     <div className="flex items-center">
-                      <span>{formatTimeOnly(visit.checkInTime, language)}</span>
-                      <div className="ml-3 text-sm text-gray-500">
+                      <span className="inline-flex items-center">
+                        <span className="h-2 w-2 rounded-full bg-green-500 mr-2"></span>
+                        <span className="font-medium">{formatTimeOnly(visit.checkInTime, language)}</span>
+                      </span>
+                      <div className="ml-3 text-sm text-gray-500 font-medium">
                         {calculateDuration(visit.checkInTime)}
                       </div>
                     </div>
@@ -616,16 +626,6 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                       >
                         <Eye className="h-4 w-4 mr-1" />
                         <span>{t("view")}</span>
-                      </Button>
-                      
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-red-600"
-                        onClick={() => handleDeleteVisitor(visitor.id, visitor.fullName)}
-                        title={t("deleteVisitor")}
-                      >
-                        <Trash2 className="h-4 w-4" />
                       </Button>
                       
                       <Button
