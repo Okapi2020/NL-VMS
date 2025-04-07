@@ -535,67 +535,93 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                       }}
                     />
                   </TableCell>
+                  
+                  {/* Visitor Information */}
                   <TableCell>
-                    <div className="font-medium">{visitor.fullName}</div>
+                    <div className="flex flex-col">
+                      <div className="font-medium">{visitor.fullName}</div>
+                      <div className="text-sm text-gray-500">
+                        {visitor.sex === "Masculin" ? t("male") : visitor.sex === "Feminin" ? t("female") : visitor.sex}
+                        {' '}
+                        ({formatYearWithAge(visitor.yearOfBirth, language)})
+                      </div>
+                    </div>
                   </TableCell>
-                  <TableCell className="text-sm">
-                    {visitor.sex === "Masculin" ? t("male") : visitor.sex === "Feminin" ? t("female") : visitor.sex}
+                  
+                  {/* Contact Information */}
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <div className="text-sm text-gray-600">{visitor.email || t("noEmailProvided")}</div>
+                      <div className="text-sm">
+                        {visitor.phoneNumber ? (
+                          <PhoneNumberLink phoneNumber={visitor.phoneNumber} />
+                        ) : (
+                          t("noPhoneProvided")
+                        )}
+                      </div>
+                    </div>
                   </TableCell>
-                  <TableCell className="text-sm text-gray-500">
-                    {formatYearWithAge(visitor.yearOfBirth, language)}
+                  
+                  {/* Badge ID */}
+                  <TableCell>
+                    <div className="font-mono text-xs text-blue-600 font-medium">
+                      {formatBadgeId(visitor.id)}
+                    </div>
                   </TableCell>
-                  <TableCell className="text-sm text-gray-500">{visitor.email || t("noEmailProvided")}</TableCell>
-                  <TableCell className="text-sm">
-                    {visitor.phoneNumber ? (
-                      <PhoneNumberLink phoneNumber={visitor.phoneNumber} />
-                    ) : (
-                      t("noPhoneProvided")
-                    )}
+                  
+                  {/* Visit Time */}
+                  <TableCell>
+                    <div className="flex items-center">
+                      <span>{formatTimeOnly(visit.checkInTime, language)}</span>
+                      <div className="ml-3 text-sm text-gray-500">
+                        {calculateDuration(visit.checkInTime)}
+                      </div>
+                    </div>
                   </TableCell>
-                  <TableCell className="font-mono text-xs text-blue-600 font-medium">{formatBadgeId(visitor.id)}</TableCell>
-                  <TableCell>{formatTimeOnly(visit.checkInTime, language)}</TableCell>
-                  <TableCell className="text-center">
-                    <Button
-                      variant="ghost"
-                      className={`p-1 rounded-full ${visitor.verified ? "bg-green-50" : "bg-gray-50"}`}
-                      onClick={() => handleVerifyToggle(visitor.id, visitor.verified)}
-                      disabled={processingVerificationIds.has(visitor.id)}
-                    >
-                      {processingVerificationIds.has(visitor.id) ? (
-                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                      ) : visitor.verified ? (
-                        <ShieldCheck className="h-5 w-5 text-green-500" />
-                      ) : (
-                        <ShieldCheck className="h-5 w-5 text-gray-300" />
-                      )}
-                    </Button>
-                  </TableCell>
-                  <TableCell>{calculateDuration(visit.checkInTime)}</TableCell>
+                  
+                  {/* Actions */}
                   <TableCell>
                     <div className="flex justify-end space-x-2 items-center">
+                      <Button
+                        variant="ghost"
+                        className={`p-1 rounded-full ${visitor.verified ? "bg-green-50" : "bg-gray-50"}`}
+                        onClick={() => handleVerifyToggle(visitor.id, visitor.verified)}
+                        disabled={processingVerificationIds.has(visitor.id)}
+                      >
+                        {processingVerificationIds.has(visitor.id) ? (
+                          <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                        ) : visitor.verified ? (
+                          <ShieldCheck className="h-5 w-5 text-green-500" />
+                        ) : (
+                          <ShieldCheck className="h-5 w-5 text-gray-300" />
+                        )}
+                      </Button>
+                      
                       <Button
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-blue-600"
                         onClick={() => handleEditVisitor(visitor)}
-                        title="Edit visitor"
+                        title={t("editVisitor")}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
+                      
                       <Button
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-red-600"
                         onClick={() => handleDeleteVisitor(visitor.id, visitor.fullName)}
-                        title="Delete visitor"
+                        title={t("deleteVisitor")}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
+                      
                       <Button
                         variant="ghost"
                         onClick={() => handleCheckOut(visit.id)}
                         disabled={processingIds.has(visit.id)}
-                        className="text-primary-600 hover:text-primary-900"
+                        className="bg-transparent hover:bg-gray-100 text-gray-700 font-semibold py-1 px-3 border border-gray-300 rounded text-sm"
                       >
                         {processingIds.has(visit.id) ? t("processing") : t("checkOut")}
                       </Button>
