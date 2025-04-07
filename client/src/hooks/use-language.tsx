@@ -455,6 +455,14 @@ export const translations: TranslationMap = {
     en: 'Are you sure you want to check out this visitor?',
     fr: 'Êtes-vous sûr de vouloir procéder au départ de ce visiteur?'
   },
+  confirmAutoCheckout: {
+    en: 'Are you sure you want to check out all active visitors?',
+    fr: 'Êtes-vous sûr de vouloir procéder au départ de tous les visiteurs actifs?'
+  },
+  checkOutAll: {
+    en: 'Check Out All Visitors',
+    fr: 'Départ de tous les visiteurs'
+  },
   checkoutSuccess: {
     en: 'Visitor checked out successfully',
     fr: 'Départ du visiteur enregistré avec succès'
