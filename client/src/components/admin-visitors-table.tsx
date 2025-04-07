@@ -575,7 +575,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   {/* Badge ID */}
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs text-blue-600 font-medium">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-sm font-medium bg-blue-50 text-blue-800">
                         {formatBadgeId(visitor.id)}
                       </span>
                       {visitor.verified && (

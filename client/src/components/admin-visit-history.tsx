@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { PhoneNumberLink } from "@/components/phone-number-link";
 import { 
   Search, 
   SlidersHorizontal,
@@ -28,7 +29,6 @@ import {
   Clock,
   XCircle,
   Tag,
-
   Phone,
   ShieldCheck,
   Pencil,
@@ -36,7 +36,7 @@ import {
   ArchiveRestore,
   Eye
 } from "lucide-react";
-import { PhoneNumberLink } from "@/components/phone-number-link";
+
 import {
   Dialog,
   DialogContent,
@@ -664,11 +664,9 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                           <span className="text-gray-400 italic">No email</span>
                         )}
                         {visitor.phoneNumber ? (
-                          <a href={`tel:${visitor.phoneNumber}`} className="text-gray-800 hover:underline">
-                            {visitor.phoneNumber}
-                          </a>
+                          <PhoneNumberLink phoneNumber={visitor.phoneNumber} />
                         ) : (
-                          <span className="text-gray-400 italic">No phone</span>
+                          <span className="text-gray-400 italic">{t("noPhoneProvided")}</span>
                         )}
                       </div>
                     </TableCell>
