@@ -282,6 +282,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Admin trigger auto-checkout for all active visitors
+  app.post("/api/admin/auto-checkout", ensureAuthenticated, async (req, res) => {
+    try {
+      // Call the manual auto-checkout function
+      if (global.manualAutoCheckout) {
+        const checkedOutCount = await global.manualAutoCheckout();
+        res.status(200).json({ 
+          message: `Successfully checked out ${checkedOutCount} visitors`,
+          count: checkedOutCount
+        });
+      } else {
+        res.status(500).json({ 
+          message: "Auto-checkout functionality not initialized properly"
+        });
+      }
+    } catch (error) {
+      console.error("Manual auto-checkout error:", error);
+      res.status(500).json({ 
+        message: "Error during auto-checkout process" 
+      });
+    }
+  });
+  
   // Admin update visit purpose
   app.post("/api/admin/update-visit-purpose", ensureAuthenticated, async (req, res) => {
     try {
@@ -1028,6 +1051,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // We'll import the seed from the migration script instead
+  
+  // Test endpoint for triggering auto-checkout (for development/testing only)
+  app.post("/api/test/auto-checkout", async (req, res) => {
+    try {
+      if (global.manualAutoCheckout) {
+        const checkedOutCount = await global.manualAutoCheckout();
+        res.status(200).json({ 
+          message: `Test auto-checkout completed. ${checkedOutCount} visitors were checked out.`,
+          count: checkedOutCount
+        });
+      } else {
+        res.status(500).json({ message: "Auto-checkout functionality not initialized" });
+      }
+    } catch (error) {
+      console.error("Test auto-checkout error:", error);
+      res.status(500).json({ message: "Error during auto-checkout process" });
+    }
+  });
+  
+  // Test endpoint to get active visits (for development/testing only)
+  app.get("/api/test/active-visits", async (req, res) => {
+    try {
+      const activeVisits = await storage.getActiveVisits();
+      res.status(200).json({ 
+        activeVisits,
+        count: activeVisits.length
+      });
+    } catch (error) {
+      console.error("Test get active visits error:", error);
+      res.status(500).json({ message: "Error retrieving active visits" });
+    }
+  });
+  
+  // Test endpoint to get recent visit history (for development/testing only)
+  app.get("/api/test/visit-history", async (req, res) => {
+    try {
+      // Get the 20 most recent visits
+      const visitHistory = await storage.getVisitHistory(20);
+      res.status(200).json({ 
+        visitHistory,
+        count: visitHistory.length
+      });
+    } catch (error) {
+      console.error("Test get visit history error:", error);
+      res.status(500).json({ message: "Error retrieving visit history" });
+    }
+  });
 
   const httpServer = createServer(app);
   

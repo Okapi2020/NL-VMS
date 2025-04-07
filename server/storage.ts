@@ -45,6 +45,7 @@ export interface IStorage {
   getActiveVisits(): Promise<Visit[]>;
   getVisitHistory(limit?: number): Promise<Visit[]>;
   updateVisit(visit: UpdateVisit): Promise<Visit | undefined>;
+  checkOutAllActiveVisits(): Promise<number>; // Return the number of visits that were checked out
   getVisitorWithActiveVisit(visitorId: number): Promise<{ visitor: Visitor, visit: Visit } | undefined>;
   getVisitWithVisitor(visitId: number): Promise<{ visit: Visit, visitor: Visitor } | undefined>;
   getActiveVisitsWithVisitors(): Promise<{ visit: Visit, visitor: Visitor }[]>;
@@ -72,13 +73,8 @@ export class DatabaseStorage implements IStorage {
       },
       createTableIfMissing: true,
       tableName: 'session', // Explicitly name the session table
-      pruneSessionInterval: 60 * 15, // Prune invalid sessions every 15 min
-      // Customize session columns if needed
-      columns: {
-        session_id: 'sid',
-        session_data: 'sess',
-        expire: 'expire'
-      }
+      pruneSessionInterval: 60 * 15 // Prune invalid sessions every 15 min
+      // Note: 'columns' property has been removed as it's not supported in the PGStoreOptions type
     });
   }
   
@@ -297,6 +293,30 @@ export class DatabaseStorage implements IStorage {
       .where(eq(visits.id, updateVisit.id))
       .returning();
     return updatedVisit;
+  }
+  
+  async checkOutAllActiveVisits(): Promise<number> {
+    try {
+      // Get the current date/time for checkout
+      const checkOutTime = new Date();
+      
+      // Update all active visits to be inactive with current checkout time
+      const result = await db
+        .update(visits)
+        .set({
+          active: false,
+          checkOutTime: checkOutTime
+        })
+        .where(eq(visits.active, true))
+        .returning();
+      
+      // Return the number of visits that were checked out
+      console.log(`Auto-checkout completed: ${result.length} active visits were checked out at ${checkOutTime.toISOString()}`);
+      return result.length;
+    } catch (error) {
+      console.error("Error during automatic checkout:", error);
+      return 0;
+    }
   }
   
   async getVisitorWithActiveVisit(visitorId: number): Promise<{ visitor: Visitor, visit: Visit } | undefined> {

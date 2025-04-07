@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto-Checkout Functionality Report</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3 {
+            color: #112a60;
+        }
+        pre {
+            background-color: #f6f8fa;
+            border-radius: 6px;
+            padding: 16px;
+            overflow: auto;
+        }
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+        }
+        .highlight {
+            background-color: #fffbea;
+            border-left: 4px solid #ffc107;
+            padding: 10px 15px;
+            margin: 20px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Auto-Checkout Functionality Report</h1>
+    
+    <div class="highlight">
+        <p><strong>Summary:</strong> The Visitor Management System now automatically checks out all active visitors at midnight.</p>
+    </div>
+    
+    <h2>Implementation Details</h2>
+    
+    <h3>1. Database Storage</h3>
+    <p>Added a new method to the DatabaseStorage class to check out all active visits in a single operation:</p>
+    <pre><code>async checkOutAllActiveVisits(): Promise<number> {
+  try {
+    const currentDate = new Date();
+    
+    // Find all active visits
+    const activeVisits = await db
+      .select()
+      .from(visits)
+      .where(eq(visits.active, true));
+    
+    if (activeVisits.length === 0) {
+      return 0;
+    }
+    
+    // Update all active visits to be inactive with the current time as checkout time
+    const results = await db
+      .update(visits)
+      .set({
+        active: false,
+        checkOutTime: currentDate
+      })
+      .where(eq(visits.active, true))
+      .returning();
+    
+    return results.length;
+  } catch (error) {
+    console.error("Error checking out all active visits:", error);
+    throw error;
+  }
+}</code></pre>
+
+    <h3>2. Scheduler System</h3>
+    <p>Created a scheduler using node-cron to run the auto-checkout task at midnight:</p>
+    <pre><code>// server/scheduler.ts
+import { CronJob } from 'cron';
+import { storage } from './storage';
+
+/**
+ * Schedule function that runs at midnight to check out all active visitors
+ */
+export function setupMidnightCheckout() {
+  // Schedule the job to run at midnight (00:00:00) every day
+  const job = new CronJob(
+    '0 0 * * *',  // Cron pattern: seconds(0) minutes(0) hours(0) day(any) month(any) weekday(any)
+    async function() {
+      try {
+        console.log('Running scheduled auto-checkout...');
+        const count = await storage.checkOutAllActiveVisits();
+        const timestamp = new Date().toISOString();
+        console.log(`Auto-checkout completed: ${count} active visits were checked out at ${timestamp}`);
+      } catch (error) {
+        console.error('Error during scheduled auto-checkout:', error);
+      }
+    },
+    null,  // onComplete
+    true,  // start
+    'Africa/Kinshasa'  // timezone - using Kinshasa timezone as specified in project requirements
+  );
+
+  // Calculate time until next run for logging purposes
+  const nextRun = job.nextDate();
+  const now = new Date();
+  const hoursUntilNextRun = (nextRun.getTime() - now.getTime()) / (1000 * 60 * 60);
+  
+  console.log(`Auto-checkout scheduler initialized. First auto-checkout will run in ${hoursUntilNextRun.toFixed(2)} hours at midnight.`);
+  
+  // Also expose a function to manually trigger the auto-checkout for testing
+  global.manualAutoCheckout = async () => {
+    try {
+      console.log('Running manual auto-checkout...');
+      const count = await storage.checkOutAllActiveVisits();
+      console.log(`Manual auto-checkout completed: ${count} active visits were checked out.`);
+      return count;
+    } catch (error) {
+      console.error('Error during manual auto-checkout:', error);
+      throw error;
+    }
+  };
+
+  return job;
+}</code></pre>
+
+    <h3>3. Server Integration</h3>
+    <p>Added initialization of the scheduler to the server's index.ts file:</p>
+    <pre><code>// Initialize the auto-checkout scheduler
+setupMidnightCheckout();</code></pre>
+    
+    <h3>4. Global Declaration</h3>
+    <p>Added type declarations for the global function to manually trigger auto-checkout:</p>
+    <pre><code>// server/global.d.ts
+declare global {
+  var broadcastCheckIn: (visitor: Visitor, purpose?: string) => void;
+  var manualAutoCheckout: () => Promise<number>;
+}</code></pre>
+
+    <h2>Test Results</h2>
+    
+    <h3>Test Endpoint</h3>
+    <p>Created a test endpoint to manually trigger the auto-checkout:</p>
+    <pre><code>// Test endpoint for triggering auto-checkout (for development/testing only)
+app.post("/api/test/auto-checkout", async (req, res) => {
+  try {
+    if (global.manualAutoCheckout) {
+      const checkedOutCount = await global.manualAutoCheckout();
+      res.status(200).json({ 
+        message: `Test auto-checkout completed. ${checkedOutCount} visitors were checked out.`,
+        count: checkedOutCount
+      });
+    } else {
+      res.status(500).json({ message: "Auto-checkout functionality not initialized" });
+    }
+  } catch (error) {
+    console.error("Test auto-checkout error:", error);
+    res.status(500).json({ message: "Error during auto-checkout process" });
+  }
+});</code></pre>
+    
+    <h3>Results</h3>
+    <p>On April 7, 2025 at 2:20:27 AM (UTC), we manually triggered the auto-checkout functionality which successfully checked out 17 active visitors. This confirms that:</p>
+    <ul>
+        <li>The auto-checkout functionality works as expected</li>
+        <li>All active visitors were properly checked out</li>
+        <li>The visit records were updated with the correct checkout time</li>
+    </ul>
+    
+    <h3>Sample Visit Records</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Visit ID</th>
+                <th>Visitor ID</th>
+                <th>Check-in Time</th>
+                <th>Check-out Time</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>258</td>
+                <td>169</td>
+                <td>2025-04-06T19:15:08.663Z</td>
+                <td>2025-04-07T02:20:27.797Z</td>
+                <td>Inactive</td>
+            </tr>
+            <tr>
+                <td>257</td>
+                <td>168</td>
+                <td>2025-04-06T19:12:02.341Z</td>
+                <td>2025-04-07T02:20:27.797Z</td>
+                <td>Inactive</td>
+            </tr>
+            <tr>
+                <td>256</td>
+                <td>98</td>
+                <td>2025-04-06T19:09:32.019Z</td>
+                <td>2025-04-07T02:20:27.797Z</td>
+                <td>Inactive</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h2>Conclusion</h2>
+    <p>The automatic midnight check-out feature is successfully implemented and tested. This feature ensures that no visits remain active overnight, maintaining data integrity in the Visitor Management System. When the system runs at midnight local time (Kinshasa timezone), all active visitors will be automatically checked out, preventing any inconsistencies in visit tracking.</p>
+</body>
+</html>

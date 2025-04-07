@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import "./migrate"; // Run migrations on startup
+import { setupMidnightCheckout } from "./scheduler"; // Import the auto-checkout scheduler
 
 const app = express();
 app.use(express.json({ limit: '10mb' })); // Increase JSON payload limit to 10MB
@@ -38,6 +39,12 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Initialize the auto-checkout scheduler
+  const checkoutScheduler = setupMidnightCheckout();
+  
+  // Create a global variable to hold the scheduler's manual checkout function
+  global.manualAutoCheckout = checkoutScheduler.runManualCheckout;
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
