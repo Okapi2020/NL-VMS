@@ -9,7 +9,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { formatDate, formatTimeOnly, formatDateShort, formatDuration, formatBadgeId, formatYearWithAge } from "@/lib/utils";
 import { useLanguage } from "@/hooks/use-language";
-import { X, Pencil, Trash2 } from "lucide-react";
+import { X, Pencil, Trash2, ShieldCheck } from "lucide-react";
+import { PhoneNumberLink } from "@/components/phone-number-link";
 
 type VisitorDetailModalProps = {
   visitor?: Visitor;
@@ -82,7 +83,14 @@ export function VisitorDetailModal({
               <div className="space-y-4 bg-gray-50 p-4 rounded-md">
                 <div>
                   <div className="text-sm text-gray-500">{t("name")}</div>
-                  <div className="font-medium">{visitor.fullName}</div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{visitor.fullName}</span>
+                    {visitor.verified && (
+                      <span title={t("verifiedVisitor")}>
+                        <ShieldCheck className="h-4 w-4 text-blue-500" />
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">{t("gender")}</div>
@@ -121,9 +129,7 @@ export function VisitorDetailModal({
                   <div className="text-sm text-gray-500">{t("phone")}</div>
                   <div className="text-blue-600">
                     {visitor.phoneNumber ? (
-                      <a href={`tel:+${visitor.phoneNumber}`} className="hover:underline">
-                        +{visitor.phoneNumber}
-                      </a>
+                      <PhoneNumberLink phoneNumber={visitor.phoneNumber} />
                     ) : (
                       <span className="text-gray-500 italic">{t("noPhoneProvided")}</span>
                     )}
