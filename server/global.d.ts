@@ -2,7 +2,7 @@ import { Visitor } from "@shared/schema";
 
 declare global {
   var broadcastCheckIn: (visitor: Visitor, purpose?: string) => void;
-  var manualAutoCheckout: () => Promise<number>;
+  var manualAutoCheckout: (adminId?: number) => Promise<number>;
 }
 
 export {};

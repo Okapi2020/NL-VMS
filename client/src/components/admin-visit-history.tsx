@@ -497,7 +497,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
               
               <div className="space-y-1">
                 <label className="text-sm font-medium block">Date Range</label>
-                <DateRangePicker date={dateRange} setDate={setDateRange} />
+                <DateRangePicker value={dateRange} onChange={setDateRange} />
               </div>
               
               {dateRange && (

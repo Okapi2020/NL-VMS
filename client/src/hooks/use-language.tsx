@@ -617,6 +617,10 @@ export const translations: TranslationMap = {
     en: 'Avg. Duration',
     fr: 'Durée moyenne'
   },
+  autoCheckoutNotice: {
+    en: 'For security purposes, all visitors will be automatically checked out at midnight. If you need to stay longer, please check in again the next day.',
+    fr: 'Pour des raisons de sécurité, tous les visiteurs seront automatiquement désenregistrés à minuit. Si vous avez besoin de rester plus longtemps, veuillez vous enregistrer à nouveau le lendemain.'
+  },
 
   // Settings
   appearance: {
