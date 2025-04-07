@@ -549,14 +549,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   {/* Visitor Information */}
                   <TableCell>
                     <div className="flex flex-col">
-                      <div className="flex items-center gap-1">
-                        <span className="font-medium">{visitor.fullName}</span>
-                        {visitor.verified && (
-                          <span title={t("verifiedVisitor")}>
-                            <ShieldCheck className="h-4 w-4 text-blue-500" />
-                          </span>
-                        )}
-                      </div>
+                      <div className="font-medium">{visitor.fullName}</div>
                       <div className="text-sm text-gray-500">
                         {visitor.sex === "Masculin" ? t("male") : visitor.sex === "Feminin" ? t("female") : visitor.sex}
                         {' '}
@@ -581,8 +574,15 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   
                   {/* Badge ID */}
                   <TableCell>
-                    <div className="font-mono text-xs text-blue-600 font-medium">
-                      {formatBadgeId(visitor.id)}
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs text-blue-600 font-medium">
+                        {formatBadgeId(visitor.id)}
+                      </span>
+                      {visitor.verified && (
+                        <span title={t("verifiedVisitor")}>
+                          <ShieldCheck className="h-4 w-4 text-blue-500" />
+                        </span>
+                      )}
                     </div>
                   </TableCell>
                   
@@ -602,21 +602,6 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   {/* Actions */}
                   <TableCell>
                     <div className="flex justify-end space-x-2 items-center">
-                      <Button
-                        variant="ghost"
-                        className={`p-1 rounded-full ${visitor.verified ? "bg-green-50" : "bg-gray-50"}`}
-                        onClick={() => handleVerifyToggle(visitor.id, visitor.verified)}
-                        disabled={processingVerificationIds.has(visitor.id)}
-                      >
-                        {processingVerificationIds.has(visitor.id) ? (
-                          <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                        ) : visitor.verified ? (
-                          <ShieldCheck className="h-5 w-5 text-green-500" />
-                        ) : (
-                          <ShieldCheck className="h-5 w-5 text-gray-300" />
-                        )}
-                      </Button>
-                      
                       <Button
                         variant="outline"
                         size="sm"
