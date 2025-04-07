@@ -32,7 +32,8 @@ import {
   ShieldCheck,
   Pencil,
   Trash2,
-  ArchiveRestore
+  ArchiveRestore,
+  Eye
 } from "lucide-react";
 import { PhoneNumberLink } from "@/components/phone-number-link";
 import {
@@ -63,6 +64,7 @@ import {
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Checkbox } from "@/components/ui/checkbox"; 
 import { DateRange } from "react-day-picker";
+import { VisitorDetailModal } from "./visitor-detail-modal";
 
 type AdminVisitHistoryProps = {
   visitHistory: { visit: Visit; visitor: Visitor }[];
@@ -81,7 +83,9 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "completed">("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedVisitor, setSelectedVisitor] = useState<Visitor | null>(null);
+  const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [showDeletedVisitors, setShowDeletedVisitors] = useState(false);
   
   // Pagination
@@ -492,309 +496,33 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
               </div>
               
               <div className="space-y-1">
-                <label className="text-sm font-medium block">Sort By</label>
-                <Select value={sortField} onValueChange={(value: "name" | "checkIn" | "checkOut" | "duration") => handleSortChange(value)}>
-                  <SelectTrigger className="w-36">
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="name">Visitor Name</SelectItem>
-                    <SelectItem value="checkIn">Check-in Time</SelectItem>
-                    <SelectItem value="checkOut">Check-out Time</SelectItem>
-                    <SelectItem value="duration">Duration</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium block">Direction</label>
-                <Button 
-                  variant="outline" 
-                  onClick={toggleSortDirection}
-                  className="w-36 justify-between"
-                >
-                  {sortDirection === "asc" ? "Ascending" : "Descending"}
-                  {sortDirection === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                </Button>
-              </div>
-            </div>
-            
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
                 <label className="text-sm font-medium block">Date Range</label>
-                {dateRange && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-8 px-2 text-xs" 
-                    onClick={() => setDateRange(undefined)}
-                  >
-                    <XCircle className="h-3.5 w-3.5 mr-1" />
-                    Clear
-                  </Button>
-                )}
+                <DateRangePicker date={dateRange} setDate={setDateRange} />
               </div>
-              <DateRangePicker 
-                value={dateRange} 
-                onChange={setDateRange} 
-              />
+              
+              {dateRange && (
+                <div className="flex items-end">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setDateRange(undefined)}
+                    className="h-10"
+                  >
+                    <XCircle className="mr-2 h-4 w-4" />
+                    Clear dates
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}
-      </div>
-
-      {/* Action buttons and pagination controls */}
-      <div className="flex flex-wrap justify-between items-center gap-2 mb-3 px-4">
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              if (paginatedVisits.length > 0) {
-                if (selectedVisitors.length === paginatedVisits.length) {
-                  setSelectedVisitors([]);
-                } else {
-                  setSelectedVisitors(paginatedVisits.map(item => item.visitor.id));
-                }
-              }
-            }}
-          >
-            {selectedVisitors.length > 0 && selectedVisitors.length === paginatedVisits.length ? "Deselect All" : "Select All"}
-          </Button>
-          
-          {!showDeletedVisitors && (
-            <Button
-              variant="outline"
-              size="sm"
-              color="danger"
-              disabled={isProcessingBulk || selectedVisitors.length === 0}
-              onClick={() => {
-                if (selectedVisitors.length > 0 && window.confirm(`Are you sure you want to delete ${selectedVisitors.length} selected visitor(s)? This will move them to the trash bin.`)) {
-                  setIsProcessingBulk(true);
-                  Promise.all(
-                    selectedVisitors.map(id => 
-                      apiRequest("DELETE", `/api/admin/delete-visitor/${id}`)
-                        .then(res => res.json())
-                    )
-                  )
-                    .then(() => {
-                      toast({
-                        title: "Success",
-                        description: `${selectedVisitors.length} visitor(s) deleted successfully`,
-                      });
-                      setSelectedVisitors([]);
-                      // Refresh data
-                      queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
-                      queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
-                      queryClient.invalidateQueries({ queryKey: ["/api/admin/trash"] });
-                    })
-                    .catch(error => {
-                      toast({
-                        title: "Error",
-                        description: `Failed to delete visitors: ${error.message}`,
-                        variant: "destructive",
-                      });
-                    })
-                    .finally(() => {
-                      setIsProcessingBulk(false);
-                    });
-                }
-              }}
-            >
-              {isProcessingBulk ? 'Processing...' : `Delete Selected (${selectedVisitors.length})`}
-            </Button>
-          )}
-          
-          {showDeletedVisitors && (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-green-600 border-green-600 hover:bg-green-50"
-                disabled={isProcessingBulk || selectedVisitors.length === 0}
-                onClick={() => {
-                  if (selectedVisitors.length > 0 && window.confirm("Are you sure you want to restore all selected visitors?")) {
-                    setIsProcessingBulk(true);
-                    Promise.all(
-                      selectedVisitors.map(id => 
-                        apiRequest("POST", `/api/admin/restore-visitor/${id}`)
-                          .then(res => res.json())
-                      )
-                    )
-                      .then(() => {
-                        toast({
-                          title: "Success",
-                          description: `${selectedVisitors.length} visitor(s) restored successfully`,
-                        });
-                        setSelectedVisitors([]);
-                        // If we're restoring all items in trash bin, switch back to normal view
-                        const checkTrashStatus = async () => {
-                          try {
-                            const res = await apiRequest("GET", "/api/admin/trash");
-                            const remaining = await res.json();
-                            // If trash is empty and we're in trash bin view, switch back to regular view
-                            if (Array.isArray(remaining) && remaining.length === 0 && showDeletedVisitors) {
-                              setShowDeletedVisitors(false);
-                              setPage(1);
-                            }
-                          } catch (error) {
-                            console.error("Error checking trash status:", error);
-                          }
-                        };
-                        // Refresh data
-                        queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
-                        queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
-                        queryClient.invalidateQueries({ queryKey: ["/api/admin/trash"] });
-                        // Check if trash is now empty after data refresh
-                        setTimeout(checkTrashStatus, 300);
-                      })
-                      .catch(error => {
-                        toast({
-                          title: "Error",
-                          description: `Failed to restore visitors: ${error.message}`,
-                          variant: "destructive",
-                        });
-                      })
-                      .finally(() => {
-                        setIsProcessingBulk(false);
-                      });
-                  }
-                }}
-              >
-                {isProcessingBulk ? 'Processing...' : `Restore Selected (${selectedVisitors.length})`}
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-red-600 border-red-200 hover:bg-red-50"
-                disabled={isProcessingBulk || (selectedVisitors.length === 0 && sortedVisits.length === 0)}
-                onClick={() => {
-                  if (selectedVisitors.length > 0) {
-                    if (window.confirm(`Are you sure you want to permanently delete ${selectedVisitors.length} selected visitor(s)? This action cannot be undone.`)) {
-                      setIsProcessingBulk(true);
-                      Promise.all(
-                        selectedVisitors.map(id => 
-                          apiRequest("DELETE", `/api/admin/permanently-delete/${id}`)
-                            .then(res => res.json())
-                        )
-                      )
-                        .then(() => {
-                          toast({
-                            title: "Success",
-                            description: `${selectedVisitors.length} visitor(s) permanently deleted`,
-                          });
-                          setSelectedVisitors([]);
-                          // Refresh data
-                          queryClient.invalidateQueries({ queryKey: ["/api/admin/trash"] });
-                        })
-                        .catch(error => {
-                          toast({
-                            title: "Error",
-                            description: `Failed to delete visitors: ${error.message}`,
-                            variant: "destructive",
-                          });
-                        })
-                        .finally(() => {
-                          setIsProcessingBulk(false);
-                        });
-                    }
-                  } else if (sortedVisits.length > 0) {
-                    // Empty bin functionality
-                    if (window.confirm("Are you sure you want to permanently delete ALL items in the trash bin? This action cannot be undone.")) {
-                      setIsProcessingBulk(true);
-                      apiRequest("DELETE", "/api/admin/empty-bin")
-                        .then(res => res.json())
-                        .then(() => {
-                          toast({
-                            title: "Success",
-                            description: "Trash bin emptied successfully",
-                          });
-                          // Refresh data
-                          queryClient.invalidateQueries({ queryKey: ["/api/admin/trash"] });
-                          // Automatically go back to normal view since trash bin is now empty
-                          setShowDeletedVisitors(false);
-                          setPage(1);
-                        })
-                        .catch(error => {
-                          toast({
-                            title: "Error",
-                            description: `Failed to empty trash bin: ${error.message}`,
-                            variant: "destructive",
-                          });
-                        })
-                        .finally(() => {
-                          setIsProcessingBulk(false);
-                        });
-                    }
-                  }
-                }}
-              >
-                {isProcessingBulk ? 'Processing...' : selectedVisitors.length > 0 
-                  ? `Delete Selected (${selectedVisitors.length})` 
-                  : "Empty Bin"}
-              </Button>
-            </>
-          )}
-        </div>
         
-        {/* Pagination */}
-        <div className="flex items-center gap-2">
-          <Select
-            value={(itemsPerPage || 10).toString()}
-            onValueChange={(value) => {
-              try {
-                setItemsPerPage(parseInt(value));
-                setPage(1); // Reset to first page when changing items per page
-              } catch (error) {
-                console.error("Error setting items per page:", error);
-                setItemsPerPage(10);
-              }
-            }}
-          >
-            <SelectTrigger className="h-9 w-[100px]">
-              <SelectValue placeholder="10 per page" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="10">10 per page</SelectItem>
-              <SelectItem value="20">20 per page</SelectItem>
-              <SelectItem value="30">30 per page</SelectItem>
-              <SelectItem value="50">50 per page</SelectItem>
-              <SelectItem value="100">100 per page</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <div className="flex">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setPage(Math.max(1, (page || 1) - 1))}
-              disabled={(page || 0) <= 1}
-              className="h-9 w-9 rounded-r-none"
-            >
-              &lt;
-            </Button>
-            <div className="border-y px-3 flex items-center text-sm">
-              <span className="text-gray-500">Page {page || 1} of {Math.max(1, totalPages || 1)}</span>
-            </div>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setPage(Math.min((totalPages || 1), (page || 1) + 1))}
-              disabled={(page || 0) >= (totalPages || 0) || (totalPages || 0) === 0}
-              className="h-9 w-9 rounded-l-none"
-            >
-              &gt;
-            </Button>
-          </div>
+        {/* Selected count */}
+        <div className="text-sm text-gray-500 mt-2">
+          Showing {paginatedVisits.length > 0 ? (page - 1) * itemsPerPage + 1 : 0} - {Math.min(page * itemsPerPage, sortedVisits.length)} of {sortedVisits.length}
+          {showDeletedVisitors ? " (Trash Bin)" : ""}
+          {selectedVisitors?.length > 0 ? ` • ${selectedVisitors.length} selected` : ""}
         </div>
-      </div>
-      
-      {/* Results count */}
-      <div className="text-sm text-gray-500 mb-2 px-4">
-        Showing {paginatedVisits?.length || 0} of {sortedVisits?.length || 0} visits
-        {showDeletedVisitors ? " (Trash Bin)" : ""}
-        {selectedVisitors?.length > 0 ? ` • ${selectedVisitors.length} selected` : ""}
       </div>
 
       {/* Table */}
@@ -817,20 +545,21 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                         setSelectedVisitors(validIds);
                       }
                     } catch (error) {
-                      console.error("Error handling checkbox change:", error);
-                      setSelectedVisitors([]);
+                      console.error("Error selecting/deselecting all visitors:", error);
                     }
                   }}
-                  aria-label="Select all"
                 />
               </TableHead>
+
+              {/* Grouped Visitor Information */}
               <TableHead 
                 className="cursor-pointer" 
                 onClick={() => handleSortChange("name")}
+                colSpan={2}
               >
                 <div className="flex items-center">
                   <UserRound className="mr-1 h-4 w-4" />
-                  Name
+                  Visitor
                   {sortField === "name" && (
                     sortDirection === "asc" ? 
                     <ChevronUp className="ml-1 h-4 w-4" /> : 
@@ -838,316 +567,382 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                   )}
                 </div>
               </TableHead>
-              <TableHead>{t("sex")}</TableHead>
-              <TableHead>{t("yearOfBirth")}</TableHead>
-              <TableHead className="min-w-[180px]">{t("email")}</TableHead>
-              <TableHead className="min-w-[150px]">
+
+              {/* Contact Information */}
+              <TableHead colSpan={2}>
                 <div className="flex items-center">
                   <Phone className="mr-1 h-4 w-4" />
-                  Phone
+                  Contact
                 </div>
               </TableHead>
+              
+              {/* Badge ID Column */}
               <TableHead>
                 <div className="flex items-center">
                   <Tag className="mr-1 h-4 w-4" />
                   Badge ID
                 </div>
               </TableHead>
+              
+              {/* Time Information */}
               <TableHead 
                 className="cursor-pointer" 
                 onClick={() => handleSortChange("checkIn")}
-              >
-                <div className="flex items-center">
-                  <Calendar className="mr-1 h-4 w-4" />
-                  Check-in
-                  {sortField === "checkIn" && (
-                    sortDirection === "asc" ? 
-                    <ChevronUp className="ml-1 h-4 w-4" /> : 
-                    <ChevronDown className="ml-1 h-4 w-4" />
-                  )}
-                </div>
-              </TableHead>
-              <TableHead 
-                className="cursor-pointer" 
-                onClick={() => handleSortChange("checkOut")}
-              >
-                <div className="flex items-center">
-                  <Calendar className="mr-1 h-4 w-4" />
-                  Check-out
-                  {sortField === "checkOut" && (
-                    sortDirection === "asc" ? 
-                    <ChevronUp className="ml-1 h-4 w-4" /> : 
-                    <ChevronDown className="ml-1 h-4 w-4" />
-                  )}
-                </div>
-              </TableHead>
-              <TableHead>
-                <div className="flex items-center">
-                  <ShieldCheck className="mr-1 h-4 w-4" />
-                  Verified Badge
-                </div>
-              </TableHead>
-              <TableHead 
-                className="cursor-pointer" 
-                onClick={() => handleSortChange("duration")}
+                colSpan={2}
               >
                 <div className="flex items-center">
                   <Clock className="mr-1 h-4 w-4" />
-                  Duration
-                  {sortField === "duration" && (
+                  Visit Time
+                  {(sortField === "checkIn" || sortField === "checkOut" || sortField === "duration") && (
                     sortDirection === "asc" ? 
                     <ChevronUp className="ml-1 h-4 w-4" /> : 
                     <ChevronDown className="ml-1 h-4 w-4" />
                   )}
                 </div>
               </TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              
+              {/* Duration */}
+              <TableHead 
+                className="cursor-pointer"
+                onClick={() => handleSortChange("duration")}
+              >
+                <div className="flex items-center">
+                  Duration
+                </div>
+              </TableHead>
+              
+              {/* Actions */}
+              <TableHead className="text-right pr-4">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {(sortedVisits?.length || 0) > 0 && Array.isArray(paginatedVisits) ? (
-              paginatedVisits.map(({ visitor, visit }) => (
-                <TableRow 
-                  key={visit.id} 
-                  className={`${visitor.deleted ? "bg-gray-50" : ""} ${Array.isArray(selectedVisitors) && selectedVisitors.includes(visitor.id) ? "bg-primary-50" : ""}`}
-                >
-                  <TableCell>
-                    <Checkbox
-                      checked={Array.isArray(selectedVisitors) && selectedVisitors.includes(visitor.id)}
-                      onCheckedChange={(checked: boolean) => {
-                        try {
-                          if (checked) {
-                            setSelectedVisitors([...(selectedVisitors || []), visitor.id]);
-                          } else {
-                            setSelectedVisitors((selectedVisitors || []).filter(id => id !== visitor.id));
-                          }
-                        } catch (error) {
-                          console.error("Error handling individual checkbox change:", error);
-                        }
-                      }}
-                      aria-label={`Select ${visitor.fullName}`}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <div className="font-medium">{visitor.fullName}</div>
-                  </TableCell>
-                  <TableCell className="text-sm text-gray-500">
-                    {visitor.sex === "Masculin" ? t("male") : visitor.sex === "Feminin" ? t("female") : visitor.sex}
-                  </TableCell>
-                  <TableCell className="text-sm text-gray-500">
-                    {formatYearWithAge(visitor.yearOfBirth, language)}
-                  </TableCell>
-                  <TableCell className="text-sm text-gray-500">
-                    <div className="truncate max-w-[180px]">
-                      {visitor.email || "No email provided"}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    <div className="whitespace-nowrap">
-                      {visitor.phoneNumber ? (
-                        <PhoneNumberLink phoneNumber={visitor.phoneNumber} />
-                      ) : (
-                        "No phone provided"
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-mono text-xs text-blue-600 font-medium">{formatBadgeId(visitor.id)}</TableCell>
-                  <TableCell>
-                    <div className="text-sm">{formatTimeOnly(visit.checkInTime, language)}</div>
-                    <div className="text-xs text-gray-500">
-                      {formatDate(visit.checkInTime, language).split(',')[0]}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {visit.checkOutTime ? (
-                      <>
-                        <div className="text-sm">{formatTimeOnly(visit.checkOutTime, language)}</div>
-                        <div className="text-xs text-gray-500">
-                          {formatDate(visit.checkOutTime, language).split(',')[0]}
-                        </div>
-                      </>
-                    ) : (
-                      <span className="text-amber-600 font-medium">Active</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Button
-                      variant="ghost"
-                      className={`p-1 rounded-full ${visitor.verified ? "bg-green-50" : "bg-gray-50"}`}
-                      onClick={() => handleVerifyToggle(visitor.id, visitor.verified)}
-                      disabled={processingVerificationIds.has(visitor.id) || visitor.deleted}
-                    >
-                      {processingVerificationIds.has(visitor.id) ? (
-                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                      ) : visitor.verified ? (
-                        <ShieldCheck className="h-5 w-5 text-green-500" />
-                      ) : (
-                        <ShieldCheck className="h-5 w-5 text-gray-300" />
-                      )}
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    {visit.checkOutTime ? (
-                      formatDuration(visit.checkInTime, visit.checkOutTime, language)
-                    ) : (
-                      "N/A"
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex justify-end space-x-2 items-center">
-                      {visitor.deleted ? (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-green-600"
-                          onClick={() => {
-                            if (confirm(`Are you sure you want to restore ${visitor.fullName}?`)) {
-                              restoreVisitorMutation.mutate(visitor.id);
-                            }
-                          }}
-                          title="Restore visitor"
-                        >
-                          <ArchiveRestore className="h-4 w-4" />
-                        </Button>
-                      ) : (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-blue-600"
-                            onClick={() => {
-                              setSelectedVisitor(visitor);
-                              setIsEditDialogOpen(true);
-                            }}
-                            title="Edit visitor"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-red-600"
-                            onClick={() => {
-                              if (confirm(`Are you sure you want to delete ${visitor.fullName}? This will move the visitor to the trash bin.`)) {
-                                deleteVisitorMutation.mutate(visitor.id);
-                              }
-                            }}
-                            title="Delete visitor"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
+            {paginatedVisits.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={12} className="text-center py-4 text-gray-500">
+                <TableCell colSpan={10} className="text-center py-4 text-gray-500">
                   {showDeletedVisitors 
                     ? "Trash bin is empty" 
                     : "No visits match your search or filters"}
                 </TableCell>
               </TableRow>
+            ) : (
+              paginatedVisits.map(({ visitor, visit }) => {
+                // Add safety check for missing visitor or visit
+                if (!visitor || !visit) {
+                  return null;
+                }
+                
+                return (
+                  <TableRow key={`${visitor.id}-${visit.id}`}>
+                    {/* Checkbox */}
+                    <TableCell className="align-top pt-4">
+                      <Checkbox
+                        checked={selectedVisitors?.includes(visitor.id)}
+                        onCheckedChange={(checked) => {
+                          try {
+                            if (checked) {
+                              // Add visitor ID to selection
+                              setSelectedVisitors(prev => [...prev, visitor.id]);
+                            } else {
+                              // Remove visitor ID from selection
+                              setSelectedVisitors(prev => prev.filter(id => id !== visitor.id));
+                            }
+                          } catch (error) {
+                            console.error("Error toggling visitor selection:", error);
+                          }
+                        }}
+                      />
+                    </TableCell>
+                    
+                    {/* Visitor Name and Info */}
+                    <TableCell className="py-4">
+                      <div className="font-medium">{visitor.fullName}</div>
+                      <div className="text-xs text-gray-500">
+                        {visitor.verified && (
+                          <span className="inline-flex items-center rounded bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20 mr-1">
+                            <ShieldCheck className="h-3 w-3 mr-0.5" />
+                            Verified
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    
+                    {/* Sex and Birth Year */}
+                    <TableCell className="text-sm text-gray-600 align-top py-4">
+                      <div>{visitor.sex}</div>
+                      <div>{formatYearWithAge(visitor.yearOfBirth, language)}</div>
+                    </TableCell>
+                    
+                    {/* Email */}
+                    <TableCell className="py-4">
+                      <div className="max-w-[180px] truncate">
+                        {visitor.email ? (
+                          <a href={`mailto:${visitor.email}`} className="text-blue-600 hover:underline text-sm">
+                            {visitor.email}
+                          </a>
+                        ) : (
+                          <span className="text-gray-500 text-sm">No email</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    
+                    {/* Phone */}
+                    <TableCell className="py-4">
+                      {visitor.phoneNumber ? (
+                        <div className="text-sm">
+                          <PhoneNumberLink phoneNumber={visitor.phoneNumber} />
+                        </div>
+                      ) : (
+                        <span className="text-gray-500 text-sm">No phone</span>
+                      )}
+                    </TableCell>
+                    
+                    {/* Badge ID */}
+                    <TableCell className="font-mono text-xs text-blue-600 py-4 whitespace-nowrap">
+                      {formatBadgeId(visitor.id)}
+                    </TableCell>
+                    
+                    {/* Check-in */}
+                    <TableCell className="py-4">
+                      <div className="flex flex-col">
+                        <div className="text-sm font-medium">Check-in</div>
+                        <div className="flex items-center">
+                          <span className="inline-flex items-center">
+                            <span className="h-2 w-2 rounded-full bg-green-500 mr-2"></span>
+                            <span className="font-medium">{formatTimeOnly(visit.checkInTime, language)}</span>
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {formatDate(visit.checkInTime, language).split(",")[0]}
+                        </div>
+                      </div>
+                    </TableCell>
+                    
+                    {/* Check-out */}
+                    <TableCell className="py-4">
+                      <div className="flex flex-col">
+                        <div className="text-sm font-medium">Check-out</div>
+                        {visit.checkOutTime ? (
+                          <>
+                            <div className="flex items-center">
+                              <span className="inline-flex items-center">
+                                <span className="h-2 w-2 rounded-full bg-red-500 mr-2"></span>
+                                <span className="font-medium">{formatTimeOnly(visit.checkOutTime, language)}</span>
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {formatDate(visit.checkOutTime, language).split(",")[0]}
+                            </div>
+                          </>
+                        ) : (
+                          <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 mt-1">
+                            Active
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    
+                    {/* Duration */}
+                    <TableCell className="whitespace-nowrap py-4">
+                      {visit.checkOutTime ? (
+                        <span className="font-medium">{formatDuration(visit.checkInTime, visit.checkOutTime, language)}</span>
+                      ) : (
+                        <span className="text-gray-500">-</span>
+                      )}
+                    </TableCell>
+                    
+                    {/* Actions */}
+                    <TableCell className="text-right space-x-2 py-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8"
+                        onClick={() => {
+                          setSelectedVisitor(visitor);
+                          setSelectedVisit(visit);
+                          setIsDetailModalOpen(true);
+                        }}
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        View
+                      </Button>
+                      
+                      {showDeletedVisitors ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          onClick={() => {
+                            restoreVisitorMutation.mutate(visitor.id);
+                          }}
+                        >
+                          <ArchiveRestore className="h-4 w-4 mr-1" />
+                          Restore
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => {
+                            const confirm = window.confirm(`Are you sure you want to delete ${visitor.fullName}?`);
+                            if (confirm) {
+                              deleteVisitorMutation.mutate(visitor.id);
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Delete
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>
       </div>
       
-      {/* Bottom padding */}
-      <div className="pb-4"></div>
-
+      {/* Pagination controls */}
+      <div className="flex justify-between items-center my-4 px-4">
+        <div className="flex items-center space-x-2">
+          <Select
+            value={String(itemsPerPage)}
+            onValueChange={(value) => {
+              setItemsPerPage(Number(value));
+              setPage(1); // Reset to first page when changing items per page
+            }}
+          >
+            <SelectTrigger className="w-20">
+              <SelectValue placeholder="10" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5">5</SelectItem>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="25">25</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+              <SelectItem value="100">100</SelectItem>
+            </SelectContent>
+          </Select>
+          <span className="text-sm text-gray-500">items per page</span>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            onClick={() => setPage(page > 1 ? page - 1 : 1)}
+            disabled={page <= 1}
+            className="h-8 w-8 p-0"
+          >
+            <span className="sr-only">Previous Page</span>
+            <ChevronUp className="h-4 w-4 rotate-90" />
+          </Button>
+          
+          <span className="text-sm text-gray-700">
+            Page {page} of {Math.max(1, totalPages)}
+          </span>
+          
+          <Button
+            variant="outline"
+            onClick={() => setPage(page < totalPages ? page + 1 : totalPages)}
+            disabled={page >= totalPages}
+            className="h-8 w-8 p-0"
+          >
+            <span className="sr-only">Next Page</span>
+            <ChevronDown className="h-4 w-4 rotate-90" />
+          </Button>
+        </div>
+      </div>
+      
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Edit Visitor Information</DialogTitle>
             <DialogDescription>
-              Update the visitor's information. Click save when you're done.
+              Update visitor details. Click save when you're done.
             </DialogDescription>
           </DialogHeader>
           
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-2">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="fullName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Full Name</FormLabel>
+                    <FormLabel>{t("fullName")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Full Name" {...field} />
+                      <Input {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               
-              <FormField
-                control={form.control}
-                name="yearOfBirth"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Year of Birth</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="Year of Birth" 
-                        {...field}
-                        onChange={(e) => {
-                          const value = e.target.value ? parseInt(e.target.value) : "";
-                          field.onChange(value);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="sex"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Sex</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="sex"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("sex")}</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select gender" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Masculin">Masculin</SelectItem>
+                          <SelectItem value="Feminin">Feminin</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="yearOfBirth"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("yearOfBirth")}</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select sex" />
-                        </SelectTrigger>
+                        <Input
+                          type="number"
+                          min="1900"
+                          max={new Date().getFullYear()}
+                          step="1"
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value, 10) || field.value)}
+                        />
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Masculin">Male (Masculin)</SelectItem>
-                        <SelectItem value="Feminin">Female (Feminin)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email (Optional)</FormLabel>
+                    <FormLabel>{t("email")}</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="email" 
-                        placeholder="Email" 
+                      <Input
+                        type="email"
                         {...field}
                         value={field.value || ""}
-                        onChange={(e) => {
-                          field.onChange(e.target.value || null);
-                        }}
+                        onChange={(e) => field.onChange(e.target.value || null)}
                       />
                     </FormControl>
+                    <FormDescription>Optional</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -1158,37 +953,75 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                 name="phoneNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
+                    <FormLabel>{t("phoneNumber")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Phone Number" {...field} />
+                      <Input {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               
-              <DialogFooter className="sm:justify-between mt-6">
+              <DialogFooter className="gap-2 sm:gap-0">
                 <DialogClose asChild>
-                  <Button type="button" variant="outline">Cancel</Button>
+                  <Button type="button" variant="outline" className="mt-4">
+                    Cancel
+                  </Button>
                 </DialogClose>
                 <Button 
                   type="submit" 
-                  disabled={editVisitorMutation.isPending || !form.formState.isDirty}
+                  className="mt-4"
+                  disabled={editVisitorMutation.isPending}
                 >
                   {editVisitorMutation.isPending ? (
-                    <>
-                      <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-background border-t-transparent"></div>
+                    <span className="flex items-center">
+                      <div className="animate-spin mr-2 h-4 w-4">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={1.5}
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+                          />
+                        </svg>
+                      </div>
                       Saving...
-                    </>
-                  ) : "Save Changes"}
+                    </span>
+                  ) : (
+                    "Save Changes"
+                  )}
                 </Button>
               </DialogFooter>
             </form>
           </Form>
         </DialogContent>
       </Dialog>
+      
+      {/* Visitor Detail Modal */}
+      <VisitorDetailModal
+        visitor={selectedVisitor || undefined}
+        visit={selectedVisit || undefined}
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        onEdit={() => {
+          setIsDetailModalOpen(false);
+          setIsEditDialogOpen(true);
+        }}
+        onDelete={() => {
+          setIsDetailModalOpen(false);
+          if (selectedVisitor) {
+            const confirm = window.confirm(`Are you sure you want to delete ${selectedVisitor.fullName}?`);
+            if (confirm) {
+              deleteVisitorMutation.mutate(selectedVisitor.id);
+            }
+          }
+        }}
+      />
     </div>
   );
 }
-
-export default AdminVisitHistory;
