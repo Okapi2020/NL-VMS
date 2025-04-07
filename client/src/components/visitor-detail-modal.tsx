@@ -62,15 +62,6 @@ export function VisitorDetailModal({
         <DialogHeader className="border-b pb-2">
           <div className="flex justify-between items-center">
             <DialogTitle className="text-xl">{t("visitorDetails")}</DialogTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 rounded-full"
-              onClick={onClose}
-            >
-              <X className="h-4 w-4" />
-              <span className="sr-only">Close</span>
-            </Button>
           </div>
         </DialogHeader>
 
@@ -201,15 +192,15 @@ export function VisitorDetailModal({
                 </Button>
                 <Button
                   variant="outline"
-                  className="w-1/2 gap-2 bg-red-50 border-red-200 text-red-600 hover:bg-red-100"
+                  className="w-1/2 gap-2 bg-red-50 border-red-200 text-red-600 hover:bg-red-100 whitespace-nowrap"
                   onClick={() => {
                     if (confirm(t("confirmDeleteVisitor", { name: visitor.fullName }))) {
                       onDelete();
                     }
                   }}
                 >
-                  <Trash2 className="h-4 w-4" />
-                  {t("deleteRecord")}
+                  <Trash2 className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">{t("deleteRecord")}</span>
                 </Button>
               </div>
             </div>

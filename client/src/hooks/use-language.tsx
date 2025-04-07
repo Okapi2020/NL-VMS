@@ -455,6 +455,34 @@ export const translations: TranslationMap = {
     en: 'Ongoing',
     fr: 'En cours'
   },
+  visitorDetails: {
+    en: 'Visitor Details',
+    fr: 'Détails du visiteur'
+  },
+  personalInformation: {
+    en: 'Personal Information',
+    fr: 'Informations personnelles'
+  },
+  contactDetails: {
+    en: 'Contact Details',
+    fr: 'Coordonnées'
+  },
+  visitInformation: {
+    en: 'Visit Information',
+    fr: 'Informations de visite'
+  },
+  editDetails: {
+    en: 'Edit Details',
+    fr: 'Modifier'
+  },
+  deleteRecord: {
+    en: 'Delete Record',
+    fr: 'Supprimer'
+  },
+  actions: {
+    en: 'Actions',
+    fr: 'Actions'
+  },
   confirmCheckout: {
     en: 'Are you sure you want to check out this visitor?',
     fr: 'Êtes-vous sûr de vouloir procéder au départ de ce visiteur?'
