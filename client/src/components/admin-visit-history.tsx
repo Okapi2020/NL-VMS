@@ -28,6 +28,7 @@ import {
   Clock,
   XCircle,
   Tag,
+
   Phone,
   ShieldCheck,
   Pencil,
@@ -551,15 +552,13 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                 />
               </TableHead>
 
-              {/* Grouped Visitor Information */}
+              {/* Visitor Information */}
               <TableHead 
                 className="cursor-pointer" 
                 onClick={() => handleSortChange("name")}
-                colSpan={2}
               >
                 <div className="flex items-center">
-                  <UserRound className="mr-1 h-4 w-4" />
-                  Visitor
+                  <span className="uppercase text-xs font-medium text-gray-500">Visiteur</span>
                   {sortField === "name" && (
                     sortDirection === "asc" ? 
                     <ChevronUp className="ml-1 h-4 w-4" /> : 
@@ -569,10 +568,9 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
               </TableHead>
 
               {/* Contact Information */}
-              <TableHead colSpan={2}>
+              <TableHead>
                 <div className="flex items-center">
-                  <Phone className="mr-1 h-4 w-4" />
-                  Contact
+                  <span className="uppercase text-xs font-medium text-gray-500">Contact</span>
                 </div>
               </TableHead>
               
@@ -580,20 +578,19 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
               <TableHead>
                 <div className="flex items-center">
                   <Tag className="mr-1 h-4 w-4" />
-                  Badge ID
+                  <span className="uppercase text-xs font-medium text-gray-500">Badge</span>
                 </div>
               </TableHead>
               
-              {/* Time Information */}
+              {/* Visit Time Information */}
               <TableHead 
                 className="cursor-pointer" 
                 onClick={() => handleSortChange("checkIn")}
-                colSpan={2}
               >
                 <div className="flex items-center">
                   <Clock className="mr-1 h-4 w-4" />
-                  Visit Time
-                  {(sortField === "checkIn" || sortField === "checkOut" || sortField === "duration") && (
+                  <span className="uppercase text-xs font-medium text-gray-500">Visite</span>
+                  {(sortField === "checkIn" || sortField === "checkOut") && (
                     sortDirection === "asc" ? 
                     <ChevronUp className="ml-1 h-4 w-4" /> : 
                     <ChevronDown className="ml-1 h-4 w-4" />
@@ -601,24 +598,16 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                 </div>
               </TableHead>
               
-              {/* Duration */}
-              <TableHead 
-                className="cursor-pointer"
-                onClick={() => handleSortChange("duration")}
-              >
-                <div className="flex items-center">
-                  Duration
-                </div>
-              </TableHead>
-              
               {/* Actions */}
-              <TableHead className="text-right pr-4">Actions</TableHead>
+              <TableHead className="text-right">
+                <span className="uppercase text-xs font-medium text-gray-500">Actions</span>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {paginatedVisits.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={10} className="text-center py-4 text-gray-500">
+                <TableCell colSpan={6} className="text-center py-4 text-gray-500">
                   {showDeletedVisitors 
                     ? "Trash bin is empty" 
                     : "No visits match your search or filters"}
@@ -634,7 +623,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                 return (
                   <TableRow key={`${visitor.id}-${visit.id}`}>
                     {/* Checkbox */}
-                    <TableCell className="align-top pt-4">
+                    <TableCell className="py-4">
                       <Checkbox
                         checked={selectedVisitors?.includes(visitor.id)}
                         onCheckedChange={(checked) => {
@@ -653,147 +642,126 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                       />
                     </TableCell>
                     
-                    {/* Visitor Name and Info */}
+                    {/* Visitor Information */}
                     <TableCell className="py-4">
-                      <div className="font-medium">{visitor.fullName}</div>
-                      <div className="text-xs text-gray-500">
-                        {visitor.verified && (
-                          <span className="inline-flex items-center rounded bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20 mr-1">
-                            <ShieldCheck className="h-3 w-3 mr-0.5" />
-                            Verified
-                          </span>
-                        )}
+                      <div className="flex flex-col">
+                        <div className="font-medium text-gray-900">{visitor.fullName}</div>
+                        <div className="flex space-x-4 text-sm text-gray-500">
+                          <span>{visitor.sex}</span>
+                          <span>{formatYearWithAge(visitor.yearOfBirth, language)}</span>
+                        </div>
                       </div>
                     </TableCell>
                     
-                    {/* Sex and Birth Year */}
-                    <TableCell className="text-sm text-gray-600 align-top py-4">
-                      <div>{visitor.sex}</div>
-                      <div>{formatYearWithAge(visitor.yearOfBirth, language)}</div>
-                    </TableCell>
-                    
-                    {/* Email */}
+                    {/* Contact Information */}
                     <TableCell className="py-4">
-                      <div className="max-w-[180px] truncate">
+                      <div className="flex flex-col text-sm">
                         {visitor.email ? (
-                          <a href={`mailto:${visitor.email}`} className="text-blue-600 hover:underline text-sm">
+                          <a href={`mailto:${visitor.email}`} className="text-blue-600 hover:underline truncate max-w-xs">
                             {visitor.email}
                           </a>
                         ) : (
-                          <span className="text-gray-500 text-sm">No email</span>
+                          <span className="text-gray-400 italic">No email</span>
+                        )}
+                        {visitor.phoneNumber ? (
+                          <a href={`tel:${visitor.phoneNumber}`} className="text-gray-800 hover:underline">
+                            {visitor.phoneNumber}
+                          </a>
+                        ) : (
+                          <span className="text-gray-400 italic">No phone</span>
                         )}
                       </div>
-                    </TableCell>
-                    
-                    {/* Phone */}
-                    <TableCell className="py-4">
-                      {visitor.phoneNumber ? (
-                        <div className="text-sm">
-                          <PhoneNumberLink phoneNumber={visitor.phoneNumber} />
-                        </div>
-                      ) : (
-                        <span className="text-gray-500 text-sm">No phone</span>
-                      )}
                     </TableCell>
                     
                     {/* Badge ID */}
-                    <TableCell className="font-mono text-xs text-blue-600 py-4 whitespace-nowrap">
-                      {formatBadgeId(visitor.id)}
+                    <TableCell className="py-4">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-sm font-medium bg-blue-50 text-blue-800">
+                        {formatBadgeId(visitor.id)}
+                      </span>
                     </TableCell>
                     
-                    {/* Check-in */}
+                    {/* Visit Time */}
                     <TableCell className="py-4">
-                      <div className="flex flex-col">
-                        <div className="text-sm font-medium">Check-in</div>
-                        <div className="flex items-center">
-                          <span className="inline-flex items-center">
-                            <span className="h-2 w-2 rounded-full bg-green-500 mr-2"></span>
+                      <div className="flex items-start space-x-6">
+                        <div>
+                          <div className="flex items-center">
+                            <div className="h-2 w-2 rounded-full bg-green-500 mr-2"></div>
                             <span className="font-medium">{formatTimeOnly(visit.checkInTime, language)}</span>
-                          </span>
+                          </div>
+                          <div className="text-xs text-gray-500 ml-4">{formatDate(visit.checkInTime, language).split(",")[0]}</div>
                         </div>
-                        <div className="text-xs text-gray-500">
-                          {formatDate(visit.checkInTime, language).split(",")[0]}
+                        <div>
+                          <div className="flex items-center">
+                            <div className="h-2 w-2 rounded-full bg-red-500 mr-2"></div>
+                            <span className="font-medium">
+                              {visit.checkOutTime 
+                                ? formatTimeOnly(visit.checkOutTime, language)
+                                : "--:--"
+                              }
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-500 ml-4">
+                            {visit.checkOutTime 
+                              ? formatDate(visit.checkOutTime, language).split(",")[0]
+                              : "--"
+                            }
+                          </div>
+                        </div>
+                        <div className="text-sm rounded-full px-3 py-1 bg-gray-100 text-gray-800">
+                          {visit.checkOutTime 
+                            ? formatDuration(visit.checkInTime, visit.checkOutTime, language)
+                            : "--"
+                          }
                         </div>
                       </div>
-                    </TableCell>
-                    
-                    {/* Check-out */}
-                    <TableCell className="py-4">
-                      <div className="flex flex-col">
-                        <div className="text-sm font-medium">Check-out</div>
-                        {visit.checkOutTime ? (
-                          <>
-                            <div className="flex items-center">
-                              <span className="inline-flex items-center">
-                                <span className="h-2 w-2 rounded-full bg-red-500 mr-2"></span>
-                                <span className="font-medium">{formatTimeOnly(visit.checkOutTime, language)}</span>
-                              </span>
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {formatDate(visit.checkOutTime, language).split(",")[0]}
-                            </div>
-                          </>
-                        ) : (
-                          <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 mt-1">
-                            Active
-                          </span>
-                        )}
-                      </div>
-                    </TableCell>
-                    
-                    {/* Duration */}
-                    <TableCell className="whitespace-nowrap py-4">
-                      {visit.checkOutTime ? (
-                        <span className="font-medium">{formatDuration(visit.checkInTime, visit.checkOutTime, language)}</span>
-                      ) : (
-                        <span className="text-gray-500">-</span>
-                      )}
                     </TableCell>
                     
                     {/* Actions */}
-                    <TableCell className="text-right space-x-2 py-4">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-8"
-                        onClick={() => {
-                          setSelectedVisitor(visitor);
-                          setSelectedVisit(visit);
-                          setIsDetailModalOpen(true);
-                        }}
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        View
-                      </Button>
-                      
-                      {showDeletedVisitors ? (
+                    <TableCell className="py-4 text-right">
+                      <div className="flex justify-end space-x-2">
                         <Button
                           variant="outline"
                           size="sm"
-                          className="h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-md border border-blue-200 flex items-center h-8"
                           onClick={() => {
-                            restoreVisitorMutation.mutate(visitor.id);
+                            setSelectedVisitor(visitor);
+                            setSelectedVisit(visit);
+                            setIsDetailModalOpen(true);
                           }}
                         >
-                          <ArchiveRestore className="h-4 w-4 mr-1" />
-                          Restore
+                          <Eye className="h-4 w-4 mr-1" />
+                          <span>View</span>
                         </Button>
-                      ) : (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => {
-                            const confirm = window.confirm(`Are you sure you want to delete ${visitor.fullName}?`);
-                            if (confirm) {
-                              deleteVisitorMutation.mutate(visitor.id);
-                            }
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          Delete
-                        </Button>
-                      )}
+                        
+                        {showDeletedVisitors ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            onClick={() => {
+                              restoreVisitorMutation.mutate(visitor.id);
+                            }}
+                          >
+                            <ArchiveRestore className="h-4 w-4 mr-1" />
+                            Restore
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => {
+                              const confirm = window.confirm(`Are you sure you want to delete ${visitor.fullName}?`);
+                              if (confirm) {
+                                deleteVisitorMutation.mutate(visitor.id);
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            Delete
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 );

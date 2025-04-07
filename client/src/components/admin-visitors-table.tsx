@@ -19,6 +19,7 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import { Loading, ButtonLoading } from "@/components/ui/loading";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/hooks/use-language";
 import { 
   Search, 
@@ -449,8 +450,8 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto border rounded-md">
-        <Table className="w-full min-w-[800px]">
+      <div className="overflow-x-auto border rounded-md shadow-sm">
+        <Table className="w-full min-w-[1000px]">
           <TableHeader>
             <TableRow>
               <TableHead className="w-[40px]">
@@ -465,13 +466,14 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   }}
                 />
               </TableHead>
+              
+              {/* Visitor Information */}
               <TableHead 
                 className="cursor-pointer" 
                 onClick={() => handleSortChange("name")}
               >
                 <div className="flex items-center">
-                  <UserRound className="mr-1 h-4 w-4" />
-                  {t("name")}
+                  <span className="uppercase text-xs font-medium text-gray-500">{t("visiteur")}</span>
                   {sortField === "name" && (
                     sortDirection === "asc" ? 
                     <ChevronUp className="ml-1 h-4 w-4" /> : 
@@ -479,28 +481,30 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   )}
                 </div>
               </TableHead>
-              <TableHead>{t("sex")}</TableHead>
-              <TableHead>{t("yearOfBirth")}</TableHead>
-              <TableHead>{t("email")}</TableHead>
+              
+              {/* Contact Information */}
               <TableHead>
                 <div className="flex items-center">
-                  <Phone className="mr-1 h-4 w-4" />
-                  {t("phone")}
+                  <span className="uppercase text-xs font-medium text-gray-500">{t("contact")}</span>
                 </div>
               </TableHead>
+              
+              {/* Badge ID Column */}
               <TableHead>
                 <div className="flex items-center">
                   <Tag className="mr-1 h-4 w-4" />
-                  {t("badgeId")}
+                  <span className="uppercase text-xs font-medium text-gray-500">{t("badge")}</span>
                 </div>
               </TableHead>
+              
+              {/* Visit Time Information */}
               <TableHead 
                 className="cursor-pointer" 
                 onClick={() => handleSortChange("checkIn")}
               >
                 <div className="flex items-center">
-                  <CalendarClock className="mr-1 h-4 w-4" />
-                  {t("checkIn")}
+                  <Clock className="mr-1 h-4 w-4" />
+                  <span className="uppercase text-xs font-medium text-gray-500">{t("visite")}</span>
                   {sortField === "checkIn" && (
                     sortDirection === "asc" ? 
                     <ChevronUp className="ml-1 h-4 w-4" /> : 
@@ -508,27 +512,11 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   )}
                 </div>
               </TableHead>
-              <TableHead>
-                <div className="flex items-center">
-                  <ShieldCheck className="mr-1 h-4 w-4" />
-                  {t("verifiedBadge")}
-                </div>
+              
+              {/* Actions */}
+              <TableHead className="text-right">
+                <span className="uppercase text-xs font-medium text-gray-500">{t("actions")}</span>
               </TableHead>
-              <TableHead 
-                className="cursor-pointer" 
-                onClick={() => handleSortChange("duration")}
-              >
-                <div className="flex items-center">
-                  <Clock className="mr-1 h-4 w-4" />
-                  {t("duration")}
-                  {sortField === "duration" && (
-                    sortDirection === "asc" ? 
-                    <ChevronUp className="ml-1 h-4 w-4" /> : 
-                    <ChevronDown className="ml-1 h-4 w-4" />
-                  )}
-                </div>
-              </TableHead>
-              <TableHead className="text-right">{t("actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

@@ -1,0 +1,420 @@
+import React, { useState } from 'react';
+import { Edit, Trash2, Filter, ChevronLeft, ChevronRight, Search, Clock, Badge, X, Eye } from 'lucide-react';
+
+const VisitorManagement = () => {
+  const [selectedVisitors, setSelectedVisitors] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedVisitor, setSelectedVisitor] = useState(null);
+  
+  const visitors = [
+    {
+      id: 1,
+      name: "Keren Iyema Imeke",
+      gender: "Feminin",
+      birthYear: 1999,
+      age: 26,
+      email: "kerenimeke@example.com",
+      phone: "+243993269538",
+      badgeId: "VIS-00169",
+      checkIn: { time: "20:15", date: "6 avr. 2025" },
+      checkOut: { time: "03:20", date: "7 avr. 2025" },
+      duration: "7h 5min",
+      status: "checked-out"
+    },
+    {
+      id: 2,
+      name: "Idriss Mulumba Mulumba",
+      gender: "Masculin",
+      birthYear: 2000,
+      age: 25, 
+      email: "idrissmulu@example.com",
+      phone: "+243894212439",
+      badgeId: "VIS-00168",
+      checkIn: { time: "20:12", date: "6 avr. 2025" },
+      checkOut: { time: "03:20", date: "7 avr. 2025" },
+      duration: "7h 8min",
+      status: "checked-out"
+    },
+    {
+      id: 3,
+      name: "Levi Kongolo Ilanga",
+      gender: "Masculin",
+      birthYear: 1998,
+      age: 27,
+      email: "leviilnga@example.com",
+      phone: "+243825613863",
+      badgeId: "VIS-00098",
+      checkIn: { time: "20:09", date: "6 avr. 2025" },
+      checkOut: { time: "03:20", date: "7 avr. 2025" },
+      duration: "7h 10min",
+      status: "checked-out"
+    },
+    {
+      id: 4,
+      name: "Wonder Popo Songe",
+      gender: "Feminin",
+      birthYear: 2000,
+      age: 25,
+      email: "No email provided",
+      phone: "+243812704666",
+      badgeId: "VIS-00167",
+      checkIn: { time: "20:00", date: "6 avr. 2025" },
+      checkOut: { time: "03:20", date: "7 avr. 2025" },
+      duration: "7h 19min",
+      status: "checked-out"
+    },
+    {
+      id: 5,
+      name: "Martin Funga",
+      gender: "Masculin",
+      birthYear: 2000,
+      age: 25,
+      email: "martinfunn@example.com",
+      phone: "+243899122287",
+      badgeId: "VIS-00166",
+      checkIn: { time: "19:59", date: "6 avr. 2025" },
+      checkOut: { time: "03:20", date: "7 avr. 2025" },
+      duration: "7h 21min",
+      status: "checked-out"
+    }
+  ];
+  
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setSelectedVisitors([]);
+    } else {
+      setSelectedVisitors(visitors.map(visitor => visitor.id));
+    }
+    setSelectAll(!selectAll);
+  };
+  
+  const handleSelectVisitor = (id) => {
+    if (selectedVisitors.includes(id)) {
+      setSelectedVisitors(selectedVisitors.filter(visitorId => visitorId !== id));
+    } else {
+      setSelectedVisitors([...selectedVisitors, id]);
+    }
+  };
+  
+  const getStatusColor = (status) => {
+    switch(status) {
+      case 'active': return 'bg-green-100 text-green-800';
+      case 'checked-out': return 'bg-gray-100 text-gray-600';
+      default: return 'bg-blue-100 text-blue-800';
+    }
+  };
+
+  const openVisitorModal = (visitor) => {
+    setSelectedVisitor(visitor);
+    setShowModal(true);
+  };
+  
+  const closeVisitorModal = () => {
+    setShowModal(false);
+    setSelectedVisitor(null);
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow p-6 relative">
+      {/* Tabs */}
+      <div className="border-b pb-2 mb-4">
+        <div className="flex space-x-6">
+          <button className="text-gray-500 hover:text-gray-700 py-2">
+            Visiteurs actuels
+          </button>
+          <button className="text-blue-600 font-medium border-b-2 border-blue-600 py-2">
+            Historique des visites
+          </button>
+        </div>
+      </div>
+      
+      {/* Search and Filters */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="relative flex-1 mr-4">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search size={18} className="text-gray-400" />
+          </div>
+          <input
+            type="text"
+            placeholder="Search by name, badge, phone, email, date..."
+            className="pl-10 pr-4 py-2 border rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        
+        <div className="flex space-x-2">
+          <button className="flex items-center bg-white border rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50">
+            <Filter size={18} className="mr-2" />
+            Filters
+          </button>
+          <button className="flex items-center bg-white border rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50">
+            <Trash2 size={18} className="mr-2" />
+            Show Trash Bin
+          </button>
+        </div>
+      </div>
+      
+      {/* Actions and Pagination */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex space-x-2">
+          <button 
+            className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-100"
+            onClick={handleSelectAll}
+          >
+            {selectedVisitors.length > 0 ? "Deselect All" : "Select All"}
+          </button>
+          
+          {selectedVisitors.length > 0 && (
+            <button className="bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100">
+              Delete Selected ({selectedVisitors.length})
+            </button>
+          )}
+        </div>
+        
+        <div className="flex items-center space-x-4">
+          <span className="text-gray-500 text-sm">Showing 10 of 91 visits</span>
+          
+          <div className="flex items-center space-x-1">
+            <select className="border rounded-md px-2 py-1 text-sm bg-white">
+              <option>10 per page</option>
+              <option>20 per page</option>
+              <option>50 per page</option>
+            </select>
+            
+            <button className="p-1 rounded hover:bg-gray-100">
+              <ChevronLeft size={20} className="text-gray-500" />
+            </button>
+            
+            <span className="text-sm text-gray-600">Page 1 of 10</span>
+            
+            <button className="p-1 rounded hover:bg-gray-100">
+              <ChevronRight size={20} className="text-gray-500" />
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      {/* Table */}
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead>
+            <tr className="bg-gray-50">
+              <th scope="col" className="w-12 px-3 py-3 text-left">
+                <input 
+                  type="checkbox" 
+                  checked={selectAll}
+                  onChange={handleSelectAll}
+                  className="rounded text-blue-600 focus:ring-blue-500"
+                />
+              </th>
+              <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Visiteur
+              </th>
+              <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Contact
+              </th>
+              <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <div className="flex items-center">
+                  <Badge size={16} className="mr-1" />
+                  Badge
+                </div>
+              </th>
+              <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <div className="flex items-center">
+                  <Clock size={16} className="mr-1" />
+                  Visite
+                </div>
+              </th>
+              <th scope="col" className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {visitors.map((visitor) => (
+              <tr key={visitor.id} className="hover:bg-gray-50">
+                <td className="px-3 py-4 whitespace-nowrap">
+                  <input 
+                    type="checkbox" 
+                    checked={selectedVisitors.includes(visitor.id)}
+                    onChange={() => handleSelectVisitor(visitor.id)}
+                    className="rounded text-blue-600 focus:ring-blue-500"
+                  />
+                </td>
+                <td className="px-3 py-4">
+                  <div className="flex flex-col">
+                    <div className="font-medium text-gray-900">{visitor.name}</div>
+                    <div className="flex space-x-4 text-sm text-gray-500">
+                      <span>{visitor.gender}</span>
+                      <span>{visitor.birthYear} ({visitor.age} ans)</span>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-3 py-4">
+                  <div className="flex flex-col text-sm">
+                    {visitor.email !== "No email provided" ? (
+                      <a href={`mailto:${visitor.email}`} className="text-blue-600 hover:underline truncate max-w-xs">
+                        {visitor.email}
+                      </a>
+                    ) : (
+                      <span className="text-gray-400 italic">No email provided</span>
+                    )}
+                    <a href={`tel:${visitor.phone}`} className="text-gray-800 hover:underline">
+                      {visitor.phone}
+                    </a>
+                  </div>
+                </td>
+                <td className="px-3 py-4">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-md text-sm font-medium bg-blue-50 text-blue-800">
+                    {visitor.badgeId}
+                  </span>
+                </td>
+                <td className="px-3 py-4">
+                  <div className="flex items-start space-x-6">
+                    <div>
+                      <div className="flex items-center">
+                        <div className="h-2 w-2 rounded-full bg-green-500 mr-2"></div>
+                        <span className="font-medium">{visitor.checkIn.time}</span>
+                      </div>
+                      <div className="text-xs text-gray-500 ml-4">{visitor.checkIn.date}</div>
+                    </div>
+                    <div>
+                      <div className="flex items-center">
+                        <div className="h-2 w-2 rounded-full bg-red-500 mr-2"></div>
+                        <span className="font-medium">{visitor.checkOut.time}</span>
+                      </div>
+                      <div className="text-xs text-gray-500 ml-4">{visitor.checkOut.date}</div>
+                    </div>
+                    <div className={`text-sm rounded-full px-3 py-1 ${getStatusColor(visitor.status)}`}>
+                      {visitor.duration}
+                    </div>
+                  </div>
+                </td>
+                <td className="px-3 py-4 text-right text-sm font-medium whitespace-nowrap">
+                  <div className="flex justify-end">
+                    <button 
+                      className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-md border border-blue-200 flex items-center"
+                      onClick={() => openVisitorModal(visitor)}
+                    >
+                      <Eye size={16} className="mr-1" />
+                      <span>View</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      
+      {/* Modal for Visitor Details */}
+      {showModal && selectedVisitor && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 relative">
+            {/* Modal Header */}
+            <div className="flex justify-between items-center mb-4 pb-3 border-b">
+              <h3 className="text-lg font-medium">Visitor Details</h3>
+              <button 
+                onClick={closeVisitorModal}
+                className="text-gray-400 hover:text-gray-600 rounded-full p-1 hover:bg-gray-100"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            {/* Modal Content */}
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-medium text-gray-700 mb-2">Personal Information</h4>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="mb-3">
+                    <p className="text-sm text-gray-500">Name</p>
+                    <p className="font-medium">{selectedVisitor.name}</p>
+                  </div>
+                  <div className="mb-3">
+                    <p className="text-sm text-gray-500">Gender</p>
+                    <p>{selectedVisitor.gender}</p>
+                  </div>
+                  <div className="mb-3">
+                    <p className="text-sm text-gray-500">Birth Year</p>
+                    <p>{selectedVisitor.birthYear} ({selectedVisitor.age} ans)</p>
+                  </div>
+                </div>
+                
+                <h4 className="font-medium text-gray-700 mt-4 mb-2">Contact Details</h4>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="mb-3">
+                    <p className="text-sm text-gray-500">Email</p>
+                    {selectedVisitor.email !== "No email provided" ? (
+                      <a href={`mailto:${selectedVisitor.email}`} className="text-blue-600 hover:underline">
+                        {selectedVisitor.email}
+                      </a>
+                    ) : (
+                      <p className="italic text-gray-400">No email provided</p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Phone</p>
+                    <a href={`tel:${selectedVisitor.phone}`} className="text-blue-600 hover:underline">
+                      {selectedVisitor.phone}
+                    </a>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="font-medium text-gray-700 mb-2">Visit Information</h4>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="mb-3">
+                    <p className="text-sm text-gray-500">Badge ID</p>
+                    <p className="inline-flex items-center px-2.5 py-1 rounded-md text-sm font-medium bg-blue-50 text-blue-800">
+                      {selectedVisitor.badgeId}
+                    </p>
+                  </div>
+                  <div className="mb-3">
+                    <p className="text-sm text-gray-500">Check-in</p>
+                    <div className="flex items-center">
+                      <div className="h-2 w-2 rounded-full bg-green-500 mr-2"></div>
+                      <span className="font-medium">{selectedVisitor.checkIn.time}</span>
+                      <span className="text-sm text-gray-500 ml-2">{selectedVisitor.checkIn.date}</span>
+                    </div>
+                  </div>
+                  <div className="mb-3">
+                    <p className="text-sm text-gray-500">Check-out</p>
+                    <div className="flex items-center">
+                      <div className="h-2 w-2 rounded-full bg-red-500 mr-2"></div>
+                      <span className="font-medium">{selectedVisitor.checkOut.time}</span>
+                      <span className="text-sm text-gray-500 ml-2">{selectedVisitor.checkOut.date}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Duration</p>
+                    <p className={`text-sm inline-block rounded-full px-3 py-1 mt-1 ${getStatusColor(selectedVisitor.status)}`}>
+                      {selectedVisitor.duration}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="mt-8">
+                  <p className="text-sm text-gray-500 mb-2">Actions</p>
+                  <div className="flex space-x-3">
+                    <button className="flex-1 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center hover:bg-blue-100">
+                      <Edit size={18} className="mr-2" />
+                      Edit Details
+                    </button>
+                    <button className="flex-1 px-4 py-2 bg-red-50 text-red-600 rounded-lg flex items-center justify-center hover:bg-red-100">
+                      <Trash2 size={18} className="mr-2" />
+                      Delete Record
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default VisitorManagement;
