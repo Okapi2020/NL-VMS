@@ -32,6 +32,7 @@ import {
   Tag, 
   Phone, 
   ShieldCheck, 
+  CheckCircle,
   Pencil, 
   Trash2,
   X,
@@ -579,8 +580,11 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                         {formatBadgeId(visitor.id)}
                       </span>
                       {visitor.verified && (
-                        <span title={t("verifiedVisitor")}>
-                          <ShieldCheck className="h-4 w-4 text-blue-500" />
+                        <span title={t("verifiedVisitor")} className="relative top-px">
+                          <Badge variant="outline" className="bg-blue-50 text-blue-800 border-blue-200 flex items-center gap-1 px-2 py-0.5">
+                            <span className="text-xs font-medium">{t("verified")}</span>
+                            <CheckCircle className="h-3.5 w-3.5 text-blue-600" />
+                          </Badge>
                         </span>
                       )}
                     </div>

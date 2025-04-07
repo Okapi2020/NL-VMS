@@ -215,6 +215,10 @@ export const translations: TranslationMap = {
     en: 'Verified',
     fr: 'Vérifié'
   },
+  verifiedVisitor: {
+    en: 'Verified Visitor',
+    fr: 'Visiteur Vérifié'
+  },
   unverified: {
     en: 'Unverified',
     fr: 'Non vérifié'
