@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { formatTimeOnly, formatDateShort, formatDuration, formatBadgeId, formatYearWithAge, normalizeText } from "@/lib/utils";
+import { formatTimeOnly, formatDateShort, formatDuration, formatBadgeId, calculateAge, normalizeText } from "@/lib/utils";
 import { Visit, Visitor, UpdateVisitor } from "@shared/schema";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -552,9 +552,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                     <div className="flex flex-col">
                       <div className="font-medium">{visitor.fullName}</div>
                       <div className="text-sm text-gray-500">
-                        {visitor.sex === "Masculin" ? t("male") : visitor.sex === "Feminin" ? t("female") : visitor.sex}
-                        {' '}
-                        ({formatYearWithAge(visitor.yearOfBirth, language)})
+                        {visitor.sex} {visitor.yearOfBirth} ({calculateAge(visitor.yearOfBirth)} {language === 'fr' ? 'ans' : 'yrs'})
                       </div>
                     </div>
                   </TableCell>
