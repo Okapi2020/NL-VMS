@@ -34,7 +34,8 @@ import {
   Pencil, 
   Trash2,
   X,
-  LogOut
+  LogOut,
+  Eye
 } from "lucide-react";
 
 import {
@@ -598,13 +599,14 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                       </Button>
                       
                       <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-blue-600"
+                        variant="outline"
+                        size="sm"
+                        className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-md border border-blue-200 flex items-center h-8"
                         onClick={() => handleEditVisitor(visitor)}
                         title={t("editVisitor")}
                       >
-                        <Pencil className="h-4 w-4" />
+                        <Eye className="h-4 w-4 mr-1" />
+                        <span>{t("view")}</span>
                       </Button>
                       
                       <Button
@@ -618,12 +620,18 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                       </Button>
                       
                       <Button
-                        variant="ghost"
+                        variant="outline"
+                        size="sm"
                         onClick={() => handleCheckOut(visit.id)}
                         disabled={processingIds.has(visit.id)}
-                        className="bg-transparent hover:bg-gray-100 text-gray-700 font-semibold py-1 px-3 border border-gray-300 rounded text-sm"
+                        className="h-8 px-3 text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200"
                       >
-                        {processingIds.has(visit.id) ? t("processing") : t("checkOut")}
+                        {processingIds.has(visit.id) ? (
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-600 border-t-transparent mr-1" />
+                        ) : (
+                          <LogOut className="h-4 w-4 mr-1" />
+                        )}
+                        <span>{processingIds.has(visit.id) ? t("processing") : t("checkOut")}</span>
                       </Button>
                     </div>
                   </TableCell>

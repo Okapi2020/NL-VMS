@@ -26,7 +26,7 @@ export function PhoneNumberLink({ phoneNumber, className = "" }: PhoneNumberLink
       href={whatsappUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className={`text-primary hover:text-primary/80 hover:underline ${className}`}
+      className={`text-blue-600 hover:text-blue-800 hover:underline flex items-center ${className}`}
       title="Open in WhatsApp"
     >
       {formattedPhone}
