@@ -26,8 +26,22 @@ export function setupMidnightCheckout() {
       
       // Log result
       console.log(`Midnight auto-checkout completed: ${checkedOutCount} active visits were automatically checked out.`);
+      
+      // Create a system log entry
+      await storage.createSystemLog({
+        action: "SCHEDULED_AUTO_CHECKOUT",
+        details: `Scheduled midnight auto-checkout completed. ${checkedOutCount} visitors were automatically checked out.`,
+        affectedRecords: checkedOutCount
+      });
     } catch (error) {
       console.error("Error during scheduled auto-checkout:", error);
+      
+      // Log the error
+      await storage.createSystemLog({
+        action: "SCHEDULED_AUTO_CHECKOUT_ERROR",
+        details: `Error during scheduled midnight auto-checkout: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        affectedRecords: 0
+      });
     } finally {
       // Schedule next auto-checkout for the next midnight
       const msUntilMidnight = getMsUntilMidnight();
@@ -50,11 +64,34 @@ export function setupMidnightCheckout() {
   
   // Also provide a function to run the checkout manually (useful for testing)
   return {
-    runManualCheckout: async () => {
+    runManualCheckout: async (adminId?: number) => {
       console.log("Running manual auto-checkout...");
-      const checkedOutCount = await storage.checkOutAllActiveVisits();
-      console.log(`Manual auto-checkout completed: ${checkedOutCount} active visits were checked out.`);
-      return checkedOutCount;
+      try {
+        const checkedOutCount = await storage.checkOutAllActiveVisits();
+        console.log(`Manual auto-checkout completed: ${checkedOutCount} active visits were checked out.`);
+        
+        // Create a system log entry
+        await storage.createSystemLog({
+          action: "MANUAL_AUTO_CHECKOUT",
+          details: `Manual auto-checkout completed by admin. ${checkedOutCount} visitors were checked out.`,
+          userId: adminId || null,
+          affectedRecords: checkedOutCount
+        });
+        
+        return checkedOutCount;
+      } catch (error) {
+        console.error("Error during manual auto-checkout:", error);
+        
+        // Log the error
+        await storage.createSystemLog({
+          action: "MANUAL_AUTO_CHECKOUT_ERROR",
+          details: `Error during manual auto-checkout: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          userId: adminId || null,
+          affectedRecords: 0
+        });
+        
+        throw error; // Re-throw for API error handling
+      }
     }
   };
 }

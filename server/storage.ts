@@ -8,6 +8,7 @@ import {
 } from "@shared/schema";
 import { visits, type Visit, type InsertVisit, type UpdateVisit } from "@shared/schema";
 import { settings, type Settings, type UpdateSettings } from "@shared/schema";
+import { systemLogs, type SystemLog, type InsertSystemLog } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull } from "drizzle-orm";
 import { sql } from "drizzle-orm/sql/sql";
@@ -58,6 +59,10 @@ export interface IStorage {
   getSettings(): Promise<Settings | undefined>;
   updateSettings(settings: UpdateSettings): Promise<Settings | undefined>;
   createDefaultSettings(): Promise<Settings | undefined>;
+  
+  // System logs methods
+  createSystemLog(log: InsertSystemLog): Promise<SystemLog>;
+  getSystemLogs(limit?: number): Promise<SystemLog[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -505,6 +510,41 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error creating default settings:", error);
       return undefined;
+    }
+  }
+  
+  // System logs methods
+  async createSystemLog(log: InsertSystemLog): Promise<SystemLog> {
+    try {
+      const [createdLog] = await db
+        .insert(systemLogs)
+        .values(log)
+        .returning();
+      return createdLog;
+    } catch (error) {
+      console.error("Error creating system log:", error);
+      // Create a fallback log object in case of DB error
+      return {
+        id: -1,
+        action: log.action,
+        details: log.details,
+        userId: log.userId || null,
+        affectedRecords: log.affectedRecords || 0,
+        timestamp: new Date()
+      };
+    }
+  }
+  
+  async getSystemLogs(limit: number = 100): Promise<SystemLog[]> {
+    try {
+      return await db
+        .select()
+        .from(systemLogs)
+        .orderBy(desc(systemLogs.timestamp))
+        .limit(limit);
+    } catch (error) {
+      console.error("Error fetching system logs:", error);
+      return [];
     }
   }
 }

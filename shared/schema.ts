@@ -277,3 +277,23 @@ export const updateSettingsSchema = z.object({
 export type Settings = typeof settings.$inferSelect;
 export type InsertSettings = z.infer<typeof insertSettingsSchema>;
 export type UpdateSettings = z.infer<typeof updateSettingsSchema>;
+
+// System logs for important operations
+export const systemLogs = pgTable("system_logs", {
+  id: serial("id").primaryKey(),
+  action: text("action").notNull(),
+  details: text("details").notNull(),
+  timestamp: timestamp("timestamp").notNull().defaultNow(),
+  userId: integer("user_id"),
+  affectedRecords: integer("affected_records"),
+});
+
+export const insertSystemLogSchema = createInsertSchema(systemLogs).pick({
+  action: true,
+  details: true,
+  userId: true,
+  affectedRecords: true,
+});
+
+export type SystemLog = typeof systemLogs.$inferSelect;
+export type InsertSystemLog = z.infer<typeof insertSystemLogSchema>;

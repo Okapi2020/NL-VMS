@@ -285,9 +285,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin trigger auto-checkout for all active visitors
   app.post("/api/admin/auto-checkout", ensureAuthenticated, async (req, res) => {
     try {
+      // Get admin info from session
+      const adminId = req.user?.id;
+      
       // Call the manual auto-checkout function
       if (global.manualAutoCheckout) {
-        const checkedOutCount = await global.manualAutoCheckout();
+        const checkedOutCount = await global.manualAutoCheckout(adminId);
         res.status(200).json({ 
           message: `Successfully checked out ${checkedOutCount} visitors`,
           count: checkedOutCount
@@ -509,6 +512,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Empty recycle bin error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Get system logs
+  app.get("/api/admin/system-logs", ensureAuthenticated, async (req, res) => {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+      
+      if (isNaN(limit) || limit <= 0) {
+        return res.status(400).json({ message: "Invalid limit parameter" });
+      }
+      
+      const logs = await storage.getSystemLogs(limit);
+      res.status(200).json(logs);
+    } catch (error) {
+      console.error("Get system logs error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });

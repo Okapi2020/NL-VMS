@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminVisitorsTable } from "@/components/admin-visitors-table";
 import { AdminVisitHistory } from "@/components/admin-visit-history";
 import { AdminSettings } from "@/components/admin-settings";
+import { AdminSystemLogs } from "@/components/admin-system-logs";
 import { DayOfWeekChart } from "@/components/analytics/day-of-week-chart";
 import { HourlyDistributionChart } from "@/components/analytics/hourly-distribution-chart";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -688,44 +689,59 @@ export default function AdminDashboard() {
             
             {/* Reports View */}
             {activeView === "reports" && (
-              <div className="bg-white shadow rounded-lg divide-y divide-gray-200">
-                <div className="px-4 py-5 sm:px-6">
-                  <h2 className="text-lg font-medium text-gray-900">{t("exportOptions")}</h2>
-                  <p className="mt-1 text-sm text-gray-500">
-                    {t("generateReportsDescription")}
-                  </p>
+              <div className="space-y-6">
+                <div className="bg-white shadow rounded-lg divide-y divide-gray-200">
+                  <div className="px-4 py-5 sm:px-6">
+                    <h2 className="text-lg font-medium text-gray-900">{t("exportOptions")}</h2>
+                    <p className="mt-1 text-sm text-gray-500">
+                      {t("generateReportsDescription")}
+                    </p>
+                  </div>
+                  <div className="px-4 py-5 sm:p-6">
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="text-md font-medium text-gray-900">{t("visitHistoryReport")}</h3>
+                        <div className="mt-2 max-w-xl text-sm text-gray-500">
+                          <p>
+                            {t("exportVisitHistoryDescription")}
+                          </p>
+                        </div>
+                        <div className="mt-3">
+                          <Button onClick={handleExportData}>
+                            <Download className="mr-2 h-4 w-4" />
+                            {t("exportToCsv")}
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div className="border-t border-gray-200 pt-5">
+                        <h3 className="text-md font-medium text-gray-900">{t("analyticsReport")}</h3>
+                        <div className="mt-2 max-w-xl text-sm text-gray-500">
+                          <p>
+                            {t("exportAnalyticsDescription")}
+                          </p>
+                        </div>
+                        <div className="mt-3">
+                          <Button variant="outline">
+                            <Download className="mr-2 h-4 w-4" />
+                            {t("exportAnalytics")}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="px-4 py-5 sm:p-6">
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-md font-medium text-gray-900">{t("visitHistoryReport")}</h3>
-                      <div className="mt-2 max-w-xl text-sm text-gray-500">
-                        <p>
-                          {t("exportVisitHistoryDescription")}
-                        </p>
-                      </div>
-                      <div className="mt-3">
-                        <Button onClick={handleExportData}>
-                          <Download className="mr-2 h-4 w-4" />
-                          {t("exportToCsv")}
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="border-t border-gray-200 pt-5">
-                      <h3 className="text-md font-medium text-gray-900">{t("analyticsReport")}</h3>
-                      <div className="mt-2 max-w-xl text-sm text-gray-500">
-                        <p>
-                          {t("exportAnalyticsDescription")}
-                        </p>
-                      </div>
-                      <div className="mt-3">
-                        <Button variant="outline">
-                          <Download className="mr-2 h-4 w-4" />
-                          {t("exportAnalytics")}
-                        </Button>
-                      </div>
-                    </div>
+                
+                {/* System Logs Section */}
+                <div className="bg-white shadow rounded-lg divide-y divide-gray-200">
+                  <div className="px-4 py-5 sm:px-6">
+                    <h2 className="text-lg font-medium text-gray-900">{t("systemLogs") || "System Logs"}</h2>
+                    <p className="mt-1 text-sm text-gray-500">
+                      {t("systemLogsDescription") || "View system logs for auto-checkout operations and other system activities"}
+                    </p>
+                  </div>
+                  <div className="px-4 py-5 sm:p-6">
+                    <AdminSystemLogs />
                   </div>
                 </div>
               </div>
