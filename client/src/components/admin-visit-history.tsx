@@ -798,8 +798,8 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto border rounded-md">
-        <Table className="w-full min-w-[900px]">
+      <div className="overflow-x-auto border rounded-md shadow-sm">
+        <Table className="w-full min-w-[1000px]">
           <TableHeader>
             <TableRow>
               <TableHead className="w-[40px]">
@@ -840,8 +840,8 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
               </TableHead>
               <TableHead>{t("sex")}</TableHead>
               <TableHead>{t("yearOfBirth")}</TableHead>
-              <TableHead>{t("email")}</TableHead>
-              <TableHead>
+              <TableHead className="min-w-[180px]">{t("email")}</TableHead>
+              <TableHead className="min-w-[150px]">
                 <div className="flex items-center">
                   <Phone className="mr-1 h-4 w-4" />
                   Phone
@@ -937,13 +937,19 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                   <TableCell className="text-sm text-gray-500">
                     {formatYearWithAge(visitor.yearOfBirth, language)}
                   </TableCell>
-                  <TableCell className="text-sm text-gray-500">{visitor.email || "No email provided"}</TableCell>
+                  <TableCell className="text-sm text-gray-500">
+                    <div className="truncate max-w-[180px]">
+                      {visitor.email || "No email provided"}
+                    </div>
+                  </TableCell>
                   <TableCell className="text-sm">
-                    {visitor.phoneNumber ? (
-                      <PhoneNumberLink phoneNumber={visitor.phoneNumber} />
-                    ) : (
-                      "No phone provided"
-                    )}
+                    <div className="whitespace-nowrap">
+                      {visitor.phoneNumber ? (
+                        <PhoneNumberLink phoneNumber={visitor.phoneNumber} />
+                      ) : (
+                        "No phone provided"
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="font-mono text-xs text-blue-600 font-medium">{formatBadgeId(visitor.id)}</TableCell>
                   <TableCell>
