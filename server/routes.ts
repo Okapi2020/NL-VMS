@@ -109,15 +109,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate the form data
       const formData = visitorFormSchema.parse(req.body);
       
-      // First, check if visitor exists by email or phone number
+      // First, check if visitor exists by phone number
       let visitor: Visitor | undefined;
       
-      if (formData.email) {
-        visitor = await storage.getVisitorByEmail(formData.email);
-      }
-      
-      // If not found by email, try to find by phone number
-      if (!visitor && formData.phoneNumber) {
+      if (formData.phoneNumber) {
         visitor = await storage.getVisitorByPhoneNumber(formData.phoneNumber);
       }
       
@@ -129,7 +124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         visitor = await storage.createVisitor({
           fullName: formData.fullName,
           yearOfBirth: formData.yearOfBirth,
-          sex: formData.sex, // Add the sex field
+          sex: formData.sex,
           email: formData.email || null,
           phoneNumber: formData.phoneNumber,
         });
@@ -1023,6 +1018,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Get visitor by ID error:", error);
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Lookup a returning visitor by phone number and year of birth
+  app.post("/api/visitors/lookup", async (req, res) => {
+    try {
+      const { phoneNumber, yearOfBirth } = req.body;
+      
+      if (!phoneNumber) {
+        return res.status(400).json({ message: "Phone number is required" });
+      }
+      
+      // Look up visitor by phone number
+      const visitor = await storage.getVisitorByPhoneNumber(phoneNumber);
+      
+      if (!visitor) {
+        return res.status(404).json({ 
+          found: false,
+          message: "No visitor found with this phone number" 
+        });
+      }
+      
+      // If year of birth was provided, verify it matches
+      if (yearOfBirth && visitor.yearOfBirth !== yearOfBirth) {
+        return res.status(400).json({ 
+          found: false,
+          message: "Year of birth does not match our records" 
+        });
+      }
+      
+      // Create a system log entry for this lookup
+      await storage.createSystemLog({
+        action: "RETURNING_VISITOR_LOOKUP",
+        details: `Returning visitor "${visitor.fullName}" (ID: ${visitor.id}) looked up via phone number.`,
+        userId: null
+      });
+      
+      // Return visitor information
+      res.status(200).json({ 
+        found: true,
+        visitor
+      });
+    } catch (error) {
+      console.error("Visitor lookup error:", error);
+      res.status(500).json({ 
+        found: false,
+        message: "An error occurred during visitor lookup" 
+      });
     }
   });
   

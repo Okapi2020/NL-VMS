@@ -6,12 +6,13 @@ import {
 import { Link, useLocation } from "wouter";
 import { VisitorCheckInForm } from "@/components/visitor-check-in-form";
 import { VisitorCheckedIn } from "@/components/visitor-checked-in";
-import { Visitor, Visit, Settings } from "@shared/schema";
+import { Visitor, Visit, Settings, VisitorFormValues } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
 import { useIdleTimeout } from "@/hooks/use-idle-timeout";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { Button } from "@/components/ui/button";
 import { Languages } from "lucide-react";
+import { VisitorTypeSelection } from "@/components/visitor-type-selection";
 
 function VisitorPortalComponent() {
   // Language state (default to French)
@@ -20,6 +21,12 @@ function VisitorPortalComponent() {
   const [visitor, setVisitor] = useState<Visitor | null>(null);
   const [visit, setVisit] = useState<Visit | null>(null);
   const [, navigate] = useLocation();
+  
+  // State for visitor type selection modal
+  const [isTypeSelectionOpen, setIsTypeSelectionOpen] = useState(false);
+  const [formDefaultValues, setFormDefaultValues] = useState<Partial<VisitorFormValues>>({});
+  const [showForm, setShowForm] = useState(false);
+  const [returningVisitor, setReturningVisitor] = useState<Visitor | null>(null);
   
   // Load language preference from localStorage on component mount
   useEffect(() => {
@@ -86,18 +93,64 @@ function VisitorPortalComponent() {
     enabled: false, // Don't run automatically, we'll trigger with refetch
   });
 
+  // Handle check-in success (could be new or returning visitor)
   const handleCheckInSuccess = (visitor: Visitor, visit: Visit) => {
     setVisitor(visitor);
     setVisit(visit);
     setCheckedIn(true);
     localStorage.setItem("visitorId", visitor.id.toString());
+    
+    // Reset form-related states
+    setShowForm(false);
+    setFormDefaultValues({});
+    setReturningVisitor(null);
   };
 
+  // Handle check-out
   const handleCheckOut = () => {
     setCheckedIn(false);
     setVisitor(null);
     setVisit(null);
     localStorage.removeItem("visitorId");
+  };
+  
+  // Handle checking in click - open the visitor type selection modal
+  const handleCheckInClick = () => {
+    setIsTypeSelectionOpen(true);
+  };
+  
+  // Handle selection of new visitor
+  const handleNewVisitorSelected = () => {
+    setIsTypeSelectionOpen(false);
+    setShowForm(true);
+    setFormDefaultValues({});
+    setReturningVisitor(null);
+  };
+  
+  // Handle selection of returning visitor or prefill info for a not-found visitor
+  const handleReturningVisitorConfirmed = (visitor: Visitor | null, prefill?: { phoneNumber: string; yearOfBirth?: number }) => {
+    setIsTypeSelectionOpen(false);
+    
+    if (visitor) {
+      // Create a new visit for the returning visitor
+      setReturningVisitor(visitor);
+      setShowForm(true);
+      setFormDefaultValues({
+        firstName: visitor.fullName.split(' ')[0] || '',
+        lastName: visitor.fullName.split(' ').slice(-1)[0] || '',
+        yearOfBirth: visitor.yearOfBirth,
+        phoneNumber: visitor.phoneNumber,
+        email: visitor.email || '',
+        sex: (visitor.sex as "Masculin" | "Feminin" | undefined) || undefined,
+      });
+    } else if (prefill) {
+      // Prefill the phone number for a new visitor who tried to return
+      setShowForm(true);
+      setFormDefaultValues({
+        phoneNumber: prefill.phoneNumber,
+        yearOfBirth: prefill.yearOfBirth
+      });
+    }
   };
 
   // Get application names from settings
@@ -107,7 +160,14 @@ function VisitorPortalComponent() {
   
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Language toggle removed as requested */}
+      {/* Visitor Type Selection Modal */}
+      <VisitorTypeSelection 
+        isOpen={isTypeSelectionOpen}
+        onClose={() => setIsTypeSelectionOpen(false)}
+        onNewVisitorSelected={handleNewVisitorSelected}
+        onReturningVisitorConfirmed={handleReturningVisitorConfirmed}
+        isEnglish={isEnglish}
+      />
       
       {/* Main Content */}
       <main className="py-4 px-4 sm:px-6 lg:px-8">
@@ -124,7 +184,7 @@ function VisitorPortalComponent() {
             </p>
           </div>
 
-          {/* Check-in Form or Checked-in Confirmation */}
+          {/* Check-in Form or Checked-in Confirmation or Initial Button */}
           {checkedIn && visitor && visit ? (
             <VisitorCheckedIn 
               visitor={visitor} 
@@ -132,15 +192,28 @@ function VisitorPortalComponent() {
               onCheckOut={handleCheckOut} 
               isEnglish={isEnglish}
             />
-          ) : (
+          ) : showForm ? (
             <Card>
               <CardContent className="px-4 py-5 sm:p-6">
                 <VisitorCheckInForm 
-                  onSuccess={handleCheckInSuccess} 
+                  onSuccess={handleCheckInSuccess}
+                  defaultValues={formDefaultValues}
+                  isReturningVisitor={!!returningVisitor}
+                  returningVisitor={returningVisitor}
                   isEnglish={isEnglish}
                 />
               </CardContent>
             </Card>
+          ) : (
+            <div className="py-6 text-center">
+              <Button 
+                size="lg" 
+                className="px-8 py-6 text-lg"
+                onClick={handleCheckInClick}
+              >
+                {isEnglish ? 'Check In' : 'Enregistrement'}
+              </Button>
+            </div>
           )}
         </div>
       </main>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -30,9 +30,18 @@ import {
 type VisitorCheckInFormProps = {
   onSuccess: (visitor: Visitor, visit: Visit) => void;
   isEnglish?: boolean;
+  defaultValues?: Partial<VisitorFormValues>;
+  isReturningVisitor?: boolean;
+  returningVisitor?: Visitor | null;
 };
 
-export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheckInFormProps) {
+export function VisitorCheckInForm({ 
+  onSuccess, 
+  isEnglish = true,
+  defaultValues = {},
+  isReturningVisitor = false,
+  returningVisitor = null 
+}: VisitorCheckInFormProps) {
   const [ageValue, setAgeValue] = useState<string>(
     isEnglish 
       ? "Age will be calculated automatically" 
@@ -40,25 +49,34 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
   );
   // Create separate state for step 2 to avoid overlapping values
   const [contactDetailsValues, setContactDetailsValues] = useState({
-    email: "",
-    phoneNumber: ""
+    email: defaultValues.email || "",
+    phoneNumber: defaultValues.phoneNumber || ""
   });
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
+  
+  // Calculate age when year of birth is provided in default values
+  useEffect(() => {
+    if (defaultValues.yearOfBirth) {
+      handleYearOfBirthChange(defaultValues.yearOfBirth);
+    }
+  }, [defaultValues.yearOfBirth]);
 
   // Get the localized schema based on current language
   const visitorFormSchema = useLocalizedFormSchema(isEnglish);
   
+  // Initialize form with default values merged with any provided values
   const form = useForm<VisitorFormValues>({
     resolver: zodResolver(visitorFormSchema),
     defaultValues: {
-      firstName: "",
-      middleName: "",
-      lastName: "",
-      yearOfBirth: undefined,
-      sex: undefined,
-      email: "",
-      phoneNumber: "",
+      firstName: defaultValues.firstName || "",
+      middleName: defaultValues.middleName || "",
+      lastName: defaultValues.lastName || "",
+      yearOfBirth: defaultValues.yearOfBirth,
+      sex: defaultValues.sex as "Masculin" | "Feminin" | undefined, // Type casting for sex field
+      email: defaultValues.email || "",
+      phoneNumber: defaultValues.phoneNumber || "",
+      purpose: defaultValues.purpose || "",
     },
   });
 
@@ -131,6 +149,37 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
       title: isEnglish ? "Personal Info" : "Informations Personnelles",
       content: (
         <div className="space-y-4">
+          {/* Show returning visitor alert if this is a returning visitor */}
+          {isReturningVisitor && (
+            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-md p-3 mb-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3 flex-1">
+                  <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                    {isEnglish ? "Welcome back!" : "Bon retour !"}
+                  </h3>
+                  <div className="mt-2 text-sm text-blue-700 dark:text-blue-300">
+                    <p>
+                      {isEnglish 
+                        ? "Your information has been filled in from your previous visit. Please review it and make sure it's still correct."
+                        : "Vos informations ont été remplies à partir de votre visite précédente. Veuillez les vérifier et vous assurer qu'elles sont toujours correctes."
+                      }
+                    </p>
+                    <p className="mt-1 text-xs italic">
+                      {isEnglish 
+                        ? "If you need to update any information beyond this visit, please speak to the reception."
+                        : "Si vous devez mettre à jour des informations au-delà de cette visite, veuillez vous adresser à la réception."
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           {/* Name fields in a simple vertical layout */}
           <div className="space-y-4">
             {/* First name and middle name in the same row */}
@@ -279,6 +328,37 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
       title: isEnglish ? "Contact Details" : "Coordonnées",
       content: (
         <div className="space-y-4">
+          {/* Show a note that these fields should not be changed for returning visitors */}
+          {isReturningVisitor && (
+            <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-md p-3 mb-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-amber-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3 flex-1">
+                  <h3 className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                    {isEnglish ? "Important Note" : "Remarque Importante"}
+                  </h3>
+                  <div className="mt-2 text-sm text-amber-700 dark:text-amber-300">
+                    <p>
+                      {isEnglish 
+                        ? "The following contact information is from your previous visit. Please review it for this check-in only."
+                        : "Les coordonnées suivantes proviennent de votre visite précédente. Veuillez les vérifier pour cet enregistrement uniquement."
+                      }
+                    </p>
+                    <p className="mt-1 text-xs italic">
+                      {isEnglish 
+                        ? "To permanently update your contact information, please speak to reception after check-in."
+                        : "Pour mettre à jour définitivement vos coordonnées, veuillez vous adresser à la réception après l'enregistrement."
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           <FormField
             control={form.control}
             name="email"
@@ -381,9 +461,21 @@ export function VisitorCheckInForm({ onSuccess, isEnglish = true }: VisitorCheck
       title: isEnglish ? "Review Information" : "Vérification des Informations",
       content: (
         <div className="space-y-6">
-          <h3 className="text-lg font-medium">
-            {isEnglish ? "Please review your information" : "Veuillez vérifier vos informations"}
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-medium">
+              {isEnglish ? "Please review your information" : "Veuillez vérifier vos informations"}
+            </h3>
+            
+            {/* Show returning visitor badge */}
+            {isReturningVisitor && (
+              <div className="bg-blue-100 dark:bg-blue-900 px-3 py-1 rounded-full text-sm font-medium text-blue-800 dark:text-blue-200 flex items-center">
+                <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                {isEnglish ? "Returning Visitor" : "Visiteur Régulier"}
+              </div>
+            )}
+          </div>
           
           <Card className="bg-muted/50">
             <CardContent className="pt-6">

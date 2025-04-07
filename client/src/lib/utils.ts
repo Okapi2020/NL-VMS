@@ -114,6 +114,22 @@ export function formatPhoneWithCountryCode(phoneNumber: string, countryCode: str
   return `+${countryCode}${formattedNumber}`;
 }
 
+/**
+ * Format a phone number with spaces for readability
+ * e.g. "1234567890" -> "1234 567 890"
+ */
+export function formatPhoneNumber(phoneNumber: string): string {
+  const cleaned = phoneNumber.replace(/\D/g, '');
+  
+  if (cleaned.length <= 4) {
+    return cleaned;
+  } else if (cleaned.length <= 7) {
+    return `${cleaned.slice(0, 4)} ${cleaned.slice(4)}`;
+  } else {
+    return `${cleaned.slice(0, 4)} ${cleaned.slice(4, 7)} ${cleaned.slice(7)}`;
+  }
+}
+
 // Create WhatsApp URL for a phone number
 export function getWhatsAppUrl(phoneNumber: string, countryCode: string): string {
   const formattedNumber = formatPhoneWithCountryCode(phoneNumber, countryCode).replace(/\+/g, '');
