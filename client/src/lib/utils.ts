@@ -44,6 +44,16 @@ export function formatTimeOnly(date: Date | string, language: 'en' | 'fr' = 'en'
   });
 }
 
+export function formatDateShort(date: Date | string, language: 'en' | 'fr' = 'en'): string {
+  const locale = language === 'fr' ? 'fr-FR' : 'en-US';
+  return new Date(date).toLocaleString(locale, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "Africa/Kinshasa"
+  });
+}
+
 export function formatDuration(startDate: Date | string, endDate: Date | string | null, language: 'en' | 'fr' = 'en'): string {
   // If endDate is null, we can't calculate duration
   if (!endDate) {

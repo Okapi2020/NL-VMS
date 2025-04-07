@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { formatTimeOnly, formatDuration, formatBadgeId, formatYearWithAge, normalizeText } from "@/lib/utils";
+import { formatTimeOnly, formatDateShort, formatDuration, formatBadgeId, formatYearWithAge, normalizeText } from "@/lib/utils";
 import { Visit, Visitor, UpdateVisitor } from "@shared/schema";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -37,6 +37,7 @@ import {
   LogOut,
   Eye
 } from "lucide-react";
+import { VisitorDetailModal } from "./visitor-detail-modal";
 
 import {
   Dialog,
@@ -106,6 +107,8 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isAutoCheckoutProcessing, setIsAutoCheckoutProcessing] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedVisitDetails, setSelectedVisitDetails] = useState<{ visitor: Visitor, visit: Visit } | null>(null);
 
   const checkOutMutation = useMutation({
     mutationFn: async (visitId: number) => {
@@ -262,6 +265,12 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
     }
   });
 
+  // Handle opening visitor detail modal
+  const handleOpenDetailModal = (visitor: Visitor, visit: Visit) => {
+    setSelectedVisitDetails({ visitor, visit });
+    setIsDetailModalOpen(true);
+  };
+  
   // Handle edit visitor
   const handleEditVisitor = (visitor: Visitor) => {
     setSelectedVisitor(visitor);
@@ -602,8 +611,8 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                         variant="outline"
                         size="sm"
                         className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-md border border-blue-200 flex items-center h-8"
-                        onClick={() => handleEditVisitor(visitor)}
-                        title={t("editVisitor")}
+                        onClick={() => handleOpenDetailModal(visitor, visit)}
+                        title={t("viewVisitor")}
                       >
                         <Eye className="h-4 w-4 mr-1" />
                         <span>{t("view")}</span>
@@ -859,6 +868,24 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
           </Form>
         </DialogContent>
       </Dialog>
+      
+      {/* Visitor Detail Modal */}
+      {selectedVisitDetails && (
+        <VisitorDetailModal
+          visitor={selectedVisitDetails.visitor}
+          visit={selectedVisitDetails.visit}
+          isOpen={isDetailModalOpen}
+          onClose={() => setIsDetailModalOpen(false)}
+          onEdit={() => {
+            setIsDetailModalOpen(false);
+            handleEditVisitor(selectedVisitDetails.visitor);
+          }}
+          onDelete={() => {
+            setIsDetailModalOpen(false);
+            handleDeleteVisitor(selectedVisitDetails.visitor.id, selectedVisitDetails.visitor.fullName);
+          }}
+        />
+      )}
     </div>
   );
 }

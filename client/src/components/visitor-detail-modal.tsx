@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { formatDate, formatTimeOnly, formatDuration, formatBadgeId, formatYearWithAge } from "@/lib/utils";
+import { formatDate, formatTimeOnly, formatDateShort, formatDuration, formatBadgeId, formatYearWithAge } from "@/lib/utils";
 import { useLanguage } from "@/hooks/use-language";
 import { X, Pencil, Trash2 } from "lucide-react";
 
@@ -128,7 +128,7 @@ export function VisitorDetailModal({
                     {formatTimeOnly(visit.checkInTime, language)}
                   </span>
                   <span className="text-sm text-gray-500">
-                    {formatDate(visit.checkInTime, language).split(",")[0]}
+                    {formatDateShort(visit.checkInTime, language)}
                   </span>
                 </div>
               </div>
@@ -142,7 +142,7 @@ export function VisitorDetailModal({
                         {formatTimeOnly(visit.checkOutTime, language)}
                       </span>
                       <span className="text-sm text-gray-500">
-                        {formatDate(visit.checkOutTime, language).split(",")[0]}
+                        {formatDateShort(visit.checkOutTime, language)}
                       </span>
                     </>
                   ) : (
