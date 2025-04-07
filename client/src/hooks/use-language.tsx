@@ -167,6 +167,14 @@ export const translations: TranslationMap = {
     en: 'Year of Birth',
     fr: 'Année de naissance'
   },
+  birthYear: {
+    en: 'Year of Birth',
+    fr: 'Année de naissance'
+  },
+  gender: {
+    en: 'Sex',
+    fr: 'Sexe'
+  },
   sex: {
     en: 'Sex',
     fr: 'Sexe'
@@ -494,6 +502,10 @@ export const translations: TranslationMap = {
   checkOutAll: {
     en: 'Check Out All Visitors',
     fr: 'Départ de tous les visiteurs'
+  },
+  checkOutSelected: {
+    en: 'Check Out Selected',
+    fr: 'Départ des visiteurs sélectionnés'
   },
   checkoutSuccess: {
     en: 'Visitor checked out successfully',
