@@ -651,36 +651,44 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
             <Button
               variant="outline"
               size="sm"
-              className="text-red-600 border-red-200 hover:bg-red-50"
+              className="text-green-600 border-green-200 hover:bg-green-50"
               onClick={() => {
-                if (window.confirm(t("confirmDeleteSelected", { count: selectedVisitors.length }))) {
+                if (window.confirm(t("confirmCheckOutSelected", { count: selectedVisitors.length, defaultValue: `Are you sure you want to check out ${selectedVisitors.length} selected visitors?` }))) {
+                  // Find visits for selected visitors
+                  const selectedVisits = visits
+                    .filter(({ visitor }) => selectedVisitors.includes(visitor.id))
+                    .map(({ visit }) => visit.id);
+                  
+                  // Check out each visit
                   Promise.all(
-                    selectedVisitors.map(id => 
-                      apiRequest("DELETE", `/api/admin/delete-visitor/${id}`)
+                    selectedVisits.map(visitId => 
+                      apiRequest("POST", "/api/admin/check-out-visitor", { visitId })
                         .then(res => res.json())
                     )
                   )
                     .then(() => {
                       toast({
                         title: t("success"),
-                        description: t("visitorsDeleted", { count: selectedVisitors.length }),
+                        description: t("visitorsCheckedOut", { count: selectedVisitors.length, defaultValue: `Successfully checked out ${selectedVisitors.length} visitors` }),
                       });
                       setSelectedVisitors([]);
                       // Refresh data
                       queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
                       queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
+                      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
                     })
                     .catch(error => {
                       toast({
                         title: t("error"),
-                        description: `Failed to delete visitors: ${error.message}`,
+                        description: `Failed to check out visitors: ${error.message}`,
                         variant: "destructive",
                       });
                     });
                 }
               }}
             >
-              {t("deleteSelected")} ({selectedVisitors.length})
+              <LogOut className="h-4 w-4 mr-1" />
+              {t("checkOutSelected", { defaultValue: "Check Out Selected" })} ({selectedVisitors.length})
             </Button>
           )}
         </div>

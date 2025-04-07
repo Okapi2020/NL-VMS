@@ -526,6 +526,56 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
           {showDeletedVisitors ? " (Trash Bin)" : ""}
           {selectedVisitors?.length > 0 ? ` • ${selectedVisitors.length} selected` : ""}
         </div>
+        
+        {/* Bulk actions */}
+        {selectedVisitors.length > 0 && !showDeletedVisitors && (
+          <div className="mt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-red-600 border-red-200 hover:bg-red-50"
+              onClick={() => {
+                if (window.confirm(t("confirmDeleteSelected", { count: selectedVisitors.length, defaultValue: `Are you sure you want to delete ${selectedVisitors.length} selected visitors?` }))) {
+                  setIsProcessingBulk(true);
+                  Promise.all(
+                    selectedVisitors.map(id => 
+                      apiRequest("DELETE", `/api/admin/delete-visitor/${id}`)
+                        .then(res => res.json())
+                    )
+                  )
+                    .then(() => {
+                      toast({
+                        title: t("success"),
+                        description: t("visitorsDeleted", { count: selectedVisitors.length, defaultValue: `Successfully deleted ${selectedVisitors.length} visitors` }),
+                      });
+                      setSelectedVisitors([]);
+                      // Refresh data
+                      queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
+                      queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
+                    })
+                    .catch(error => {
+                      toast({
+                        title: t("error"),
+                        description: `Failed to delete visitors: ${error.message}`,
+                        variant: "destructive",
+                      });
+                    })
+                    .finally(() => {
+                      setIsProcessingBulk(false);
+                    });
+                }
+              }}
+              disabled={isProcessingBulk}
+            >
+              {isProcessingBulk ? (
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent mr-1" />
+              ) : (
+                <Trash2 className="h-4 w-4 mr-1" />
+              )}
+              {t("deleteSelected", { defaultValue: "Delete Selected" })} ({selectedVisitors.length})
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Table */}
