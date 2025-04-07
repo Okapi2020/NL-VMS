@@ -32,7 +32,8 @@ import {
   ShieldCheck, 
   Pencil, 
   Trash2,
-  X
+  X,
+  LogOut
 } from "lucide-react";
 
 import {
@@ -102,6 +103,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isAutoCheckoutProcessing, setIsAutoCheckoutProcessing] = useState(false);
 
   const checkOutMutation = useMutation({
     mutationFn: async (visitId: number) => {
@@ -224,6 +226,37 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
         description: `Failed to delete visitor: ${error.message}`,
         variant: "destructive",
       });
+    }
+  });
+  
+  // Auto-checkout all visitors mutation
+  const autoCheckoutMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/admin/auto-checkout");
+      return await res.json();
+    },
+    onMutate: () => {
+      setIsAutoCheckoutProcessing(true);
+    },
+    onSuccess: (data) => {
+      toast({
+        title: t("success"),
+        description: data.message || `Successfully checked out ${data.count} visitors`,
+      });
+      // Refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
+    },
+    onError: (error) => {
+      toast({
+        title: t("error"),
+        description: `Failed to auto-checkout visitors: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      setIsAutoCheckoutProcessing(false);
     }
   });
 
@@ -384,10 +417,35 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
           />
         </div>
       </div>
-
-      {/* Results count */}
-      <div className="text-sm text-gray-500 mb-4 px-4">
-        {t("showing")} {paginatedVisits.length} {t("of")} {sortedVisits.length} {t("activeVisitors")}
+      
+      {/* Auto-checkout button */}
+      <div className="flex justify-between items-center mb-4 px-4">
+        <div className="text-sm text-gray-500">
+          {t("showing")} {paginatedVisits.length} {t("of")} {sortedVisits.length} {t("activeVisitors")}
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-2"
+          onClick={() => {
+            if (confirm(t("confirmAutoCheckout", { defaultValue: "Are you sure you want to check out all active visitors?" }))) {
+              autoCheckoutMutation.mutate();
+            }
+          }}
+          disabled={isAutoCheckoutProcessing || visits.length === 0}
+        >
+          {isAutoCheckoutProcessing ? (
+            <>
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              {t("processing", { defaultValue: "Processing..." })}
+            </>
+          ) : (
+            <>
+              <LogOut className="h-4 w-4" />
+              {t("checkOutAll", { defaultValue: "Check Out All Visitors" })}
+            </>
+          )}
+        </Button>
       </div>
 
       {/* Table */}
