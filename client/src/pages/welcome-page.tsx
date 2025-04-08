@@ -283,6 +283,7 @@ export default function WelcomePage() {
                     visitor={checkedInVisitor}
                     visit={checkedInVisit}
                     isEnglish={isEnglish}
+                    onReturn={handleHomeClick}
                   />
                 ) : (
                   // Show the regular check-in success screen

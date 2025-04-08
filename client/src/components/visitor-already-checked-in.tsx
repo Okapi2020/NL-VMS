@@ -5,18 +5,30 @@ import { formatTimeOnly, formatBadgeId } from "@/lib/utils";
 import { AlertCircle, Tag, Phone, Timer, Home, Clock, Calendar, Info } from "lucide-react";
 import { PhoneNumberLink } from "@/components/phone-number-link";
 import { Visitor, Visit } from "@shared/schema";
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 
 type VisitorAlreadyCheckedInProps = {
   visitor: Visitor;
   visit: Visit;
   isEnglish?: boolean;
+  onReturn?: () => void; // Optional callback for return button
 };
 
-export function VisitorAlreadyCheckedIn({ visitor, visit, isEnglish = true }: VisitorAlreadyCheckedInProps) {
+export function VisitorAlreadyCheckedIn({ visitor, visit, isEnglish = true, onReturn }: VisitorAlreadyCheckedInProps) {
   const [, navigate] = useLocation();
   const [countdown, setCountdown] = useState(7); // 7 seconds countdown
   const [autoRedirect, setAutoRedirect] = useState(true); // Control whether auto-redirect is enabled
+  
+  // Function to handle returning to home
+  const handleReturn = () => {
+    if (onReturn) {
+      // Call the onReturn handler passed from parent component
+      onReturn();
+    } else {
+      // Default behavior - just navigate to home
+      navigate("/");
+    }
+  };
   
   // Auto redirect after 7 seconds
   useEffect(() => {
@@ -27,14 +39,14 @@ export function VisitorAlreadyCheckedIn({ visitor, visit, isEnglish = true }: Vi
         setCountdown(countdown - 1);
       }, 1000);
     } else if (autoRedirect && countdown === 0) {
-      // When countdown reaches 0, navigate to home page
-      navigate("/");
+      // When countdown reaches 0, call the handleReturn function
+      handleReturn();
     }
     
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [countdown, autoRedirect, navigate]);
+  }, [countdown, autoRedirect, navigate, onReturn]);
 
   // Function to format time
   const formatTime = (date: string | Date) => {
@@ -122,16 +134,15 @@ export function VisitorAlreadyCheckedIn({ visitor, visit, isEnglish = true }: Vi
 
         {/* Action button */}
         <div className="flex justify-center">
-          <Link href="/">
-            <Button 
-              variant="default" 
-              size="default"
-              className="inline-flex items-center px-5 py-2 font-medium shadow-sm hover:shadow-md transition-all"
-            >
-              <Home className="h-4 w-4 mr-2" />
-              {isEnglish ? "Back to Home" : "Retour à l'Accueil"}
-            </Button>
-          </Link>
+          <Button 
+            variant="default" 
+            size="default"
+            className="inline-flex items-center px-5 py-2 font-medium shadow-sm hover:shadow-md transition-all"
+            onClick={handleReturn}
+          >
+            <Home className="h-4 w-4 mr-2" />
+            {isEnglish ? "Back to Home" : "Retour à l'Accueil"}
+          </Button>
         </div>
       </CardContent>
     </Card>
