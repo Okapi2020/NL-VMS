@@ -73,13 +73,15 @@ export function VisitorTypeSelection({
     // Strip all non-numeric characters
     const cleaned = input.replace(/\D/g, '');
     
-    // Only take the first 10 digits
+    // Only take the first 10 digits (for display purposes)
     const limited = cleaned.slice(0, 10);
     
-    // Store raw numeric value
+    console.log(`Phone input: "${input}" -> cleaned: "${cleaned}" -> limited: "${limited}"`);
+    
+    // Store raw numeric value - ENSURE WE HAVE FULL 10 DIGITS
     setPhoneNumber(limited);
     
-    // Apply formatting with spaces
+    // Apply formatting with spaces for display
     const formatted = formatPhoneNumber(limited);
     setFormattedPhoneNumber(formatted);
     
@@ -91,6 +93,7 @@ export function VisitorTypeSelection({
       }
       
       const timeoutId = setTimeout(() => {
+        console.log(`Starting lookup with phone: "${limited}" (length: ${limited.length})`);
         lookupVisitor(true); // silent check
       }, 500); // wait half a second after typing stops
       
@@ -298,7 +301,7 @@ export function VisitorTypeSelection({
                 </div>
               )}
               
-              {errorMessage && !isFound && phoneNumber.length === 10 && (
+              {errorMessage && !isFound && phoneNumber.length >= 9 && (
                 <div className="mt-2 space-y-2">
                   <p className="text-sm text-destructive">{errorMessage}</p>
                   
@@ -364,7 +367,7 @@ export function VisitorTypeSelection({
                     {visitor.phoneNumber.startsWith('+') ? 
                       visitor.phoneNumber :
                       (visitor.phoneNumber.startsWith('0') ? 
-                        visitor.phoneNumber : 
+                        formatPhoneNumber(visitor.phoneNumber) : 
                         `0${formatPhoneNumber(visitor.phoneNumber)}`)}
                   </p>
                 </div>

@@ -116,16 +116,24 @@ export function formatPhoneWithCountryCode(phoneNumber: string, countryCode: str
 
 /**
  * Format a phone number with spaces for readability
- * e.g. "1234567890" -> "1234 567 890"
+ * e.g. "1234567890" -> "1234 567 890" or "123456789" -> "123 456 789"
  */
 export function formatPhoneNumber(phoneNumber: string): string {
   const cleaned = phoneNumber.replace(/\D/g, '');
   
-  if (cleaned.length <= 4) {
+  // Check if this is a 9-digit number (without leading zero)
+  if (cleaned.length === 9) {
+    // Format as xxx xxx xxx
+    return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6)}`;
+  } else if (cleaned.length === 10 && cleaned.startsWith('0')) {
+    // Format as xxxx xxx xxx (with leading zero)
+    return `${cleaned.slice(0, 4)} ${cleaned.slice(4, 7)} ${cleaned.slice(7)}`;
+  } else if (cleaned.length <= 4) {
     return cleaned;
   } else if (cleaned.length <= 7) {
     return `${cleaned.slice(0, 4)} ${cleaned.slice(4)}`;
   } else {
+    // Default format for any other length
     return `${cleaned.slice(0, 4)} ${cleaned.slice(4, 7)} ${cleaned.slice(7)}`;
   }
 }
@@ -172,6 +180,8 @@ export function normalizePhoneNumber(phoneNumber: string): string {
   }
   
   // Return the normalized number (keeping all digits)
+  // DRC mobile numbers are 10 digits with leading zero or 9 digits without it
+  console.log(`Client normalized phone number: "${phoneNumber}" -> "${digits}"`);
   return digits;
 }
 

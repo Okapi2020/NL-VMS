@@ -146,26 +146,28 @@ export class DatabaseStorage implements IStorage {
       // Log the digits we're working with
       console.log(`Normalizing phone number: "${phone}" -> digits: "${digits}" (length: ${digits.length})`);
       
+      let normalizedNumber = digits;
+      
       // If it starts with country code 243, remove it
-      if (digits.startsWith('243')) {
-        digits = digits.substring(3);
-        console.log(`  After country code removal: "${digits}" (length: ${digits.length})`);
+      if (normalizedNumber.startsWith('243')) {
+        normalizedNumber = normalizedNumber.substring(3);
+        console.log(`  After country code removal: "${normalizedNumber}" (length: ${normalizedNumber.length})`);
       }
       
-      // If it starts with a 0, remove it (local format)
-      if (digits.startsWith('0')) {
-        digits = digits.substring(1);
-        console.log(`  After leading zero removal: "${digits}" (length: ${digits.length})`);
+      // If it starts with a 0, remove it (local format) - BUT keep original digit count
+      let hasLeadingZero = false;
+      if (normalizedNumber.startsWith('0')) {
+        normalizedNumber = normalizedNumber.substring(1);
+        hasLeadingZero = true;
+        console.log(`  After leading zero removal: "${normalizedNumber}" (length: ${normalizedNumber.length})`);
       }
-      
-      // Keep the full number (for 10-digit numbers)
-      // We want to keep all 10 digits (the leading zero is already removed above)
       
       // Log the final normalized number
-      console.log(`  Final normalized number: "${digits}" (length: ${digits.length})`);
+      console.log(`  Final normalized number: "${normalizedNumber}" (length: ${normalizedNumber.length})`);
       
-      // Return the normalized number
-      return digits;
+      // Return the normalized number (always return 9 digits without the leading zero)
+      // DRC mobile numbers are 10 digits with leading zero or 9 digits without it
+      return normalizedNumber;
     };
     
     // Normalize the search phone number
