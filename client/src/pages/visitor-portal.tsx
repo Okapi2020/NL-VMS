@@ -342,30 +342,57 @@ function VisitorPortalComponent() {
         
         // Update states with the existing visitor and visit data
         if (data.visitor && data.visit) {
+          console.log('Setting visitor and visit data for already checked in state:', data.visitor, data.visit);
+          
+          // Set all the relevant states
           setVisitor(data.visitor);
           setVisit(data.visit);
+          setCheckedIn(false);
           
           // Store visitor ID in localStorage
           localStorage.setItem("visitorId", data.visitor.id.toString());
           
-          // Create a special state for already checked in visitors
-          // This will show the VisitorAlreadyCheckedIn component instead of VisitorCheckedIn
+          // Show the already checked in component with a small delay to ensure state updates
           setTimeout(() => {
-            // Set alreadyCheckedIn to true to show the already checked in component
             setAlreadyCheckedIn(true);
             setIsLoading(false);
-          }, 50);
+          }, 100);
         } else {
-          // If for some reason data is incomplete, show an error
+          // Log the issue for debugging
+          console.error('Missing data in 409 response:', data);
           setIsLoading(false);
-          alert(isEnglish 
-            ? 'You already have an active visit in the system.' 
-            : 'Vous avez déjà une visite active dans le système.');
           
-          // Reset UI to welcome state
-          setTimeout(() => {
-            navigate("/");
-          }, 300);
+          // As a fallback, try to load information directly from the visitor object we already have
+          if (visitor) {
+            console.log('Using fallback visitor data for already checked in state');
+            setVisitor(visitor);
+            
+            // Create a minimal visit object with current time
+            const fallbackVisit = {
+              id: 0,
+              visitorId: visitor.id,
+              checkInTime: new Date(),
+              checkOutTime: null,
+              purpose: null,
+              createdAt: new Date()
+            };
+            setVisit(fallbackVisit);
+            
+            // Show the already checked in component
+            setTimeout(() => {
+              setAlreadyCheckedIn(true);
+            }, 100);
+          } else {
+            // Show error and redirect if we have no data at all
+            alert(isEnglish 
+              ? 'You already have an active visit in the system.' 
+              : 'Vous avez déjà une visite active dans le système.');
+            
+            // Reset UI to welcome state
+            setTimeout(() => {
+              navigate("/");
+            }, 300);
+          }
         }
       } else {
         console.error('Failed to check in returning visitor:', data);
