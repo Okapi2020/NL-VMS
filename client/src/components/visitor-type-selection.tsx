@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Dialog, 
   DialogContent, 
@@ -38,6 +38,16 @@ export function VisitorTypeSelection({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [visitor, setVisitor] = useState<Visitor | null>(null);
+  const [lookupTimeout, setLookupTimeout] = useState<NodeJS.Timeout | null>(null);
+  
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (lookupTimeout) {
+        clearTimeout(lookupTimeout);
+      }
+    };
+  }, [lookupTimeout]);
   
   // Reset states when dialog opens/closes
   const resetState = () => {
@@ -50,9 +60,15 @@ export function VisitorTypeSelection({
     setErrorMessage(null);
     setRetryCount(0);
     setVisitor(null);
+    
+    // Clear any pending timeout
+    if (lookupTimeout) {
+      clearTimeout(lookupTimeout);
+      setLookupTimeout(null);
+    }
   };
   
-  // Handle phone number input with formatting
+  // Handle phone number input with formatting and real-time lookup
   const handlePhoneInput = (input: string) => {
     // Strip all non-numeric characters
     const cleaned = input.replace(/\D/g, '');
@@ -66,11 +82,31 @@ export function VisitorTypeSelection({
     // Apply formatting with spaces
     const formatted = formatPhoneNumber(limited);
     setFormattedPhoneNumber(formatted);
+    
+    // If phone number is 10 digits, do a silent lookup
+    if (limited.length === 10) {
+      // Use setTimeout to avoid searching on every keystroke
+      if (lookupTimeout) {
+        clearTimeout(lookupTimeout);
+      }
+      
+      const timeoutId = setTimeout(() => {
+        lookupVisitor(true); // silent check
+      }, 500); // wait half a second after typing stops
+      
+      setLookupTimeout(timeoutId);
+    } else {
+      // Reset found state if phone number is not complete
+      setIsFound(false);
+      setVisitor(null);
+    }
   };
   
-  // Look up visitor by phone number
-  const lookupVisitor = async () => {
-    setIsLoading(true);
+  // Look up visitor by phone number as user types
+  const lookupVisitor = async (skipFullCheck = false) => {
+    if (!skipFullCheck) {
+      setIsLoading(true);
+    }
     setErrorMessage(null);
     
     try {
@@ -84,7 +120,11 @@ export function VisitorTypeSelection({
       if (response.ok && data.found) {
         setIsFound(true);
         setVisitor(data.visitor);
-        setStep('review');
+        
+        // If this is the full check (clicking Next), go to review
+        if (!skipFullCheck) {
+          setStep('review');
+        }
       } else {
         setIsFound(false);
         
@@ -114,7 +154,9 @@ export function VisitorTypeSelection({
         ? "An error occurred while looking up your information." 
         : "Une erreur s'est produite lors de la recherche de vos informations.");
     } finally {
-      setIsLoading(false);
+      if (!skipFullCheck) {
+        setIsLoading(false);
+      }
     }
   };
   
@@ -232,8 +274,39 @@ export function VisitorTypeSelection({
                 className="text-lg"
               />
               
-              {errorMessage && (
-                <p className="text-sm text-destructive mt-1">{errorMessage}</p>
+              {isFound && visitor && (
+                <div className="mt-2 space-y-2">
+                  <div className="flex items-center">
+                    <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
+                    <p className="text-sm font-medium text-green-600">
+                      {isEnglish 
+                        ? `Found visitor: ${visitor.fullName}` 
+                        : `Visiteur trouvé: ${visitor.fullName}`}
+                    </p>
+                  </div>
+                  
+                  <Button 
+                    variant="default" 
+                    className="w-full mt-2 bg-green-600 hover:bg-green-700"
+                    onClick={() => setStep('review')}
+                  >
+                    {isEnglish ? "Proceed to Check In" : "Procéder à l'enregistrement"}
+                  </Button>
+                </div>
+              )}
+              
+              {errorMessage && !isFound && phoneNumber.length === 10 && (
+                <div className="mt-2 space-y-2">
+                  <p className="text-sm text-destructive">{errorMessage}</p>
+                  
+                  <Button 
+                    variant="destructive"
+                    className="w-full mt-2"
+                    onClick={handleContinueWithNoMatch}
+                  >
+                    {isEnglish ? "Register as New Visitor" : "S'inscrire comme nouveau visiteur"}
+                  </Button>
+                </div>
               )}
             </div>
             
@@ -243,15 +316,11 @@ export function VisitorTypeSelection({
                 {isEnglish ? "Back" : "Retour"}
               </Button>
               
-              <div className="space-x-2">
-                {retryCount > 0 && (
-                  <Button variant="outline" onClick={handleContinueWithNoMatch}>
-                    {isEnglish ? "New Registration" : "Nouvel Enregistrement"}
-                  </Button>
-                )}
-                
+              {/* Only show Next button if we haven't found a visitor yet and 
+                  we don't have the Register as New button visible */}
+              {!isFound && !errorMessage && (
                 <Button 
-                  onClick={lookupVisitor} 
+                  onClick={() => lookupVisitor(false)} 
                   disabled={phoneNumber.length < 10 || isLoading}
                 >
                   {isLoading ? (
@@ -259,7 +328,7 @@ export function VisitorTypeSelection({
                   ) : null}
                   {isEnglish ? "Next" : "Suivant"}
                 </Button>
-              </div>
+              )}
             </div>
           </div>
         )}
