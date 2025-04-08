@@ -282,6 +282,10 @@ function VisitorPortalComponent() {
   
   // Handle checking in click - open the visitor type selection modal
   const handleCheckInClick = () => {
+    // Reset any existing error states first
+    setAlreadyCheckedIn(false);
+    setCheckedIn(false);
+    // Then show the type selection modal
     setIsTypeSelectionOpen(true);
   };
   

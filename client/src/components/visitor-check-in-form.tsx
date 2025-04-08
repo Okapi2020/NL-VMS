@@ -128,30 +128,34 @@ export function VisitorCheckInForm({
       if (error?.status === 409 || (typeof error === 'object' && error.message?.includes('409'))) {
         // Check if we have visitor and visit data in the error response
         if (error?.data?.visitor && error?.data?.visit) {
-          toast({
-            title: isEnglish ? "Already Checked In" : "Déjà Enregistré",
-            description: isEnglish 
-              ? "You already have an active visit in the system."
-              : "Vous avez déjà une visite active dans le système.",
-          });
+          console.log('Handling 409 error with visitor data, redirecting to already checked in screen');
           
-          // Set alreadyCheckedIn to true on the parent component
+          // Immediately call the onSuccess handler with the alreadyCheckedIn flag
+          // This will cause the parent component to show the already checked-in screen
           if (typeof onSuccess === 'function') {
             onSuccess(error.data.visitor, error.data.visit, true);
           }
           
+          // Reset form state
           form.reset();
           setContactDetailsValues({ email: "", phoneNumber: "" });
           return;
         }
         
-        // If no data in error, show a generic message
+        // If no data in error but still a 409 status, show a toast and redirect to home
+        console.log('409 status but no visitor data, showing toast and redirecting to home');
         toast({
           title: isEnglish ? "Already Checked In" : "Déjà Enregistré",
           description: isEnglish 
             ? "You already have an active visit in the system."
             : "Vous avez déjà une visite active dans le système.",
+          variant: "warning",
         });
+        
+        // After a short delay, navigate to home
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 2000);
         
         return;
       }
