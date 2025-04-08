@@ -131,6 +131,10 @@ export const translations: TranslationMap = {
     en: 'Not specified',
     fr: 'Non spécifié'
   },
+  municipality: {
+    en: 'Municipality',
+    fr: 'Commune'
+  },
   
   // Authentication
   login: {

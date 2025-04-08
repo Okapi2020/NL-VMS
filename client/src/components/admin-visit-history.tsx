@@ -630,6 +630,13 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                 </div>
               </TableHead>
               
+              {/* Municipality Column */}
+              <TableHead>
+                <div className="flex items-center">
+                  <span className="uppercase text-xs font-medium text-gray-500">{t("municipality")}</span>
+                </div>
+              </TableHead>
+              
               {/* Badge ID Column */}
               <TableHead>
                 <div className="flex items-center">
@@ -663,7 +670,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
           <TableBody>
             {paginatedVisits.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-4 text-gray-500">
+                <TableCell colSpan={7} className="text-center py-4 text-gray-500">
                   {showDeletedVisitors 
                     ? "Trash bin is empty" 
                     : "No visits match your search or filters"}
@@ -724,6 +731,13 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                         ) : (
                           <span className="text-gray-400 italic">{t("noPhoneProvided")}</span>
                         )}
+                      </div>
+                    </TableCell>
+
+                    {/* Municipality */}
+                    <TableCell className="py-4">
+                      <div className="text-sm">
+                        {visitor.municipality || t("notSpecified")}
                       </div>
                     </TableCell>
                     
