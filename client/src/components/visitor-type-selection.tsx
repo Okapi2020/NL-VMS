@@ -157,10 +157,18 @@ export function VisitorTypeSelection({
   // Handle confirmation of returning visitor
   const handleConfirmReturningVisitor = () => {
     if (visitor) {
-      // First close the dialog to prevent flashing UI
+      // First make a local copy of the visitor
+      const visitorData = { ...visitor };
+      
+      // Then close the dialog
       resetState();
-      // Then immediately check in the visitor without URL navigation
-      onReturningVisitorConfirmed(visitor);
+      onClose();
+      
+      // Finally check in the visitor after the dialog is closed
+      // Use a small delay to ensure the dialog is fully closed
+      setTimeout(() => {
+        onReturningVisitorConfirmed(visitorData);
+      }, 50);
     }
   };
   

@@ -214,8 +214,14 @@ function VisitorPortalComponent() {
   // Handle selection of returning visitor or prefill info for a not-found visitor
   // Function to directly check in a returning visitor without going through the form
   const checkInReturningVisitor = async (visitor: Visitor) => {
+    // Show loading state immediately
     setIsLoading(true);
     console.log('Starting direct check-in for visitor:', visitor.id);
+    
+    // Make sure no other UI states are active
+    setShowForm(false);
+    setFormDefaultValues({});
+    setReturningVisitor(null);
     
     try {
       // Make API call to check in the visitor directly
@@ -231,29 +237,35 @@ function VisitorPortalComponent() {
         const data = await response.json();
         console.log('Successfully checked in returning visitor:', data);
         
-        // First reset the form-related states
-        setShowForm(false);
-        setFormDefaultValues({});
-        setReturningVisitor(null);
-        
-        // Then update the states that trigger the success view
+        // Update the states that trigger the success view
         setVisitor(data.visitor);
         setVisit(data.visit);
-        setCheckedIn(true);
         
         // Store visitor ID in localStorage for session management
         localStorage.setItem("visitorId", data.visitor.id.toString());
+        
+        // Finally set checked-in state to show success screen
+        setTimeout(() => {
+          setCheckedIn(true);
+          setIsLoading(false);
+        }, 50);
       } else {
         console.error('Failed to check in returning visitor:', await response.text());
-        // If check-in fails, fall back to the form
-        showReturningVisitorForm(visitor);
+        setIsLoading(false);
+        
+        // If check-in fails, fall back to the form after a short delay
+        setTimeout(() => {
+          showReturningVisitorForm(visitor);
+        }, 50);
       }
     } catch (error) {
       console.error('Error checking in returning visitor:', error);
-      // If check-in fails, fall back to the form
-      showReturningVisitorForm(visitor);
-    } finally {
       setIsLoading(false);
+      
+      // If check-in fails, fall back to the form after a short delay
+      setTimeout(() => {
+        showReturningVisitorForm(visitor);
+      }, 50);
     }
   };
   
@@ -272,18 +284,23 @@ function VisitorPortalComponent() {
   };
 
   const handleReturningVisitorConfirmed = (visitor: Visitor | null, prefill?: { phoneNumber: string; yearOfBirth?: number }) => {
-    setIsTypeSelectionOpen(false);
+    // This is now called after the dialog is already closed
     
     if (visitor) {
-      // Prevent any URL-based navigation by checking if we're on a clean URL
+      // Ensure we have a clean URL
       if (window.location.pathname !== '/visitor' || window.location.search) {
-        // If we have query parameters or are on a different path,
-        // navigate to clean URL first without triggering the useEffect
         window.history.replaceState(null, '', '/visitor');
       }
       
-      // Directly check in the returning visitor without going through the form
-      setTimeout(() => checkInReturningVisitor(visitor), 0);
+      // Ensure the selection dialog is closed
+      setIsTypeSelectionOpen(false);
+      
+      // Directly check in the returning visitor
+      // Use a small timeout to ensure UI state is updated first
+      setTimeout(() => {
+        console.log('Processing check-in for returning visitor:', visitor.id);
+        checkInReturningVisitor(visitor);
+      }, 100);
     } else if (prefill) {
       // Prefill the phone number for a new visitor who tried to return
       setShowForm(true);
