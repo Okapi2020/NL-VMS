@@ -20,10 +20,10 @@ type VisitorCheckedInProps = {
 export function VisitorCheckedIn({ visitor, visit, onCheckOut, isEnglish = true }: VisitorCheckedInProps) {
   const { toast } = useToast();
   const [, navigate] = useLocation();
-  const [countdown, setCountdown] = useState(6); // 6 seconds countdown
+  const [countdown, setCountdown] = useState(7); // 7 seconds countdown
   const [autoRedirect, setAutoRedirect] = useState(true); // Control whether auto-redirect is enabled
   
-  // Auto redirect after 6 seconds
+  // Auto redirect after 7 seconds
   useEffect(() => {
     let timer: number;
     

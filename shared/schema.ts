@@ -25,6 +25,7 @@ export const visitors = pgTable("visitors", {
   sex: varchar("sex", { length: 20 }).notNull(),
   email: varchar("email", { length: 255 }),
   phoneNumber: varchar("phone_number", { length: 50 }).notNull(),
+  municipality: varchar("municipality", { length: 100 }),
   verified: boolean("verified").default(false).notNull(),
   deleted: boolean("deleted").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -40,6 +41,7 @@ export const insertVisitorSchema = createInsertSchema(visitors).pick({
   sex: true,
   email: true,
   phoneNumber: true,
+  municipality: true,
 });
 
 // Visits schema
@@ -97,6 +99,7 @@ export const visitorFormSchema = z.object({
   sex: z.enum(["Masculin", "Feminin"], {
     errorMap: () => ({ message: "Please select either Masculin or Feminin" }),
   }),
+  municipality: z.string().optional(),
   email: z.string()
     .email("Please enter a valid email address")
     .refine(email => email === "" || /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email), {
@@ -135,7 +138,8 @@ export const visitorFormSchema = z.object({
   return {
     ...data,
     fullName: fullName.trim(),
-    phoneNumber: phoneNumber
+    phoneNumber: phoneNumber,
+    municipality: data.municipality || undefined // Ensure municipality is properly passed or set as undefined
   };
 });
 
@@ -199,6 +203,7 @@ export const updateVisitorSchema = z.object({
   sex: z.enum(["Masculin", "Feminin"], {
     errorMap: () => ({ message: "Please select either Masculin or Feminin" }),
   }),
+  municipality: z.string().optional(),
   email: z.string()
     .email("Invalid email format")
     .refine(email => email === null || email === "" || /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email), {

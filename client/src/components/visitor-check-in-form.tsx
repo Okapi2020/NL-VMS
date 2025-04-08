@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
+import { KINSHASA_MUNICIPALITIES, MUNICIPALITY_LABELS, MUNICIPALITY_SECTION_LABELS } from "@/data/municipalities";
 
 type VisitorCheckInFormProps = {
   onSuccess: (visitor: Visitor, visit: Visit, alreadyCheckedIn?: boolean) => void;
@@ -50,7 +51,8 @@ export function VisitorCheckInForm({
   // Create separate state for step 2 to avoid overlapping values
   const [contactDetailsValues, setContactDetailsValues] = useState({
     email: defaultValues.email || "",
-    phoneNumber: defaultValues.phoneNumber || ""
+    phoneNumber: defaultValues.phoneNumber || "",
+    municipality: defaultValues.municipality || ""
   });
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
@@ -76,7 +78,7 @@ export function VisitorCheckInForm({
       sex: defaultValues.sex as "Masculin" | "Feminin" | undefined, // Type casting for sex field
       email: defaultValues.email || "",
       phoneNumber: defaultValues.phoneNumber || "",
-
+      municipality: defaultValues.municipality || "",
     },
   });
 
@@ -130,7 +132,7 @@ export function VisitorCheckInForm({
         
         // Reset the form
         form.reset();
-        setContactDetailsValues({ email: "", phoneNumber: "" });
+        setContactDetailsValues({ email: "", phoneNumber: "", municipality: "" });
         return;
       }
       
@@ -145,7 +147,7 @@ export function VisitorCheckInForm({
       // Save data in session first
       onSuccess(data.visitor, data.visit);
       form.reset();
-      setContactDetailsValues({ email: "", phoneNumber: "" });
+      setContactDetailsValues({ email: "", phoneNumber: "", municipality: "" });
       
       // No immediate redirect - visitor will see confirmation screen first
     },
@@ -164,7 +166,7 @@ export function VisitorCheckInForm({
           
           // Reset form state
           form.reset();
-          setContactDetailsValues({ email: "", phoneNumber: "" });
+          setContactDetailsValues({ email: "", phoneNumber: "", municipality: "" });
           return;
         }
         
@@ -564,11 +566,52 @@ export function VisitorCheckInForm({
               </FormItem>
             )}
           />
+          
+          <FormField
+            control={form.control}
+            name="municipality"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="h-6 flex items-center">
+                  <span>{isEnglish ? "Municipality" : "Commune"}</span>
+                  <span className="ml-1 text-xs text-muted-foreground">
+                    {isEnglish ? "(Optional)" : "(Optionnel)"}
+                  </span>
+                </FormLabel>
+                <Select
+                  onValueChange={(value) => {
+                    handleContactDetailsChange("municipality", value);
+                    field.onChange(value);
+                  }}
+                  value={contactDetailsValues.municipality}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder={isEnglish ? "Select municipality" : "Sélectionner une commune"} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {KINSHASA_MUNICIPALITIES.map((municipality) => (
+                      <SelectItem key={municipality} value={municipality}>
+                        {municipality}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  {isEnglish 
+                    ? "Select the municipality where you live in Kinshasa"
+                    : "Sélectionnez la commune où vous habitez à Kinshasa"}
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
       ),
       validate: async () => {
-        // Validate both phone number and email (if provided)
-        return await form.trigger(["phoneNumber", "email"]);
+        // Validate phone number, email, and municipality (if provided)
+        return await form.trigger(["phoneNumber", "email", "municipality"]);
       }
     },
     {
@@ -628,6 +671,12 @@ export function VisitorCheckInForm({
                     {isEnglish ? "Phone" : "Téléphone"}
                   </h4>
                   <p className="mt-1">{contactDetailsValues.phoneNumber}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-muted-foreground">
+                    {isEnglish ? "Municipality" : "Commune"}
+                  </h4>
+                  <p className="mt-1">{contactDetailsValues.municipality || "—"}</p>
                 </div>
               </div>
             </CardContent>
