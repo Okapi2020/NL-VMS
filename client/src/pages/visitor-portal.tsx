@@ -44,17 +44,21 @@ function VisitorPortalComponent() {
       // For returning visitors, get the visitor from the API
       const visitorId = params.get('visitorId');
       if (visitorId) {
+        // Set loading state while fetching
+        setIsLoading(true);
+        
         fetch(`/api/visitors/${visitorId}`)
           .then(res => res.json())
           .then(data => {
             if (data) {
-              setReturningVisitor(data);
-              setShowForm(true);
+              // Instead of showing the form, directly check in the returning visitor
+              checkInReturningVisitor(data);
             }
           })
           .catch(err => {
             console.error('Error fetching visitor:', err);
             setShowForm(true);
+            setIsLoading(false);
           });
       } else {
         setShowForm(true);
@@ -202,6 +206,10 @@ function VisitorPortalComponent() {
         setVisitor(data.visitor);
         setVisit(data.visit);
         setCheckedIn(true);
+        // Hide the form and reset form-related states
+        setShowForm(false);
+        setFormDefaultValues({});
+        setReturningVisitor(null);
         // Store visitor ID in localStorage for session management
         localStorage.setItem("visitorId", data.visitor.id.toString());
         console.log('Successfully checked in returning visitor:', data);
