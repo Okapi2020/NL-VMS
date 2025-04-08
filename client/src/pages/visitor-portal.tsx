@@ -20,13 +20,65 @@ function VisitorPortalComponent() {
   const [checkedIn, setCheckedIn] = useState(false);
   const [visitor, setVisitor] = useState<Visitor | null>(null);
   const [visit, setVisit] = useState<Visit | null>(null);
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   
   // State for visitor type selection modal
   const [isTypeSelectionOpen, setIsTypeSelectionOpen] = useState(false);
   const [formDefaultValues, setFormDefaultValues] = useState<Partial<VisitorFormValues>>({});
   const [showForm, setShowForm] = useState(false);
   const [returningVisitor, setReturningVisitor] = useState<Visitor | null>(null);
+  
+  // Parse URL query parameters on page load
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const type = params.get('type');
+    
+    if (type === 'new') {
+      // For new visitors, just show the form
+      setShowForm(true);
+      setFormDefaultValues({});
+      setReturningVisitor(null);
+    } 
+    else if (type === 'returning') {
+      // For returning visitors, get the visitor from the API
+      const visitorId = params.get('visitorId');
+      if (visitorId) {
+        fetch(`/api/visitors/${visitorId}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data) {
+              setReturningVisitor(data);
+              setShowForm(true);
+            }
+          })
+          .catch(err => {
+            console.error('Error fetching visitor:', err);
+            setShowForm(true);
+          });
+      } else {
+        setShowForm(true);
+      }
+    }
+    else if (type === 'prefill') {
+      // For prefill info (when phone number lookup failed)
+      const phoneNumber = params.get('phoneNumber');
+      const yearOfBirth = params.get('yearOfBirth');
+      
+      if (phoneNumber) {
+        setFormDefaultValues({
+          phoneNumber,
+          ...(yearOfBirth ? { yearOfBirth: parseInt(yearOfBirth) } : {}),
+        });
+        setShowForm(true);
+      } else {
+        setIsTypeSelectionOpen(true);
+      }
+    }
+    else if (!type && !showForm && !checkedIn) {
+      // If no parameters and not already showing form/checked in, show selection modal
+      setIsTypeSelectionOpen(true);
+    }
+  }, [location]);
   
   // Load language preference from localStorage on component mount
   useEffect(() => {

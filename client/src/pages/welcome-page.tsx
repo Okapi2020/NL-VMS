@@ -1,16 +1,21 @@
 import { useState, useEffect } from "react";
-import { Link } from "wouter";
+import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { LogIn, UserCheck, Loader2, Languages } from "lucide-react";
-import { Settings } from "@shared/schema";
+import { Settings, Visitor } from "@shared/schema";
 import { LiveClock } from "@/components/live-clock";
 import { LanguageProvider } from "@/hooks/use-language";
+import { VisitorTypeSelection } from "@/components/visitor-type-selection";
 
 export default function WelcomePage() {
   // Use state for language toggle (default to French)
   const [isEnglish, setIsEnglish] = useState(false);
+  const [location, navigate] = useLocation();
+  
+  // State for visitor type selection modal
+  const [isTypeSelectionOpen, setIsTypeSelectionOpen] = useState(false);
   
   // Load language preference from localStorage on component mount
   useEffect(() => {
@@ -36,6 +41,37 @@ export default function WelcomePage() {
       return res.json();
     }
   });
+  
+  // Handle check-in button click
+  const handleCheckInClick = () => {
+    setIsTypeSelectionOpen(true);
+  };
+  
+  // Handle selection of new visitor
+  const handleNewVisitorSelected = () => {
+    // Navigate to visitor page with "new" parameter
+    setIsTypeSelectionOpen(false);
+    navigate("/visitor?type=new");
+  };
+  
+  // Handle selection of returning visitor
+  const handleReturningVisitorConfirmed = (visitor: Visitor | null, prefill?: { phoneNumber: string; yearOfBirth?: number }) => {
+    setIsTypeSelectionOpen(false);
+    
+    if (visitor) {
+      // Navigate with returning visitor ID
+      navigate(`/visitor?type=returning&visitorId=${visitor.id}`);
+    } else if (prefill) {
+      // Navigate with prefill information
+      const params = new URLSearchParams();
+      params.set('type', 'prefill');
+      params.set('phoneNumber', prefill.phoneNumber);
+      if (prefill.yearOfBirth) {
+        params.set('yearOfBirth', prefill.yearOfBirth.toString());
+      }
+      navigate(`/visitor?${params.toString()}`);
+    }
+  };
 
   // Application names
   const appName = settings?.appName || "Visitor Management System";
@@ -102,12 +138,14 @@ export default function WelcomePage() {
                     <LiveClock />
                   </div>
                   
-                  <Link href="/visitor">
-                    <Button size="lg" className="w-full text-lg py-6 font-medium">
-                      <LogIn className="mr-2 h-6 w-6" />
-                      {isEnglish ? 'Check In Now' : 'SIGNALER MON ARRIVÉE'}
-                    </Button>
-                  </Link>
+                  <Button 
+                    size="lg" 
+                    className="w-full text-lg py-6 font-medium"
+                    onClick={handleCheckInClick}
+                  >
+                    <LogIn className="mr-2 h-6 w-6" />
+                    {isEnglish ? 'Check In Now' : 'SIGNALER MON ARRIVÉE'}
+                  </Button>
                 </CardContent>
               </Card>
 
@@ -179,6 +217,15 @@ export default function WelcomePage() {
           </div>
         </footer>
       </div>
+      
+      {/* Visitor Type Selection Modal */}
+      <VisitorTypeSelection
+        isOpen={isTypeSelectionOpen}
+        onClose={() => setIsTypeSelectionOpen(false)}
+        onNewVisitorSelected={handleNewVisitorSelected}
+        onReturningVisitorConfirmed={handleReturningVisitorConfirmed}
+        isEnglish={isEnglish}
+      />
     </LanguageProvider>
   );
 }
