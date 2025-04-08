@@ -168,18 +168,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Direct check-in for returning visitors (by ID)
   app.post("/api/visitors/check-in/returning", async (req, res) => {
     try {
+      console.log('Direct check-in request received:', req.body);
       const { visitorId } = req.body;
       
       if (!visitorId || typeof visitorId !== 'number') {
+        console.error('Invalid visitor ID:', visitorId);
         return res.status(400).json({ message: "Visitor ID is required" });
       }
       
       // Get the visitor
+      console.log('Looking up visitor with ID:', visitorId);
       const visitor = await storage.getVisitor(visitorId);
       
       if (!visitor) {
+        console.error('Visitor not found for ID:', visitorId);
         return res.status(404).json({ message: "Visitor not found" });
       }
+      
+      console.log('Found visitor:', visitor.id, visitor.fullName);
       
       // Log the returning visitor for admin awareness
       await storage.createSystemLog({

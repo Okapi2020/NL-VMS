@@ -184,6 +184,7 @@ function VisitorPortalComponent() {
   // Function to directly check in a returning visitor without going through the form
   const checkInReturningVisitor = async (visitor: Visitor) => {
     setIsLoading(true);
+    console.log('Starting direct check-in for visitor:', visitor.id);
     
     try {
       // Make API call to check in the visitor directly
@@ -201,6 +202,8 @@ function VisitorPortalComponent() {
         setVisitor(data.visitor);
         setVisit(data.visit);
         setCheckedIn(true);
+        // Store visitor ID in localStorage for session management
+        localStorage.setItem("visitorId", data.visitor.id.toString());
         console.log('Successfully checked in returning visitor:', data);
       } else {
         console.error('Failed to check in returning visitor:', await response.text());
