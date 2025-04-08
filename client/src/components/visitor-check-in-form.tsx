@@ -92,23 +92,49 @@ export function VisitorCheckInForm({
 
   const checkInMutation = useMutation({
     mutationFn: async (formData: VisitorFormValues) => {
-      const res = await apiRequest("POST", "/api/visitors/check-in", formData);
+      const res = await apiRequest("POST", "/api/visitors/check-in", formData, true); // Skip error check in apiRequest
+      
+      console.log("[CheckIn] Response status:", res.status);
+      
+      // Parse the response data
+      const data = await res.json();
+      console.log("[CheckIn] Response data:", data);
       
       // Handle 409 Conflict (already checked in) case specifically
       if (res.status === 409) {
-        const data = await res.json();
-        // Throw a custom error with the data to be caught in onError
-        throw { status: 409, data };
+        // We're not throwing here, but instead returning a special result object
+        // that will be handled in onSuccess
+        return { 
+          status: 409, 
+          alreadyCheckedIn: true,
+          visitor: data.visitor,
+          visit: data.visit
+        };
       }
       
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "An unknown error occurred");
+        console.error("[CheckIn] Request failed:", data);
+        throw new Error(data.message || "An unknown error occurred");
       }
       
-      return await res.json();
+      // Normal success case
+      return data;
     },
     onSuccess: (data) => {
+      // Check if this is an "already checked in" response
+      if (data.status === 409 && data.alreadyCheckedIn) {
+        console.log("[CheckIn] Detected already checked-in state in success handler");
+        
+        // Call parent onSuccess with the alreadyCheckedIn flag
+        onSuccess(data.visitor, data.visit, true);
+        
+        // Reset the form
+        form.reset();
+        setContactDetailsValues({ email: "", phoneNumber: "" });
+        return;
+      }
+      
+      // Normal success case
       toast({
         title: isEnglish ? "Check-in successful" : "Enregistrement réussi",
         description: isEnglish 
