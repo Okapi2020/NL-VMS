@@ -67,11 +67,26 @@ export default function WelcomePage() {
   const [checkInCompleted, setCheckInCompleted] = useState(false);
   
   // Handle returning visitor confirmation - now does direct API call instead of navigation
-  const handleReturningVisitorConfirmed = (visitor: Visitor | null, prefill?: { phoneNumber: string; yearOfBirth?: number }) => {
+  const handleReturningVisitorConfirmed = (
+    visitor: Visitor | null, 
+    prefill?: { phoneNumber: string; yearOfBirth?: number },
+    activeVisit?: Visit,
+    alreadyCheckedIn?: boolean
+  ) => {
     // Always close the dialog first
     setIsTypeSelectionOpen(false);
     
-    console.log('Welcome page: Returning visitor confirmed', visitor?.id);
+    console.log('Welcome page: Returning visitor confirmed', visitor?.id, alreadyCheckedIn ? '(already checked in)' : '');
+    
+    // If visitor is already checked in, immediately show the already checked in screen
+    if (visitor && alreadyCheckedIn && activeVisit) {
+      console.log('Visitor already checked in, showing already checked in screen');
+      setCheckedInVisitor(visitor);
+      setCheckedInVisit(activeVisit);
+      setCheckInCompleted(true);
+      localStorage.setItem("visitorId", visitor.id.toString());
+      return;
+    }
     
     if (visitor) {
       // Show loading state
@@ -84,12 +99,41 @@ export default function WelcomePage() {
         body: JSON.stringify({ visitorId: visitor.id })
       })
       .then(response => {
+        if (response.status === 409) {
+          // Handle the case where visitor is already checked in (409 Conflict)
+          return response.json().then(data => {
+            console.log('Visitor already has an active check-in:', data);
+            
+            // We don't have the visit data from a 409 response, so we'll fetch it
+            return fetch(`/api/visitors/${visitor.id}/active-visit`)
+              .then(visitResponse => {
+                if (visitResponse.ok) {
+                  return visitResponse.json();
+                }
+                throw new Error('Failed to fetch active visit data');
+              })
+              .then(visitData => {
+                // Now we have the active visit data
+                setCheckedInVisitor(visitor);
+                setCheckedInVisit(visitData.visit);
+                setCheckInCompleted(true);
+                localStorage.setItem("visitorId", visitor.id.toString());
+                setDirectCheckInLoading(false);
+                return { alreadyCheckedIn: true };
+              });
+          });
+        }
+        
         if (!response.ok) {
           throw new Error('Failed to check in returning visitor');
         }
+        
         return response.json();
       })
       .then(data => {
+        // Skip if we already processed an "already checked in" response
+        if (data.alreadyCheckedIn) return;
+        
         console.log('Check-in successful on welcome page:', data);
         
         // Update state with visitor and visit data

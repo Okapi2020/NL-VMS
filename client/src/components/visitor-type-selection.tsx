@@ -110,12 +110,35 @@ export function VisitorTypeSelection({
           // Pass the visitor and visit data directly to parent component to show already checked in screen
           // We use a longer timeout to ensure dialog is fully closed
           setTimeout(() => {
-            onReturningVisitorConfirmed(
-              data.visitor, 
-              undefined, 
-              data.activeVisit.visit,
-              true // Flag to indicate this visitor is already checked in
-            );
+            console.log('Calling onReturningVisitorConfirmed with already checked in flag', data.visitor, data.activeVisit);
+            
+            // Make sure we have valid data to pass
+            if (data.visitor && data.activeVisit && data.activeVisit.visit) {
+              onReturningVisitorConfirmed(
+                data.visitor, 
+                undefined, 
+                data.activeVisit.visit,
+                true // Flag to indicate this visitor is already checked in
+              );
+            } else {
+              console.error('Missing data for already checked in visitor', data);
+              // Fallback in case visit data is missing
+              onReturningVisitorConfirmed(
+                data.visitor, 
+                undefined, 
+                // Create minimal visit object if missing
+                data.activeVisit?.visit || {
+                  id: 0,
+                  visitorId: data.visitor.id,
+                  checkInTime: new Date(),
+                  checkOutTime: null,
+                  purpose: null,
+                  createdAt: new Date(),
+                  active: true
+                },
+                true // Flag to indicate this visitor is already checked in
+              );
+            }
           }, 200);
           
           return; // Exit early to prevent showing the review step

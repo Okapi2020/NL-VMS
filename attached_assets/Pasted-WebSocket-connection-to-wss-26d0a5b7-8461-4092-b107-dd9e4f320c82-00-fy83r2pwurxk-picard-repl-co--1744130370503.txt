@@ -1,0 +1,119 @@
+WebSocket connection to 'wss://26d0a5b7-8461-4092-b107-dd9e4f320c82-00-fy83r2pwurxk.picard.repl.co/?token=xstS7uIO7Yhq' failed: 
+setupWebSocket @ client:536Understand this error
+client:536 Uncaught (in promise) SyntaxError: Failed to construct 'WebSocket': The URL 'wss://localhost:undefined/?token=xstS7uIO7Yhq' is invalid.
+    at setupWebSocket (client:536:19)
+    at fallback (client:509:16)
+    at WebSocket.<anonymous> (client:555:7)Understand this error
+ Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+ Fetching data from: /api/admin/user
+/api/admin/user:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+ Unauthorized request to /api/admin/user, returning null as configured
+ Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ @radix-ui_react-dialog.js:336Understand this warning
+ Visitor already has an active visit, skipping form: Object
+ Welcome page: Returning visitor confirmed 228
+/api/visitors/check-in/returning:1 
+            
+            
+           Failed to load resource: the server responded with a status of 409 (Conflict)Understand this error
+ Error checking in visitor directly: Error: Failed to check in returning visitor
+    at /src/pages/welcome-page.tsx:76:17
+(anonymous) @ /src/pages/welcome-page.tsx:87Understand this error
+ Initial load state: Object
+ Clearing URL parameters
+ Handling NEW visitor type
+ Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ @radix-ui_react-dialog.js:336
+commitHookEffectListMount @ /@fs/home/runner/wor…js?v=53ed216a:16915
+commitPassiveMountOnFiber @ /@fs/home/runner/wor…js?v=53ed216a:18156
+commitPassiveMountEffects_complete @ /@fs/home/runner/wor…js?v=53ed216a:18129
+commitPassiveMountEffects_begin @ /@fs/home/runner/wor…js?v=53ed216a:18119
+commitPassiveMountEffects @ /@fs/home/runner/wor…js?v=53ed216a:18109
+flushPassiveEffectsImpl @ /@fs/home/runner/wor…js?v=53ed216a:19490
+flushPassiveEffects @ /@fs/home/runner/wor…js?v=53ed216a:19447
+commitRootImpl @ /@fs/home/runner/wor…js?v=53ed216a:19416
+commitRoot @ /@fs/home/runner/wor…js?v=53ed216a:19277
+performSyncWorkOnRoot @ /@fs/home/runner/wor…js?v=53ed216a:18895
+flushSyncCallbacks @ /@fs/home/runner/wor….js?v=53ed216a:9119
+(anonymous) @ /@fs/home/runner/wor…js?v=53ed216a:18627Understand this warning
+ Visitor already has an active visit, skipping form: {visitor: {…}, activeVisit: {…}}activeVisit: visit: {id: 355, visitorId: 228, purpose: null, checkInTime: '2025-04-08T13:42:44.475Z', checkOutTime: null, …}visitor: {id: 228, fullName: 'Etienne Ngombwa', yearOfBirth: 1991, sex: 'Masculin', email: 'eti.ngombwa@gmail.com', …}[[Prototype]]: Objectvisitor: {id: 228, fullName: 'Etienne Ngombwa', yearOfBirth: 1991, sex: 'Masculin', email: 'eti.ngombwa@gmail.com', …}[[Prototype]]: Object
+ Welcome page: Returning visitor confirmed 228
+ 
+            
+            
+           POST https://26d0a5b7-8461-4092-b107-dd9e4f320c82-00-fy83r2pwurxk.picard.repl.co/api/visitors/check-in/returning 409 (Conflict)
+handleReturningVisitorConfirmed @ /src/pages/welcome-page.tsx:70
+(anonymous) @ /src/components/visi…pe-selection.tsx:89
+setTimeout
+lookupVisitor @ /src/components/visi…pe-selection.tsx:88
+await in lookupVisitor
+callCallback2 @ /@fs/home/runner/wor….js?v=53ed216a:3674
+invokeGuardedCallbackDev @ /@fs/home/runner/wor….js?v=53ed216a:3699
+invokeGuardedCallback @ /@fs/home/runner/wor….js?v=53ed216a:3733
+invokeGuardedCallbackAndCatchFirstError @ /@fs/home/runner/wor….js?v=53ed216a:3736
+executeDispatch @ /@fs/home/runner/wor….js?v=53ed216a:7014
+processDispatchQueueItemsInOrder @ /@fs/home/runner/wor….js?v=53ed216a:7034
+processDispatchQueue @ /@fs/home/runner/wor….js?v=53ed216a:7043
+dispatchEventsForPlugins @ /@fs/home/runner/wor….js?v=53ed216a:7051
+(anonymous) @ /@fs/home/runner/wor….js?v=53ed216a:7174
+batchedUpdates$1 @ /@fs/home/runner/wor…js?v=53ed216a:18913
+batchedUpdates @ /@fs/home/runner/wor….js?v=53ed216a:3579
+dispatchEventForPluginEventSystem @ /@fs/home/runner/wor….js?v=53ed216a:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ /@fs/home/runner/wor….js?v=53ed216a:5478
+dispatchEvent @ /@fs/home/runner/wor….js?v=53ed216a:5472
+dispatchDiscreteEvent @ /@fs/home/runner/wor….js?v=53ed216a:5449Understand this error
+ Error checking in visitor directly: Error: Failed to check in returning visitor
+    at /src/pages/welcome-page.tsx:76:17
+(anonymous) @ /src/pages/welcome-page.tsx:87
+Promise.catch
+handleReturningVisitorConfirmed @ /src/pages/welcome-page.tsx:86
+(anonymous) @ /src/components/visi…pe-selection.tsx:89
+setTimeout
+lookupVisitor @ /src/components/visi…pe-selection.tsx:88
+await in lookupVisitor
+callCallback2 @ /@fs/home/runner/wor….js?v=53ed216a:3674
+invokeGuardedCallbackDev @ /@fs/home/runner/wor….js?v=53ed216a:3699
+invokeGuardedCallback @ /@fs/home/runner/wor….js?v=53ed216a:3733
+invokeGuardedCallbackAndCatchFirstError @ /@fs/home/runner/wor….js?v=53ed216a:3736
+executeDispatch @ /@fs/home/runner/wor….js?v=53ed216a:7014
+processDispatchQueueItemsInOrder @ /@fs/home/runner/wor….js?v=53ed216a:7034
+processDispatchQueue @ /@fs/home/runner/wor….js?v=53ed216a:7043
+dispatchEventsForPlugins @ /@fs/home/runner/wor….js?v=53ed216a:7051
+(anonymous) @ /@fs/home/runner/wor….js?v=53ed216a:7174
+batchedUpdates$1 @ /@fs/home/runner/wor…js?v=53ed216a:18913
+batchedUpdates @ /@fs/home/runner/wor….js?v=53ed216a:3579
+dispatchEventForPluginEventSystem @ /@fs/home/runner/wor….js?v=53ed216a:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ /@fs/home/runner/wor….js?v=53ed216a:5478
+dispatchEvent @ /@fs/home/runner/wor….js?v=53ed216a:5472
+dispatchDiscreteEvent @ /@fs/home/runner/wor….js?v=53ed216a:5449Understand this error
+ Initial load state: {url: 'https://26d0a5b7-8461-4092-b107-dd9e4f320c82-00-fy83r2pwurxk.picard.repl.co/visitor?type=new', checkedIn: false, showForm: false, isLoading: false}
+ Clearing URL parameters
+ Handling NEW visitor type
+ Fetching data from: /api/admin/user
+ 
+            
+            
+           GET https://26d0a5b7-8461-4092-b107-dd9e4f320c82-00-fy83r2pwurxk.picard.repl.co/api/admin/user 401 (Unauthorized)
+(anonymous) @ queryClient.ts:29
+fetchFn @ /@fs/home/runner/wor…y.js?v=53ed216a:840
+run @ /@fs/home/runner/wor…y.js?v=53ed216a:494
+start @ /@fs/home/runner/wor…y.js?v=53ed216a:536
+fetch @ /@fs/home/runner/wor…y.js?v=53ed216a:926
+executeFetch_fn @ /@fs/home/runner/wor….js?v=53ed216a:2211
+fetch @ /@fs/home/runner/wor….js?v=53ed216a:2011
+refetch @ /@fs/home/runner/wor….js?v=53ed216a:2001
+onFocus @ /@fs/home/runner/wor…y.js?v=53ed216a:749
+(anonymous) @ /@fs/home/runner/wor….js?v=53ed216a:1112
+(anonymous) @ /@fs/home/runner/wor….js?v=53ed216a:1111
+batch @ /@fs/home/runner/wor…y.js?v=53ed216a:583
+onFocus @ /@fs/home/runner/wor….js?v=53ed216a:1110
+(anonymous) @ /@fs/home/runner/wor….js?v=53ed216a:1601
+await in (anonymous)
+(anonymous) @ /@fs/home/runner/wor…y.js?v=53ed216a:313
+onFocus @ /@fs/home/runner/wor…y.js?v=53ed216a:312
+(anonymous) @ /@fs/home/runner/wor…y.js?v=53ed216a:299
+listener @ /@fs/home/runner/wor…y.js?v=53ed216a:270Understand this error
+ Unauthorized request to /api/admin/user, returning null as configured

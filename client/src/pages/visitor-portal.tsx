@@ -107,8 +107,14 @@ function VisitorPortalComponent() {
                 const data = await response.json();
                 
                 // Check for already checked in status (409 Conflict)
-                if (response.status === 409 && data.alreadyCheckedIn) {
+                if (response.status === 409) {
                   console.log('Visitor already checked in:', data);
+                  
+                  // Make sure we have visitor data
+                  if (!data.visitor || !data.visit) {
+                    console.error('Missing visitor or visit data in already checked in response');
+                    throw new Error('Incomplete data for already checked in visitor');
+                  }
                   
                   // Set visitor and visit data
                   setVisitor(data.visitor);
