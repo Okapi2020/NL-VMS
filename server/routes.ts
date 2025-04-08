@@ -139,7 +139,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Check if visitor already has an active visit
         const existingActiveVisit = await storage.getVisitorWithActiveVisit(visitor.id);
         if (existingActiveVisit) {
-          return res.status(400).json({ 
+          return res.status(409).json({ 
             message: "You are already checked in", 
             alreadyCheckedIn: true,
             visit: existingActiveVisit.visit,
@@ -202,7 +202,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const existingActiveVisit = await storage.getVisitorWithActiveVisit(visitorId);
       if (existingActiveVisit) {
         console.log('Visitor already has an active visit:', existingActiveVisit.visit.id);
-        return res.status(400).json({ 
+        return res.status(409).json({ 
           message: "You are already checked in", 
           alreadyCheckedIn: true,
           visit: existingActiveVisit.visit,
