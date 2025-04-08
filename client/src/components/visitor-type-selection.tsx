@@ -272,7 +272,7 @@ export function VisitorTypeSelection({
               </Button>
               
               <div className="space-x-2">
-                {retryCount > 0 && (
+                {retryCount > 0 ? (
                   <Button 
                     variant="secondary" 
                     onClick={handleContinueWithNoMatch}
@@ -280,17 +280,17 @@ export function VisitorTypeSelection({
                   >
                     {isEnglish ? "Check In as New Visitor" : "S'enregistrer comme Nouveau Visiteur"}
                   </Button>
+                ) : (
+                  <Button 
+                    onClick={lookupVisitor} 
+                    disabled={phoneNumber.length < 10 || isLoading}
+                  >
+                    {isLoading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : null}
+                    {isEnglish ? "Next" : "Suivant"}
+                  </Button>
                 )}
-                
-                <Button 
-                  onClick={lookupVisitor} 
-                  disabled={phoneNumber.length < 10 || isLoading}
-                >
-                  {isLoading ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : null}
-                  {isEnglish ? "Next" : "Suivant"}
-                </Button>
               </div>
             </div>
           </div>
