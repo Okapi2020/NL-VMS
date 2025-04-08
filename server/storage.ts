@@ -143,27 +143,34 @@ export class DatabaseStorage implements IStorage {
       // Remove all non-digit characters
       let digits = phone.replace(/\D/g, '');
       
+      // Log the digits we're working with
+      console.log(`Normalizing phone number: "${phone}" -> digits: "${digits}" (length: ${digits.length})`);
+      
       // If it starts with country code 243, remove it
       if (digits.startsWith('243')) {
         digits = digits.substring(3);
+        console.log(`  After country code removal: "${digits}" (length: ${digits.length})`);
       }
       
       // If it starts with a 0, remove it (local format)
       if (digits.startsWith('0')) {
         digits = digits.substring(1);
+        console.log(`  After leading zero removal: "${digits}" (length: ${digits.length})`);
       }
       
-      // Ensure we only have 9 digits (standard mobile number length without prefix)
-      if (digits.length > 9) {
-        digits = digits.substring(digits.length - 9);
-      }
+      // Keep the full number (for 10-digit numbers)
+      // We want to keep all 10 digits (the leading zero is already removed above)
       
-      // Return just the base number without country code or leading zero
+      // Log the final normalized number
+      console.log(`  Final normalized number: "${digits}" (length: ${digits.length})`);
+      
+      // Return the normalized number
       return digits;
     };
     
     // Normalize the search phone number
     const normalizedSearchPhone = normalizePhoneNumber(phoneNumber);
+    console.log(`Normalized search phone: "${normalizedSearchPhone}" (length: ${normalizedSearchPhone.length})`);
     
     // If the normalized phone number is too short (less than 9 digits), don't search
     if (normalizedSearchPhone.length < 9) {
@@ -173,11 +180,23 @@ export class DatabaseStorage implements IStorage {
     
     // Get all visitors and filter by normalized phone number
     const allVisitors = await db.select().from(visitors);
+    console.log(`Searching among ${allVisitors.length} visitors...`);
     
     // Find a match by normalized phone number
-    const matchedVisitor = allVisitors.find(v => 
-      normalizePhoneNumber(v.phoneNumber) === normalizedSearchPhone
-    );
+    const matchedVisitor = allVisitors.find(v => {
+      const normalizedDBPhone = normalizePhoneNumber(v.phoneNumber);
+      const matches = normalizedDBPhone === normalizedSearchPhone;
+      if (matches) {
+        console.log(`Found match! Visitor ${v.id} (${v.fullName}): 
+          DB phone: ${v.phoneNumber} -> normalized: ${normalizedDBPhone}
+          Search: ${phoneNumber} -> normalized: ${normalizedSearchPhone}`);
+      }
+      return matches;
+    });
+    
+    if (!matchedVisitor) {
+      console.log("No visitor found with normalized phone number:", normalizedSearchPhone);
+    }
     
     return matchedVisitor;
   }

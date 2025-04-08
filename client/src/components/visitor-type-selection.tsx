@@ -109,6 +109,9 @@ export function VisitorTypeSelection({
     }
     setErrorMessage(null);
     
+    // Debug log of phone number being sent
+    console.log(`Submitting phone search: "${phoneNumber}" (length: ${phoneNumber?.length})`);
+    
     try {
       const response = await apiRequest("POST", "/api/visitors/lookup", {
         phoneNumber: phoneNumber,

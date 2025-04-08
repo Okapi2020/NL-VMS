@@ -153,7 +153,7 @@ export function normalizeText(text: string): string {
 /**
  * Normalize a phone number for comparison by removing all non-digit characters
  * and handling common formats (with country code or with leading zero)
- * Returns a 9-digit format (without the leading 0) for proper matching
+ * Returns the full number without leading zero or country code
  */
 export function normalizePhoneNumber(phoneNumber: string): string {
   if (!phoneNumber) return '';
@@ -171,12 +171,7 @@ export function normalizePhoneNumber(phoneNumber: string): string {
     digits = digits.substring(1);
   }
   
-  // Ensure we only have 9 digits (standard mobile number length without prefix)
-  if (digits.length > 9) {
-    digits = digits.substring(digits.length - 9);
-  }
-  
-  // Return just the base number without country code or leading zero
+  // Return the normalized number (keeping all digits)
   return digits;
 }
 

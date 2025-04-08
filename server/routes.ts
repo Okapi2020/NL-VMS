@@ -1077,6 +1077,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { phoneNumber, yearOfBirth } = req.body;
       
+      // Debug phone number format
+      console.log(`Received phone lookup request with phoneNumber: "${phoneNumber}" (length: ${phoneNumber?.length})`);
+      
       if (!phoneNumber) {
         return res.status(400).json({ message: "Phone number is required" });
       }
