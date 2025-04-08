@@ -62,6 +62,8 @@ export function useLocalizedFormSchema(isEnglish: boolean = true) {
           : "Veuillez sélectionner Masculin ou Feminin" 
       }),
     }),
+    municipality: z.string()
+      .min(1, isEnglish ? "Municipality selection is required" : "La sélection de la commune est requise"),
     email: z.string()
       .email(isEnglish ? "Please enter a valid email address" : "Veuillez saisir une adresse email valide")
       .refine(email => email === "" || /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email), {
@@ -106,7 +108,8 @@ export function useLocalizedFormSchema(isEnglish: boolean = true) {
     return {
       ...data,
       fullName: fullName.trim(),
-      phoneNumber: phoneNumber
+      phoneNumber: phoneNumber,
+      municipality: data.municipality || undefined // Ensure municipality is properly passed
     };
   });
 
