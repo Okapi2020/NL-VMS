@@ -427,17 +427,54 @@ export function VisitorCheckInForm({
                 <FormLabel className="h-6 flex items-center">{isEnglish ? "Phone Number" : "Numéro de Téléphone"}</FormLabel>
                 <FormControl>
                   <div>
-                    <Input 
-                      type="tel" 
-                      placeholder="0808 382 697" 
-                      value={contactDetailsValues.phoneNumber}
-                      onChange={(e) => {
-                        // Allow only numbers and basic formatting characters
-                        const value = e.target.value.replace(/[^\d\s-]/g, '');
-                        handleContactDetailsChange("phoneNumber", value);
-                      }}
-                      onBlur={field.onBlur}
-                    />
+                    <div className="relative">
+                      <Input 
+                        type="tel" 
+                        placeholder="0808 382 697" 
+                        value={contactDetailsValues.phoneNumber}
+                        onChange={(e) => {
+                          // Allow only numbers and basic formatting characters
+                          let value = e.target.value.replace(/[^\d\s-]/g, '');
+                          
+                          // Limit to 14 characters total (10 digits plus spaces/formatting)
+                          value = value.substring(0, 14);
+                          
+                          handleContactDetailsChange("phoneNumber", value);
+                        }}
+                        onBlur={(e) => {
+                          field.onBlur();
+                          
+                          // On blur, check if this is a valid length
+                          const digits = e.target.value.replace(/\D/g, '');
+                          
+                          // Phone number should be approximately 10 digits (with or without leading zero)
+                          // If it's international format with country code, it could be 12-13 digits
+                          if (digits.length > 0 && (digits.length < 9 || digits.length > 13)) {
+                            form.setError("phoneNumber", { 
+                              type: "manual", 
+                              message: isEnglish 
+                                ? "Phone number should be 10 digits" 
+                                : "Le numéro de téléphone doit comporter 10 chiffres" 
+                            });
+                          } else {
+                            form.clearErrors("phoneNumber");
+                          }
+                        }}
+                        className={`${
+                          form.formState.errors.phoneNumber ? "border-red-500" : ""
+                        }`}
+                      />
+                      {/* Show a check icon when phone number is valid format */}
+                      {contactDetailsValues.phoneNumber && 
+                       !form.formState.errors.phoneNumber && 
+                       contactDetailsValues.phoneNumber.replace(/\D/g, '').length >= 9 && (
+                        <div className="absolute right-2 top-2.5 text-green-500">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
                     <div className="mt-1 text-xs text-muted-foreground">
                       {isEnglish 
                         ? "Enter a 10-digit phone number (e.g., 0808 382 697)"

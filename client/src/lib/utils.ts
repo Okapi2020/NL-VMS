@@ -150,6 +150,36 @@ export function normalizeText(text: string): string {
     .toLowerCase();
 }
 
+/**
+ * Normalize a phone number for comparison by removing all non-digit characters
+ * and handling common formats (with country code or with leading zero)
+ * Returns a 9-digit format (without the leading 0) for proper matching
+ */
+export function normalizePhoneNumber(phoneNumber: string): string {
+  if (!phoneNumber) return '';
+  
+  // Remove all non-digit characters
+  let digits = phoneNumber.replace(/\D/g, '');
+  
+  // If it starts with country code +243, remove it
+  if (digits.startsWith('243')) {
+    digits = digits.substring(3);
+  }
+  
+  // If it starts with a 0, remove it (local format)
+  if (digits.startsWith('0')) {
+    digits = digits.substring(1);
+  }
+  
+  // Ensure we only have 9 digits (standard mobile number length without prefix)
+  if (digits.length > 9) {
+    digits = digits.substring(digits.length - 9);
+  }
+  
+  // Return just the base number without country code or leading zero
+  return digits;
+}
+
 export function exportToCSV(data: any[], filename: string) {
   if (!data || !data.length) {
     return;

@@ -130,8 +130,56 @@ export class DatabaseStorage implements IStorage {
   
   async getVisitorByPhoneNumber(phoneNumber: string): Promise<Visitor | undefined> {
     if (!phoneNumber) return undefined;
+
+    // First try exact match
     const [visitor] = await db.select().from(visitors).where(eq(visitors.phoneNumber, phoneNumber));
-    return visitor;
+    if (visitor) return visitor;
+    
+    // If no exact match, try normalizing the phone number
+    // Normalize phone number by removing formatting and standardizing format (handling country code)
+    const normalizePhoneNumber = (phone: string): string => {
+      if (!phone) return '';
+      
+      // Remove all non-digit characters
+      let digits = phone.replace(/\D/g, '');
+      
+      // If it starts with country code 243, remove it
+      if (digits.startsWith('243')) {
+        digits = digits.substring(3);
+      }
+      
+      // If it starts with a 0, remove it (local format)
+      if (digits.startsWith('0')) {
+        digits = digits.substring(1);
+      }
+      
+      // Ensure we only have 9 digits (standard mobile number length without prefix)
+      if (digits.length > 9) {
+        digits = digits.substring(digits.length - 9);
+      }
+      
+      // Return just the base number without country code or leading zero
+      return digits;
+    };
+    
+    // Normalize the search phone number
+    const normalizedSearchPhone = normalizePhoneNumber(phoneNumber);
+    
+    // If the normalized phone number is too short (less than 9 digits), don't search
+    if (normalizedSearchPhone.length < 9) {
+      console.log("Phone number too short for normalized search:", phoneNumber);
+      return undefined;
+    }
+    
+    // Get all visitors and filter by normalized phone number
+    const allVisitors = await db.select().from(visitors);
+    
+    // Find a match by normalized phone number
+    const matchedVisitor = allVisitors.find(v => 
+      normalizePhoneNumber(v.phoneNumber) === normalizedSearchPhone
+    );
+    
+    return matchedVisitor;
   }
   
   async createVisitor(visitor: InsertVisitor): Promise<Visitor> {
