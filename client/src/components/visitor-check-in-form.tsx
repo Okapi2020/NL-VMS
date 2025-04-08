@@ -149,7 +149,7 @@ export function VisitorCheckInForm({
           description: isEnglish 
             ? "You already have an active visit in the system."
             : "Vous avez déjà une visite active dans le système.",
-          variant: "warning",
+          variant: "destructive",
         });
         
         // After a short delay, navigate to home

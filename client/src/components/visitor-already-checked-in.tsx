@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatTimeOnly, formatBadgeId } from "@/lib/utils";
-import { AlertTriangle, Tag, Phone, Timer, Home } from "lucide-react";
+import { AlertCircle, Tag, Phone, Timer, Home, Clock, Calendar, Info } from "lucide-react";
 import { PhoneNumberLink } from "@/components/phone-number-link";
 import { Visitor, Visit } from "@shared/schema";
 import { Link, useLocation } from "wouter";
@@ -36,84 +36,150 @@ export function VisitorAlreadyCheckedIn({ visitor, visit, isEnglish = true }: Vi
     };
   }, [countdown, autoRedirect, navigate]);
 
+  // Function to format time
+  const formatTime = (date: string | Date) => {
+    const d = new Date(date);
+    return d.toLocaleTimeString(isEnglish ? 'en-US' : 'fr-FR', { 
+      hour: '2-digit', 
+      minute: '2-digit'
+    });
+  };
+
+  // Function to format date
+  const formatDate = (date: string | Date) => {
+    const d = new Date(date);
+    return d.toLocaleDateString(isEnglish ? 'en-US' : 'fr-FR', { 
+      day: 'numeric', 
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
   return (
-    <Card className="mt-8">
-      <CardContent className="px-4 py-5 sm:p-6 text-center">
-        <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-amber-100 dark:bg-amber-900/30">
-          <AlertTriangle className="h-6 w-6 text-amber-600 dark:text-amber-400" />
-        </div>
-
-        <h3 className="mt-3 text-lg font-medium text-amber-700 dark:text-amber-400">
+    <Card className="mt-4 overflow-hidden border-2 border-amber-500 dark:border-amber-400/70 shadow-lg">
+      {/* Top alert band */}
+      <div className="bg-amber-500 dark:bg-amber-600 text-white py-3 px-4 flex items-center justify-center">
+        <AlertCircle className="h-6 w-6 mr-2" />
+        <h2 className="font-bold text-lg">
           {isEnglish ? "Already Checked In" : "Déjà Enregistré"}
-        </h3>
-        <p className="mt-2 text-sm text-muted-foreground">
-          {isEnglish 
-            ? "You are already checked in to our system. Here are your current visit details."
-            : "Vous êtes déjà enregistré dans notre système. Voici les détails de votre visite en cours."}
-        </p>
-
-        <div className="mt-4 border-t pt-4 border-border">
-          <p className="text-sm font-medium text-muted-foreground">
-            {isEnglish ? "Your active visit:" : "Votre visite active :"}
+        </h2>
+      </div>
+      
+      <CardContent className="px-5 py-6 sm:p-6">
+        {/* Main message */}
+        <div className="text-center mb-5">
+          <p className="text-amber-700 dark:text-amber-400 font-medium text-base">
+            {isEnglish 
+              ? "You already have an active visit in our system."
+              : "Vous avez déjà une visite active dans notre système."}
           </p>
-          <div className="mt-2 text-sm grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4">
-            <div>
-              <span className="font-medium">{isEnglish ? "Name:" : "Nom :"}</span>{" "}
-              <span>{visitor.fullName}</span>
-            </div>
-            <div>
-              <span className="font-medium">{isEnglish ? "Check-in time:" : "Heure d'arrivée :"}</span>{" "}
-              <span>{formatTimeOnly(visit.checkInTime)}</span>
-            </div>
-
-            <div className="flex items-center">
-              <Tag className="h-4 w-4 mr-1 text-primary" />
-              <span className="font-medium">{isEnglish ? "Badge ID:" : "Numéro de badge :"}</span>{" "}
-              <span className="font-mono text-primary ml-1">{formatBadgeId(visitor.id)}</span>
+        </div>
+        
+        {/* Visitor information box */}
+        <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-5">
+          <div className="flex items-center mb-3">
+            <Info className="h-5 w-5 text-amber-600 dark:text-amber-400 mr-2" />
+            <h3 className="font-medium text-amber-800 dark:text-amber-300">
+              {isEnglish ? "Your Active Visit Details" : "Détails de Votre Visite Active"}
+            </h3>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="flex items-center p-2 bg-white dark:bg-black/20 rounded border border-amber-200 dark:border-amber-800/50">
+              <div className="bg-amber-100 dark:bg-amber-900/50 p-2 rounded-full mr-3">
+                <Tag className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div>
+                <div className="text-xs text-amber-700 dark:text-amber-400">
+                  {isEnglish ? "Visitor Name" : "Nom du Visiteur"}
+                </div>
+                <div className="font-medium">{visitor.fullName}</div>
+              </div>
             </div>
             
-            <div className="flex items-center">
-              <Phone className="h-4 w-4 mr-1 text-muted-foreground" />
-              <span className="font-medium">{isEnglish ? "Phone:" : "Téléphone :"}</span>{" "}
-              <span className="ml-1">
-                {visitor.phoneNumber ? (
-                  <PhoneNumberLink phoneNumber={visitor.phoneNumber} />
-                ) : (
-                  isEnglish ? "No phone provided" : "Aucun téléphone fourni"
-                )}
-              </span>
+            <div className="flex items-center p-2 bg-white dark:bg-black/20 rounded border border-amber-200 dark:border-amber-800/50">
+              <div className="bg-amber-100 dark:bg-amber-900/50 p-2 rounded-full mr-3">
+                <Phone className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div>
+                <div className="text-xs text-amber-700 dark:text-amber-400">
+                  {isEnglish ? "Phone Number" : "Numéro de Téléphone"}
+                </div>
+                <div className="font-medium">
+                  {visitor.phoneNumber ? (
+                    <PhoneNumberLink phoneNumber={visitor.phoneNumber} />
+                  ) : (
+                    isEnglish ? "No phone provided" : "Aucun téléphone fourni"
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center p-2 bg-white dark:bg-black/20 rounded border border-amber-200 dark:border-amber-800/50">
+              <div className="bg-amber-100 dark:bg-amber-900/50 p-2 rounded-full mr-3">
+                <Calendar className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div>
+                <div className="text-xs text-amber-700 dark:text-amber-400">
+                  {isEnglish ? "Visit Date" : "Date de Visite"}
+                </div>
+                <div className="font-medium">{formatDate(visit.checkInTime)}</div>
+              </div>
+            </div>
+            
+            <div className="flex items-center p-2 bg-white dark:bg-black/20 rounded border border-amber-200 dark:border-amber-800/50">
+              <div className="bg-amber-100 dark:bg-amber-900/50 p-2 rounded-full mr-3">
+                <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div>
+                <div className="text-xs text-amber-700 dark:text-amber-400">
+                  {isEnglish ? "Check-in Time" : "Heure d'Arrivée"}
+                </div>
+                <div className="font-medium">{formatTime(visit.checkInTime)}</div>
+              </div>
             </div>
           </div>
         </div>
-
-        <div className="mt-3 text-sm text-muted-foreground">
-          <div className="flex items-center justify-center gap-2">
-            <Timer className="h-4 w-4" />
-            <span>
+        
+        {/* Countdown timer */}
+        <div className="bg-gray-50 dark:bg-gray-900/30 border border-gray-200 dark:border-gray-800 rounded-lg p-3 mb-5 text-center">
+          <div className="flex justify-center items-center gap-2 mb-1">
+            <Timer className="h-5 w-5 text-primary" />
+            <p className="font-medium text-gray-900 dark:text-gray-100">
               {isEnglish 
-                ? `Returning to home page in ${countdown} seconds...`
-                : `Retour à la page d'accueil dans ${countdown} secondes...`}
-            </span>
-            <button 
-              onClick={() => setAutoRedirect(false)} 
-              className="text-primary hover:text-primary/80 underline text-xs"
-            >
-              {isEnglish ? "Cancel" : "Annuler"}
-            </button>
+                ? `Returning to home page in `
+                : `Retour à la page d'accueil dans `}
+              <span className="inline-flex items-center justify-center bg-primary text-primary-foreground rounded-full w-7 h-7 font-bold mx-1">
+                {countdown}
+              </span>
+              {isEnglish ? ` seconds...` : ` secondes...`}
+            </p>
           </div>
+          <button 
+            onClick={() => setAutoRedirect(false)} 
+            className="text-primary hover:text-primary/80 underline text-sm font-medium"
+          >
+            {isEnglish ? "Cancel Auto-Redirect" : "Annuler Redirection Auto"}
+          </button>
+          
           {!autoRedirect && (
-            <p className="mt-1 text-xs text-green-600 dark:text-green-400">
+            <p className="mt-2 text-sm text-green-600 dark:text-green-400">
               {isEnglish 
-                ? "Auto-redirect cancelled. You can use the button below when ready."
-                : "Redirection automatique annulée. Vous pouvez utiliser le bouton ci-dessous quand vous êtes prêt."}
+                ? "Auto-redirect cancelled. Please use the button below when ready."
+                : "Redirection automatique annulée. Veuillez utiliser le bouton ci-dessous quand vous êtes prêt."}
             </p>
           )}
         </div>
 
-        <div className="mt-5 flex justify-center">
+        {/* Action button */}
+        <div className="flex justify-center">
           <Link href="/">
-            <Button variant="default" className="inline-flex items-center px-6">
-              <Home className="h-4 w-4 mr-2" />
+            <Button 
+              variant="default" 
+              size="lg"
+              className="inline-flex items-center px-8 py-6 text-base font-medium shadow-md hover:shadow-lg transition-all"
+            >
+              <Home className="h-5 w-5 mr-2" />
               {isEnglish ? "Back to Home" : "Retour à l'Accueil"}
             </Button>
           </Link>
