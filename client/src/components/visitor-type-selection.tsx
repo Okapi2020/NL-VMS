@@ -10,14 +10,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Loader2, ArrowLeft, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { apiRequest } from "@/lib/queryClient";
-import { Visitor } from "@shared/schema";
+import { Visitor, Visit } from "@shared/schema";
 import { formatPhoneNumber } from "@/lib/utils";
 
 type VisitorTypeSelectionProps = {
   isOpen: boolean;
   onClose: () => void;
   onNewVisitorSelected: () => void;
-  onReturningVisitorConfirmed: (visitor: Visitor | null, prefill?: { phoneNumber: string; yearOfBirth?: number }) => void;
+  onReturningVisitorConfirmed: (
+    visitor: Visitor | null, 
+    prefill?: { phoneNumber: string; yearOfBirth?: number },
+    activeVisit?: Visit, // Visit data when visitor already has an active visit
+    alreadyCheckedIn?: boolean // Flag to indicate if visitor already has an active check-in
+  ) => void;
   isEnglish: boolean;
 };
 
@@ -91,22 +96,29 @@ export function VisitorTypeSelection({
         setIsFound(true);
         setVisitor(data.visitor);
         
-        // Also check if visitor already has an active visit
-        if (data.hasActiveVisit) {
-          // If there's an active visit, show a notification and prepare to show details
-          const activeVisitData = data.activeVisit;
-          setErrorMessage(
-            <div className="flex items-start gap-2 text-amber-600 dark:text-amber-400">
-              <AlertTriangle className="h-5 w-5 mt-0.5 flex-shrink-0" />
-              <span>
-                {isEnglish 
-                  ? "You already have an active visit. We'll show your current check-in details."
-                  : "Vous avez déjà une visite active. Nous allons afficher les détails de votre enregistrement actuel."}
-              </span>
-            </div>
-          );
+        // Check if visitor already has an active visit
+        if (data.hasActiveVisit && data.activeVisit) {
+          console.log('Visitor already has an active visit, skipping form:', data.activeVisit);
+          
+          // Close the dialog and reset state
+          resetState();
+          onClose();
+          
+          // Pass the visitor and visit data directly to parent component to show already checked in screen
+          // We use a longer timeout to ensure dialog is fully closed
+          setTimeout(() => {
+            onReturningVisitorConfirmed(
+              data.activeVisit.visitor, 
+              undefined, 
+              data.activeVisit.visit,
+              true // Flag to indicate this visitor is already checked in
+            );
+          }, 200);
+          
+          return; // Exit early to prevent showing the review step
         }
         
+        // If no active visit, proceed normally to review step
         setStep('review');
       } else {
         setIsFound(false);
@@ -173,7 +185,7 @@ export function VisitorTypeSelection({
   // Handle continue with no match
   const handleContinueWithNoMatch = () => {
     // Pass the phone number back to the form for pre-filling
-    onReturningVisitorConfirmed(null, { phoneNumber });
+    onReturningVisitorConfirmed(null, { phoneNumber }, undefined, false);
     resetState();
   };
   
@@ -193,7 +205,7 @@ export function VisitorTypeSelection({
       // After the dialog is closed and animation is complete, 
       // proceed with visitor check-in with a longer delay for safety
       setTimeout(() => {
-        onReturningVisitorConfirmed(visitorData);
+        onReturningVisitorConfirmed(visitorData, undefined, undefined, false);
       }, 150); // Increased delay for better reliability
     }
   };

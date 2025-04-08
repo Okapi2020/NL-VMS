@@ -374,7 +374,8 @@ function VisitorPortalComponent() {
               checkInTime: new Date(),
               checkOutTime: null,
               purpose: null,
-              createdAt: new Date()
+              createdAt: new Date(),
+              active: true // Required by TypeScript
             };
             setVisit(fallbackVisit);
             
@@ -428,7 +429,12 @@ function VisitorPortalComponent() {
     });
   };
 
-  const handleReturningVisitorConfirmed = (visitor: Visitor | null, prefill?: { phoneNumber: string; yearOfBirth?: number }) => {
+  const handleReturningVisitorConfirmed = (
+    visitor: Visitor | null, 
+    prefill?: { phoneNumber: string; yearOfBirth?: number },
+    activeVisit?: Visit,
+    alreadyCheckedIn?: boolean
+  ) => {
     // This is now called after the dialog is already closed
     
     if (visitor) {
@@ -440,12 +446,29 @@ function VisitorPortalComponent() {
       // Ensure the selection dialog is closed
       setIsTypeSelectionOpen(false);
       
-      // Directly check in the returning visitor
-      // Use a small timeout to ensure UI state is updated first
-      setTimeout(() => {
-        console.log('Processing check-in for returning visitor:', visitor.id);
-        checkInReturningVisitor(visitor);
-      }, 100);
+      // If the visitor is already checked in, show that screen directly
+      if (alreadyCheckedIn && activeVisit) {
+        console.log('Visitor already checked in, showing already checked in screen', visitor, activeVisit);
+        
+        // Set the visitor and visit from the data provided
+        setVisitor(visitor);
+        setVisit(activeVisit);
+        
+        // Store visitor ID in localStorage
+        localStorage.setItem("visitorId", visitor.id.toString());
+        
+        // Set flags to show the already checked in component
+        setCheckedIn(false);
+        setAlreadyCheckedIn(true);
+        setIsLoading(false);
+      } else {
+        // Directly check in the returning visitor
+        // Use a small timeout to ensure UI state is updated first
+        setTimeout(() => {
+          console.log('Processing check-in for returning visitor:', visitor.id);
+          checkInReturningVisitor(visitor);
+        }, 100);
+      }
     } else if (prefill) {
       // Prefill the phone number for a new visitor who tried to return
       setShowForm(true);
