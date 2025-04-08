@@ -98,7 +98,10 @@ export function VisitorTypeSelection({
         
         // Check if visitor already has an active visit
         if (data.hasActiveVisit && data.activeVisit) {
-          console.log('Visitor already has an active visit, skipping form:', data.activeVisit);
+          console.log('Visitor already has an active visit, skipping form:', {
+            visitor: data.visitor,
+            activeVisit: data.activeVisit
+          });
           
           // Close the dialog and reset state
           resetState();
@@ -108,7 +111,7 @@ export function VisitorTypeSelection({
           // We use a longer timeout to ensure dialog is fully closed
           setTimeout(() => {
             onReturningVisitorConfirmed(
-              data.activeVisit.visitor, 
+              data.visitor, 
               undefined, 
               data.activeVisit.visit,
               true // Flag to indicate this visitor is already checked in
