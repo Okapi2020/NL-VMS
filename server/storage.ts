@@ -222,7 +222,9 @@ export class DatabaseStorage implements IStorage {
         fullName: visitor.fullName,
         yearOfBirth: visitor.yearOfBirth,
         email: visitor.email,
-        phoneNumber: visitor.phoneNumber
+        phoneNumber: visitor.phoneNumber,
+        municipality: visitor.municipality,
+        sex: visitor.sex
       })
       .where(eq(visitors.id, visitor.id))
       .returning();
