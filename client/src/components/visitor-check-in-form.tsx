@@ -76,7 +76,7 @@ export function VisitorCheckInForm({
       sex: defaultValues.sex as "Masculin" | "Feminin" | undefined, // Type casting for sex field
       email: defaultValues.email || "",
       phoneNumber: defaultValues.phoneNumber || "",
-      purpose: defaultValues.purpose || "",
+
     },
   });
 
