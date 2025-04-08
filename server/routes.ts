@@ -136,6 +136,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Flag that this is a returning visitor
         isReturningVisitor = true;
         
+        // Check if visitor already has an active visit
+        const existingActiveVisit = await storage.getVisitorWithActiveVisit(visitor.id);
+        if (existingActiveVisit) {
+          return res.status(400).json({ 
+            message: "You are already checked in", 
+            alreadyCheckedIn: true,
+            visit: existingActiveVisit.visit,
+            visitor: existingActiveVisit.visitor
+          });
+        }
+        
         // Log the returning visitor for admin awareness
         await storage.createSystemLog({
           action: "RETURNING_VISITOR",
@@ -186,6 +197,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log('Found visitor:', visitor.id, visitor.fullName);
+      
+      // Check if visitor already has an active visit
+      const existingActiveVisit = await storage.getVisitorWithActiveVisit(visitorId);
+      if (existingActiveVisit) {
+        console.log('Visitor already has an active visit:', existingActiveVisit.visit.id);
+        return res.status(400).json({ 
+          message: "You are already checked in", 
+          alreadyCheckedIn: true,
+          visit: existingActiveVisit.visit,
+          visitor: existingActiveVisit.visitor 
+        });
+      }
       
       // Log the returning visitor for admin awareness
       await storage.createSystemLog({
@@ -1099,17 +1122,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Check if visitor already has an active visit
+      const activeVisitData = await storage.getVisitorWithActiveVisit(visitor.id);
+      
       // Create a system log entry for this lookup
       await storage.createSystemLog({
         action: "RETURNING_VISITOR_LOOKUP",
-        details: `Returning visitor "${visitor.fullName}" (ID: ${visitor.id}) looked up via phone number.`,
+        details: `Returning visitor "${visitor.fullName}" (ID: ${visitor.id}) looked up via phone number.${activeVisitData ? " Visitor already has an active visit." : ""}`,
         userId: null
       });
       
-      // Return visitor information
+      // Return visitor information along with active visit status
       res.status(200).json({ 
         found: true,
-        visitor
+        visitor,
+        hasActiveVisit: !!activeVisitData,
+        activeVisit: activeVisitData ? {
+          visitor: activeVisitData.visitor,
+          visit: activeVisitData.visit
+        } : null
       });
     } catch (error) {
       console.error("Visitor lookup error:", error);

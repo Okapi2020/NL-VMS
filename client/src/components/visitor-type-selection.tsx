@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { 
   Dialog, 
   DialogContent, 
@@ -35,7 +35,7 @@ export function VisitorTypeSelection({
   const [yearOfBirth, setYearOfBirth] = useState<number | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
   const [isFound, setIsFound] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<React.ReactNode | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [visitor, setVisitor] = useState<Visitor | null>(null);
   
@@ -90,6 +90,23 @@ export function VisitorTypeSelection({
       if (response.ok && data.found) {
         setIsFound(true);
         setVisitor(data.visitor);
+        
+        // Also check if visitor already has an active visit
+        if (data.hasActiveVisit) {
+          // If there's an active visit, show a notification and prepare to show details
+          const activeVisitData = data.activeVisit;
+          setErrorMessage(
+            <div className="flex items-start gap-2 text-amber-600 dark:text-amber-400">
+              <AlertTriangle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+              <span>
+                {isEnglish 
+                  ? "You already have an active visit. We'll show your current check-in details."
+                  : "Vous avez déjà une visite active. Nous allons afficher les détails de votre enregistrement actuel."}
+              </span>
+            </div>
+          );
+        }
+        
         setStep('review');
       } else {
         setIsFound(false);
@@ -254,11 +271,11 @@ export function VisitorTypeSelection({
               {errorMessage && (
                 <div className="mt-3 mb-2">
                   <div className="bg-red-900/20 border border-red-400/30 rounded-md p-3">
-                    <div className="flex items-center">
-                      <AlertTriangle className="h-5 w-5 text-orange-400 mr-2 shrink-0" />
-                      <p className="text-sm text-orange-400 font-medium">
+                    <div className="flex items-start">
+                      <AlertTriangle className="h-5 w-5 text-orange-400 mr-2 shrink-0 mt-0.5" />
+                      <div className="text-sm text-orange-400 font-medium">
                         {errorMessage}
-                      </p>
+                      </div>
                     </div>
                     {retryCount > 0 && (
                       <div className="mt-3 pt-3 border-t border-red-400/30">

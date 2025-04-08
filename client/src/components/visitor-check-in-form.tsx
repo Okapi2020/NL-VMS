@@ -93,6 +93,19 @@ export function VisitorCheckInForm({
   const checkInMutation = useMutation({
     mutationFn: async (formData: VisitorFormValues) => {
       const res = await apiRequest("POST", "/api/visitors/check-in", formData);
+      
+      // Handle 409 Conflict (already checked in) case specifically
+      if (res.status === 409) {
+        const data = await res.json();
+        // Throw a custom error with the data to be caught in onError
+        throw { status: 409, data };
+      }
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "An unknown error occurred");
+      }
+      
       return await res.json();
     },
     onSuccess: (data) => {
@@ -110,10 +123,30 @@ export function VisitorCheckInForm({
       
       // No immediate redirect - visitor will see confirmation screen first
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
+      // Special handling for already checked in visitors
+      if (error.status === 409 && error.data?.visitor && error.data?.visit) {
+        // Use the existing check-in information
+        toast({
+          title: isEnglish ? "Already Checked In" : "Déjà Enregistré",
+          description: isEnglish 
+            ? "You are already checked in. Showing your current visit details."
+            : "Vous êtes déjà enregistré. Affichage des détails de votre visite actuelle.",
+        });
+        
+        // Pass the visitor and visit data to success handler
+        onSuccess(error.data.visitor, error.data.visit);
+        form.reset();
+        setContactDetailsValues({ email: "", phoneNumber: "" });
+        return;
+      }
+      
+      // Regular error handling
       toast({
         title: isEnglish ? "Check-in failed" : "Échec de l'enregistrement",
-        description: error.message,
+        description: error.message || (isEnglish 
+          ? "An error occurred during check-in" 
+          : "Une erreur s'est produite lors de l'enregistrement"),
         variant: "destructive",
       });
     },

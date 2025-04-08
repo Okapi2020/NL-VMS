@@ -286,8 +286,9 @@ function VisitorPortalComponent() {
         })
       });
       
+      const data = await response.json();
+      
       if (response.ok) {
-        const data = await response.json();
         console.log('Successfully checked in returning visitor:', data);
         
         // Update the states that trigger the success view
@@ -302,8 +303,37 @@ function VisitorPortalComponent() {
           setCheckedIn(true);
           setIsLoading(false);
         }, 50);
+      } else if (response.status === 409) {
+        // 409 Conflict is returned when visitor already has an active visit
+        console.log('Visitor already has an active check-in:', data);
+        
+        // Update states with the existing visitor and visit data
+        if (data.visitor && data.visit) {
+          setVisitor(data.visitor);
+          setVisit(data.visit);
+          
+          // Store visitor ID in localStorage
+          localStorage.setItem("visitorId", data.visitor.id.toString());
+          
+          // Show check-in screen with the existing data
+          setTimeout(() => {
+            setCheckedIn(true);
+            setIsLoading(false);
+          }, 50);
+        } else {
+          // If for some reason data is incomplete, show an error
+          setIsLoading(false);
+          alert(isEnglish 
+            ? 'You already have an active visit in the system.' 
+            : 'Vous avez déjà une visite active dans le système.');
+          
+          // Reset UI to welcome state
+          setTimeout(() => {
+            navigate("/");
+          }, 300);
+        }
       } else {
-        console.error('Failed to check in returning visitor:', await response.text());
+        console.error('Failed to check in returning visitor:', data);
         setIsLoading(false);
         
         // If check-in fails, fall back to the form after a short delay
