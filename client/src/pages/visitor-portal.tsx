@@ -448,17 +448,7 @@ function VisitorPortalComponent() {
       {/* Main Content */}
       <main className="py-4 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
-          {/* Page Title */}
-          <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold">
-              {isEnglish ? 'Visitor Check-in' : 'Enregistrement du Visiteur'}
-            </h1>
-            <p className="mt-2 text-muted-foreground">
-              {isEnglish 
-                ? 'Please fill out the form below to register your visit' 
-                : 'Veuillez remplir le formulaire ci-dessous pour enregistrer votre visite'}
-            </p>
-          </div>
+          {/* Header removed as requested */}
 
           {/* Loading State */}
           {isLoading ? (
