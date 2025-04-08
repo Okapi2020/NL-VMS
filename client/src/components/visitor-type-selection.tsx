@@ -74,13 +74,19 @@ export function VisitorTypeSelection({
     setErrorMessage(null);
     
     try {
-      const response = await apiRequest("POST", "/api/visitors/lookup", {
-        phoneNumber: phoneNumber,
-        yearOfBirth: yearOfBirth
+      // Use direct fetch instead of apiRequest which throws errors on non-200 responses
+      const response = await fetch('/api/visitors/lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          phoneNumber: phoneNumber, 
+          yearOfBirth: yearOfBirth 
+        })
       });
       
       const data = await response.json();
       
+      // Check if visitor was found
       if (response.ok && data.found) {
         setIsFound(true);
         setVisitor(data.visitor);
@@ -109,6 +115,7 @@ export function VisitorTypeSelection({
         }
       }
     } catch (error) {
+      console.error("Error during visitor lookup:", error);
       setErrorMessage(isEnglish 
         ? "An error occurred while looking up your information." 
         : "Une erreur s'est produite lors de la recherche de vos informations.");
