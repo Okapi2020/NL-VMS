@@ -78,7 +78,7 @@ export function VisitorTypeSelection({
     
     console.log(`Phone input: "${input}" -> cleaned: "${cleaned}" -> limited: "${limited}"`);
     
-    // Make sure the number starts with 0 if we have a single digit
+    // Only add a leading zero when input is completely empty or when it's a single digit not starting with 0
     let finalNumber = limited;
     if (limited.length === 1 && limited !== '0') {
       finalNumber = '0' + limited;
@@ -86,7 +86,7 @@ export function VisitorTypeSelection({
       finalNumber = '0';
     }
     
-    // Store raw numeric value - ENSURE WE HAVE FULL 10 DIGITS with leading zero
+    // Store raw numeric value - don't force 10 digits during typing
     setPhoneNumber(finalNumber);
     
     // Apply formatting with spaces for display
@@ -120,12 +120,21 @@ export function VisitorTypeSelection({
     }
     setErrorMessage(null);
     
+    // Ensure the phone number has a leading zero for the lookup
+    let searchPhoneNumber = phoneNumber;
+    
+    // If it's exactly 9 digits (without leading zero), add the zero
+    if (searchPhoneNumber.length === 9 && !searchPhoneNumber.startsWith('0')) {
+      searchPhoneNumber = '0' + searchPhoneNumber;
+      console.log(`Added leading zero for lookup: "${searchPhoneNumber}"`);
+    }
+    
     // Debug log of phone number being sent
-    console.log(`Submitting phone search: "${phoneNumber}" (length: ${phoneNumber?.length})`);
+    console.log(`Submitting phone search: "${searchPhoneNumber}" (length: ${searchPhoneNumber?.length})`);
     
     try {
       const response = await apiRequest("POST", "/api/visitors/lookup", {
-        phoneNumber: phoneNumber,
+        phoneNumber: searchPhoneNumber,
         yearOfBirth: yearOfBirth
       });
       
@@ -205,8 +214,16 @@ export function VisitorTypeSelection({
   
   // Handle continue with no match
   const handleContinueWithNoMatch = () => {
+    // Ensure we have a properly formatted phone number with leading zero
+    let finalPhoneNumber = phoneNumber;
+    
+    // If it's 9 digits, add the leading zero
+    if (finalPhoneNumber.length === 9 && !finalPhoneNumber.startsWith('0')) {
+      finalPhoneNumber = '0' + finalPhoneNumber;
+    }
+    
     // Pass the phone number back to the form for pre-filling
-    onReturningVisitorConfirmed(null, { phoneNumber });
+    onReturningVisitorConfirmed(null, { phoneNumber: finalPhoneNumber });
     resetState();
   };
   
@@ -335,7 +352,9 @@ export function VisitorTypeSelection({
               {!isFound && !errorMessage && (
                 <Button 
                   onClick={() => lookupVisitor(false)} 
-                  disabled={phoneNumber.length !== 10 || !phoneNumber.startsWith('0') || isLoading}
+                  disabled={(phoneNumber.length !== 9 && phoneNumber.length !== 10) || 
+                           (phoneNumber.length === 10 && !phoneNumber.startsWith('0')) || 
+                           isLoading}
                 >
                   {isLoading ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
