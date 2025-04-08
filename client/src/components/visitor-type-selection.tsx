@@ -157,18 +157,21 @@ export function VisitorTypeSelection({
   // Handle confirmation of returning visitor
   const handleConfirmReturningVisitor = () => {
     if (visitor) {
-      // First make a local copy of the visitor
+      // First make a local copy of the visitor to prevent any issues if state changes
       const visitorData = { ...visitor };
       
-      // Then close the dialog
+      // Disable any inputs to prevent multiple submissions
+      setIsLoading(true);
+      
+      // Close the dialog and reset all internal state
       resetState();
       onClose();
       
-      // Finally check in the visitor after the dialog is closed
-      // Use a small delay to ensure the dialog is fully closed
+      // After the dialog is closed and animation is complete, 
+      // proceed with visitor check-in with a longer delay for safety
       setTimeout(() => {
         onReturningVisitorConfirmed(visitorData);
-      }, 50);
+      }, 150); // Increased delay for better reliability
     }
   };
   

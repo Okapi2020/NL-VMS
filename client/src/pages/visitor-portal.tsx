@@ -29,41 +29,58 @@ function VisitorPortalComponent() {
   const [returningVisitor, setReturningVisitor] = useState<Visitor | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   
-  // Parse URL query parameters on page load
-  // We use a ref to track whether we've already processed the URL params
+  // Handle URL parameters only once when the component loads
   const [urlParamsProcessed, setUrlParamsProcessed] = useState(false);
   
   useEffect(() => {
-    // Only process URL parameters once and only if not already checked in or showing form
-    if (urlParamsProcessed || checkedIn || (showForm && !location.includes('?'))) {
+    // Skip if URL parameters were already processed
+    if (urlParamsProcessed) {
       return;
     }
     
+    // Mark as processed immediately to prevent double execution
+    setUrlParamsProcessed(true);
+    
+    // Log the current state for debugging
+    console.log('Initial load state:', { 
+      url: window.location.href,
+      checkedIn, 
+      showForm,
+      isLoading
+    });
+    
+    // Parse URL parameters
     const params = new URLSearchParams(window.location.search);
     const type = params.get('type');
     
-    // Mark as processed to prevent further processing
-    setUrlParamsProcessed(true);
+    // Clean the URL immediately to prevent interference with later state changes
+    if (window.location.search) {
+      console.log('Clearing URL parameters');
+      window.history.replaceState(null, '', '/visitor');
+    }
     
+    // Handle different parameter types
     if (type === 'new') {
-      // For new visitors, just show the form
+      console.log('Handling NEW visitor type');
+      // Simply show the registration form
       setShowForm(true);
       setFormDefaultValues({});
       setReturningVisitor(null);
-      
-      // Clean the URL
-      window.history.replaceState(null, '', '/visitor');
     } 
     else if (type === 'returning') {
-      // For returning visitors, get the visitor from the API
+      console.log('Handling RETURNING visitor type');
       const visitorId = params.get('visitorId');
+      
       if (visitorId) {
-        // Set loading state while fetching
+        console.log('Found visitor ID in URL:', visitorId);
+        
+        // Show loading state and reset other UI states
         setIsLoading(true);
+        setShowForm(false);
+        setCheckedIn(false);
+        setIsTypeSelectionOpen(false);
         
-        // Clean the URL before proceeding
-        window.history.replaceState(null, '', '/visitor');
-        
+        // Fetch visitor data and process check-in
         fetch(`/api/visitors/${visitorId}`)
           .then(res => {
             if (!res.ok) {
@@ -71,46 +88,82 @@ function VisitorPortalComponent() {
             }
             return res.json();
           })
-          .then(data => {
-            if (data) {
-              console.log('Successfully fetched visitor from URL param:', data);
-              // Directly check in the visitor
-              checkInReturningVisitor(data);
+          .then(visitor => {
+            if (visitor) {
+              console.log('Visitor data retrieved, calling direct check-in', visitor);
+              
+              // Show loading spinner while the API call is processing
+              setIsLoading(true);
+              
+              // Make a direct API call to check in the returning visitor
+              fetch('/api/visitors/check-in/returning', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ visitorId: visitor.id })
+              })
+              .then(response => {
+                if (!response.ok) {
+                  throw new Error('Failed to check in visitor');
+                }
+                return response.json();
+              })
+              .then(data => {
+                console.log('Check-in successful:', data);
+                
+                // Set visitor and visit data
+                setVisitor(data.visitor);
+                setVisit(data.visit);
+                
+                // Store visitor ID for session management
+                localStorage.setItem("visitorId", data.visitor.id.toString());
+                
+                // Show the success view
+                setCheckedIn(true);
+                setIsLoading(false);
+              })
+              .catch(error => {
+                console.error('Error during check-in API call:', error);
+                setIsLoading(false);
+                setIsTypeSelectionOpen(true);
+              });
             }
           })
-          .catch(err => {
-            console.error('Error processing returning visitor from URL:', err);
+          .catch(error => {
+            console.error('Error fetching visitor data:', error);
             setIsLoading(false);
-            // Show the selection modal on error
             setIsTypeSelectionOpen(true);
           });
       } else {
+        console.log('No visitor ID provided, showing type selection');
         setIsTypeSelectionOpen(true);
       }
     }
     else if (type === 'prefill') {
-      // For prefill info (when phone number lookup failed)
+      console.log('Handling PREFILL type');
+      // Prefill form with data from failed phone lookup
       const phoneNumber = params.get('phoneNumber');
       const yearOfBirth = params.get('yearOfBirth');
       
-      // Clean the URL
-      window.history.replaceState(null, '', '/visitor');
-      
       if (phoneNumber) {
-        setFormDefaultValues({
-          phoneNumber,
-          ...(yearOfBirth ? { yearOfBirth: parseInt(yearOfBirth) } : {}),
-        });
+        const formValues: Partial<VisitorFormValues> = { phoneNumber };
+        if (yearOfBirth) {
+          formValues.yearOfBirth = parseInt(yearOfBirth, 10);
+        }
+        
+        setFormDefaultValues(formValues);
         setShowForm(true);
       } else {
         setIsTypeSelectionOpen(true);
       }
     }
-    else if (!type && !showForm && !checkedIn) {
-      // If no parameters and not already showing form/checked in, show selection modal
-      setIsTypeSelectionOpen(true);
+    else {
+      // Default behavior - show selection modal if not already in a particular state
+      if (!showForm && !checkedIn && !isLoading) {
+        console.log('No URL parameters, showing type selection');
+        setIsTypeSelectionOpen(true);
+      }
     }
-  }, [location, showForm, checkedIn, navigate, urlParamsProcessed]);
+  }, []);
   
   // Load language preference from localStorage on component mount
   useEffect(() => {

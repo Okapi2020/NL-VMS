@@ -49,27 +49,46 @@ export default function WelcomePage() {
   
   // Handle selection of new visitor
   const handleNewVisitorSelected = () => {
-    // Navigate to visitor page with "new" parameter
+    // Close the dialog first
     setIsTypeSelectionOpen(false);
-    navigate("/visitor?type=new");
+    
+    console.log('Welcome page: New visitor selected');
+    
+    // Use setTimeout to ensure the dialog is fully closed before navigating
+    setTimeout(() => {
+      navigate("/visitor?type=new");
+    }, 50);
   };
   
   // Handle selection of returning visitor
   const handleReturningVisitorConfirmed = (visitor: Visitor | null, prefill?: { phoneNumber: string; yearOfBirth?: number }) => {
+    // Always close the dialog first
     setIsTypeSelectionOpen(false);
     
+    console.log('Welcome page: Returning visitor confirmed', visitor?.id);
+    
     if (visitor) {
-      // Navigate with returning visitor ID
-      navigate(`/visitor?type=returning&visitorId=${visitor.id}`);
+      // Make a clean URL with just the visitor ID to prevent other parameters interfering
+      const url = `/visitor?type=returning&visitorId=${visitor.id}`;
+      console.log('Navigating to:', url);
+      
+      // Use setTimeout to ensure the dialog is fully closed before navigating
+      setTimeout(() => {
+        navigate(url);
+      }, 50);
     } else if (prefill) {
-      // Navigate with prefill information
+      // Handle prefill information for new visitor registration
       const params = new URLSearchParams();
       params.set('type', 'prefill');
       params.set('phoneNumber', prefill.phoneNumber);
       if (prefill.yearOfBirth) {
         params.set('yearOfBirth', prefill.yearOfBirth.toString());
       }
-      navigate(`/visitor?${params.toString()}`);
+      
+      // Use setTimeout to ensure the dialog is fully closed before navigating
+      setTimeout(() => {
+        navigate(`/visitor?${params.toString()}`);
+      }, 50);
     }
   };
 
