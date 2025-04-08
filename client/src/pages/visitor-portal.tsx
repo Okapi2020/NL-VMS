@@ -27,6 +27,7 @@ function VisitorPortalComponent() {
   const [formDefaultValues, setFormDefaultValues] = useState<Partial<VisitorFormValues>>({});
   const [showForm, setShowForm] = useState(false);
   const [returningVisitor, setReturningVisitor] = useState<Visitor | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   
   // Parse URL query parameters on page load
   useEffect(() => {
@@ -180,21 +181,61 @@ function VisitorPortalComponent() {
   };
   
   // Handle selection of returning visitor or prefill info for a not-found visitor
+  // Function to directly check in a returning visitor without going through the form
+  const checkInReturningVisitor = async (visitor: Visitor) => {
+    setIsLoading(true);
+    
+    try {
+      // Make API call to check in the visitor directly
+      const response = await fetch('/api/visitors/check-in/returning', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          visitorId: visitor.id
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        // Handle successful check-in
+        setVisitor(data.visitor);
+        setVisit(data.visit);
+        setCheckedIn(true);
+        console.log('Successfully checked in returning visitor:', data);
+      } else {
+        console.error('Failed to check in returning visitor:', await response.text());
+        // If check-in fails, fall back to the form
+        showReturningVisitorForm(visitor);
+      }
+    } catch (error) {
+      console.error('Error checking in returning visitor:', error);
+      // If check-in fails, fall back to the form
+      showReturningVisitorForm(visitor);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Helper function to show the form prefilled with returning visitor data
+  const showReturningVisitorForm = (visitor: Visitor) => {
+    setReturningVisitor(visitor);
+    setShowForm(true);
+    setFormDefaultValues({
+      firstName: visitor.fullName.split(' ')[0] || '',
+      lastName: visitor.fullName.split(' ').slice(-1)[0] || '',
+      yearOfBirth: visitor.yearOfBirth,
+      phoneNumber: visitor.phoneNumber,
+      email: visitor.email || '',
+      sex: (visitor.sex as "Masculin" | "Feminin" | undefined) || undefined,
+    });
+  };
+
   const handleReturningVisitorConfirmed = (visitor: Visitor | null, prefill?: { phoneNumber: string; yearOfBirth?: number }) => {
     setIsTypeSelectionOpen(false);
     
     if (visitor) {
-      // Create a new visit for the returning visitor
-      setReturningVisitor(visitor);
-      setShowForm(true);
-      setFormDefaultValues({
-        firstName: visitor.fullName.split(' ')[0] || '',
-        lastName: visitor.fullName.split(' ').slice(-1)[0] || '',
-        yearOfBirth: visitor.yearOfBirth,
-        phoneNumber: visitor.phoneNumber,
-        email: visitor.email || '',
-        sex: (visitor.sex as "Masculin" | "Feminin" | undefined) || undefined,
-      });
+      // Directly check in the returning visitor without going through the form
+      checkInReturningVisitor(visitor);
     } else if (prefill) {
       // Prefill the phone number for a new visitor who tried to return
       setShowForm(true);
@@ -236,8 +277,19 @@ function VisitorPortalComponent() {
             </p>
           </div>
 
-          {/* Check-in Form or Checked-in Confirmation or Initial Button */}
-          {checkedIn && visitor && visit ? (
+          {/* Loading State */}
+          {isLoading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="text-center">
+                <div className="my-4">
+                  <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-primary mx-auto"></div>
+                </div>
+                <p className="text-lg font-medium">
+                  {isEnglish ? 'Processing check-in...' : 'Traitement de l\'enregistrement...'}
+                </p>
+              </div>
+            </div>
+          ) : checkedIn && visitor && visit ? (
             <VisitorCheckedIn 
               visitor={visitor} 
               visit={visit} 

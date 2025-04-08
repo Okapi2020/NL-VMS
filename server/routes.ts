@@ -165,6 +165,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Direct check-in for returning visitors (by ID)
+  app.post("/api/visitors/check-in/returning", async (req, res) => {
+    try {
+      const { visitorId } = req.body;
+      
+      if (!visitorId || typeof visitorId !== 'number') {
+        return res.status(400).json({ message: "Visitor ID is required" });
+      }
+      
+      // Get the visitor
+      const visitor = await storage.getVisitor(visitorId);
+      
+      if (!visitor) {
+        return res.status(404).json({ message: "Visitor not found" });
+      }
+      
+      // Log the returning visitor for admin awareness
+      await storage.createSystemLog({
+        action: "RETURNING_VISITOR_DIRECT",
+        details: `Returning visitor "${visitor.fullName}" (ID: ${visitor.id}) directly checked in.`,
+        userId: null // No admin involved, this is visitor self-check-in
+      });
+      
+      // Create visit with no purpose (as we decided to remove this field)
+      const visit = await storage.createVisit({
+        visitorId: visitor.id,
+        purpose: null, // No purpose needed for returning visitors with direct check-in
+      });
+      
+      // Broadcast the check-in notification via WebSocket
+      if (global.broadcastCheckIn) {
+        global.broadcastCheckIn(visitor);
+      }
+      
+      res.status(201).json({
+        visitor,
+        visit,
+        isReturningVisitor: true
+      });
+    } catch (error) {
+      console.error("Direct check-in error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Visitor check-out endpoint
   app.post("/api/visitors/check-out", async (req, res) => {
     try {
