@@ -125,19 +125,31 @@ export function VisitorCheckInForm({
     },
     onError: (error: any) => {
       // Special handling for already checked in visitors
-      if (error.status === 409 && error.data?.visitor && error.data?.visit) {
-        // Use the existing check-in information
+      if (error?.status === 409 || (typeof error === 'object' && error.message?.includes('409'))) {
+        // Check if we have visitor and visit data in the error response
+        if (error?.data?.visitor && error?.data?.visit) {
+          toast({
+            title: isEnglish ? "Already Checked In" : "Déjà Enregistré",
+            description: isEnglish 
+              ? "You already have an active visit in the system."
+              : "Vous avez déjà une visite active dans le système.",
+          });
+          
+          // Pass the visitor and visit data to success handler
+          onSuccess(error.data.visitor, error.data.visit);
+          form.reset();
+          setContactDetailsValues({ email: "", phoneNumber: "" });
+          return;
+        }
+        
+        // If no data in error, show a generic message
         toast({
           title: isEnglish ? "Already Checked In" : "Déjà Enregistré",
           description: isEnglish 
-            ? "You are already checked in. Showing your current visit details."
-            : "Vous êtes déjà enregistré. Affichage des détails de votre visite actuelle.",
+            ? "You already have an active visit in the system."
+            : "Vous avez déjà une visite active dans le système.",
         });
         
-        // Pass the visitor and visit data to success handler
-        onSuccess(error.data.visitor, error.data.visit);
-        form.reset();
-        setContactDetailsValues({ email: "", phoneNumber: "" });
         return;
       }
       

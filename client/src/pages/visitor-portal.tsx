@@ -6,6 +6,7 @@ import {
 import { Link, useLocation } from "wouter";
 import { VisitorCheckInForm } from "@/components/visitor-check-in-form";
 import { VisitorCheckedIn } from "@/components/visitor-checked-in";
+import { VisitorAlreadyCheckedIn } from "@/components/visitor-already-checked-in";
 import { Visitor, Visit, Settings, VisitorFormValues } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
 import { useIdleTimeout } from "@/hooks/use-idle-timeout";
@@ -18,6 +19,7 @@ function VisitorPortalComponent() {
   // Language state (default to French)
   const [isEnglish, setIsEnglish] = useState(false);
   const [checkedIn, setCheckedIn] = useState(false);
+  const [alreadyCheckedIn, setAlreadyCheckedIn] = useState(false); // New state for already checked in visitors
   const [visitor, setVisitor] = useState<Visitor | null>(null);
   const [visit, setVisit] = useState<Visit | null>(null);
   const [location, navigate] = useLocation();
@@ -315,9 +317,11 @@ function VisitorPortalComponent() {
           // Store visitor ID in localStorage
           localStorage.setItem("visitorId", data.visitor.id.toString());
           
-          // Show check-in screen with the existing data
+          // Create a special state for already checked in visitors
+          // This will show the VisitorAlreadyCheckedIn component instead of VisitorCheckedIn
           setTimeout(() => {
-            setCheckedIn(true);
+            // Set alreadyCheckedIn to true to show the already checked in component
+            setAlreadyCheckedIn(true);
             setIsLoading(false);
           }, 50);
         } else {
@@ -437,6 +441,12 @@ function VisitorPortalComponent() {
                 </p>
               </div>
             </div>
+          ) : alreadyCheckedIn && visitor && visit ? (
+            <VisitorAlreadyCheckedIn 
+              visitor={visitor} 
+              visit={visit} 
+              isEnglish={isEnglish}
+            />
           ) : checkedIn && visitor && visit ? (
             <VisitorCheckedIn 
               visitor={visitor} 
