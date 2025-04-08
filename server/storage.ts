@@ -148,25 +148,25 @@ export class DatabaseStorage implements IStorage {
       
       let normalizedNumber = digits;
       
-      // If it starts with country code 243, remove it
+      // STORAGE FORMAT: We'll store ALL numbers in the database in consistent format:
+      // - Always keep the full 10 digits with leading zero for DRC numbers
+      
+      // If it starts with country code 243, replace with 0
       if (normalizedNumber.startsWith('243')) {
-        normalizedNumber = normalizedNumber.substring(3);
-        console.log(`  After country code removal: "${normalizedNumber}" (length: ${normalizedNumber.length})`);
+        normalizedNumber = '0' + normalizedNumber.substring(3);
+        console.log(`  After country code conversion: "${normalizedNumber}" (length: ${normalizedNumber.length})`);
       }
       
-      // If it starts with a 0, remove it (local format) - BUT keep original digit count
-      let hasLeadingZero = false;
-      if (normalizedNumber.startsWith('0')) {
-        normalizedNumber = normalizedNumber.substring(1);
-        hasLeadingZero = true;
-        console.log(`  After leading zero removal: "${normalizedNumber}" (length: ${normalizedNumber.length})`);
+      // If it doesn't start with 0 and is 9 digits, add the 0
+      if (!normalizedNumber.startsWith('0') && normalizedNumber.length === 9) {
+        normalizedNumber = '0' + normalizedNumber;
+        console.log(`  Added leading zero: "${normalizedNumber}" (length: ${normalizedNumber.length})`);
       }
       
       // Log the final normalized number
       console.log(`  Final normalized number: "${normalizedNumber}" (length: ${normalizedNumber.length})`);
       
-      // Return the normalized number (always return 9 digits without the leading zero)
-      // DRC mobile numbers are 10 digits with leading zero or 9 digits without it
+      // Return the full number WITH leading zero (10 digits total)
       return normalizedNumber;
     };
     

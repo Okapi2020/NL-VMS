@@ -1092,6 +1092,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Phone number is required" });
       }
       
+      // Validate phone number format (DRC format: 0XXXXXXXXX)
+      const normalizedPhone = phoneNumber.replace(/\D/g, '');
+      if (normalizedPhone.length !== 10 || !normalizedPhone.startsWith('0')) {
+        return res.status(400).json({ 
+          found: false,
+          message: "Phone number must be 10 digits starting with 0" 
+        });
+      }
+      
       // Look up visitor by phone number
       const visitor = await storage.getVisitorByPhoneNumber(phoneNumber);
       

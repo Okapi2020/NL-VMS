@@ -116,19 +116,23 @@ export function formatPhoneWithCountryCode(phoneNumber: string, countryCode: str
 
 /**
  * Format a phone number with spaces for readability
- * e.g. "1234567890" -> "1234 567 890" or "123456789" -> "123 456 789"
+ * Formats 10-digit DRC phone numbers in a consistent way (0XXX XXX XXX)
  */
 export function formatPhoneNumber(phoneNumber: string): string {
   const cleaned = phoneNumber.replace(/\D/g, '');
   
-  // Check if this is a 9-digit number (without leading zero)
-  if (cleaned.length === 9) {
-    // Format as xxx xxx xxx
-    return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6)}`;
-  } else if (cleaned.length === 10 && cleaned.startsWith('0')) {
-    // Format as xxxx xxx xxx (with leading zero)
+  // Handle DRC mobile numbers which are 10 digits with leading zero
+  // Format consistently as 0XXX XXX XXX
+  if (cleaned.length === 10 && cleaned.startsWith('0')) {
     return `${cleaned.slice(0, 4)} ${cleaned.slice(4, 7)} ${cleaned.slice(7)}`;
-  } else if (cleaned.length <= 4) {
+  } 
+  // Add leading zero for 9-digit numbers (standard DRC format without the zero)
+  else if (cleaned.length === 9) {
+    const withZero = '0' + cleaned;
+    return `${withZero.slice(0, 4)} ${withZero.slice(4, 7)} ${withZero.slice(7)}`;
+  }
+  // Format shorter numbers reasonably
+  else if (cleaned.length <= 4) {
     return cleaned;
   } else if (cleaned.length <= 7) {
     return `${cleaned.slice(0, 4)} ${cleaned.slice(4)}`;
@@ -161,7 +165,7 @@ export function normalizeText(text: string): string {
 /**
  * Normalize a phone number for comparison by removing all non-digit characters
  * and handling common formats (with country code or with leading zero)
- * Returns the full number without leading zero or country code
+ * Returns the full 10-digit number with leading zero (0XXXXXXXXX)
  */
 export function normalizePhoneNumber(phoneNumber: string): string {
   if (!phoneNumber) return '';
@@ -169,18 +173,20 @@ export function normalizePhoneNumber(phoneNumber: string): string {
   // Remove all non-digit characters
   let digits = phoneNumber.replace(/\D/g, '');
   
-  // If it starts with country code +243, remove it
+  // STANDARDIZED FORMAT: We want to consistently use 10-digit format with leading zero:
+  // e.g., "0987654321"
+  
+  // If it starts with country code 243, replace with 0
   if (digits.startsWith('243')) {
-    digits = digits.substring(3);
+    digits = '0' + digits.substring(3);
   }
   
-  // If it starts with a 0, remove it (local format)
-  if (digits.startsWith('0')) {
-    digits = digits.substring(1);
+  // If it doesn't start with 0 and is 9 digits, add the 0
+  if (!digits.startsWith('0') && digits.length === 9) {
+    digits = '0' + digits;
   }
   
-  // Return the normalized number (keeping all digits)
-  // DRC mobile numbers are 10 digits with leading zero or 9 digits without it
+  // Return the normalized number WITH leading zero (10 digits total)
   console.log(`Client normalized phone number: "${phoneNumber}" -> "${digits}"`);
   return digits;
 }

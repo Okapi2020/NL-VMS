@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { formatPhoneWithCountryCode, getWhatsAppUrl } from "@/lib/utils";
+import { formatPhoneNumber, formatPhoneWithCountryCode, getWhatsAppUrl } from "@/lib/utils";
 
 type PhoneNumberLinkProps = {
   phoneNumber: string;
@@ -18,7 +18,11 @@ export function PhoneNumberLink({ phoneNumber, className = "" }: PhoneNumberLink
   });
   
   const countryCode = settings?.countryCode || "243";
-  const formattedPhone = formatPhoneWithCountryCode(phoneNumber, countryCode);
+  
+  // Format the phone number for display (using 10-digit format with leading zero)
+  const formattedPhoneDisplay = formatPhoneNumber(phoneNumber);
+  
+  // Format for WhatsApp link (keeping the international format)
   const whatsappUrl = getWhatsAppUrl(phoneNumber, countryCode);
   
   return (
@@ -29,7 +33,7 @@ export function PhoneNumberLink({ phoneNumber, className = "" }: PhoneNumberLink
       className={`text-blue-600 hover:text-blue-800 hover:underline flex items-center ${className}`}
       title="Open in WhatsApp"
     >
-      {formattedPhone}
+      {formattedPhoneDisplay}
     </a>
   );
 }
