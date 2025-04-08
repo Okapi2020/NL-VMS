@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { 
   Dialog, 
   DialogContent, 
@@ -38,23 +38,6 @@ export function VisitorTypeSelection({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [visitor, setVisitor] = useState<Visitor | null>(null);
-  
-  // Listen for custom events to change step directly
-  useEffect(() => {
-    const handleSetStep = (e: Event) => {
-      const customEvent = e as CustomEvent;
-      if (customEvent.detail && customEvent.detail.step) {
-        console.log('Setting visitor step to:', customEvent.detail.step);
-        setStep(customEvent.detail.step);
-      }
-    };
-    
-    window.addEventListener('set-visitor-type-step', handleSetStep);
-    
-    return () => {
-      window.removeEventListener('set-visitor-type-step', handleSetStep);
-    };
-  }, []);
   
   // Reset states when dialog opens/closes
   const resetState = () => {

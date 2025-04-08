@@ -352,56 +352,14 @@ function VisitorPortalComponent() {
               </CardContent>
             </Card>
           ) : (
-            <div className="py-6 space-y-6">
-              <div className="text-center mb-4">
-                <p className="text-lg text-muted-foreground mb-4">
-                  {isEnglish ? 'Select your visitor type:' : 'Sélectionnez votre type de visiteur:'}
-                </p>
-                
-                <div className="flex flex-col sm:flex-row justify-center gap-4">
-                  {/* New visitor button */}
-                  <Button 
-                    size="lg" 
-                    className="px-8 py-6 text-lg"
-                    onClick={handleNewVisitorSelected}
-                  >
-                    <div className="flex flex-col items-center">
-                      <span className="text-lg font-semibold">
-                        {isEnglish ? 'New Visitor' : 'Première Visite'}
-                      </span>
-                      <span className="text-xs mt-1 text-muted">
-                        {isEnglish ? "First time here" : "Première fois ici"}
-                      </span>
-                    </div>
-                  </Button>
-                  
-                  {/* Returning visitor button - opens phone number dialog directly */}
-                  <Button 
-                    size="lg" 
-                    variant="outline"
-                    className="px-8 py-6 text-lg border-2"
-                    onClick={() => {
-                      setIsTypeSelectionOpen(true);
-                      // Set the component to start at the phone input step
-                      setTimeout(() => {
-                        const phoneInputEvent = new CustomEvent('set-visitor-type-step', { 
-                          detail: { step: 'phone-input' } 
-                        });
-                        window.dispatchEvent(phoneInputEvent);
-                      }, 100);
-                    }}
-                  >
-                    <div className="flex flex-col items-center">
-                      <span className="text-lg font-semibold">
-                        {isEnglish ? 'Returning Visitor' : 'Visiteur Récurrent'}
-                      </span>
-                      <span className="text-xs mt-1 text-muted">
-                        {isEnglish ? "I've been here before" : "J'ai déjà visité"}
-                      </span>
-                    </div>
-                  </Button>
-                </div>
-              </div>
+            <div className="py-6 text-center">
+              <Button 
+                size="lg" 
+                className="px-8 py-6 text-lg"
+                onClick={handleCheckInClick}
+              >
+                {isEnglish ? 'Check In' : 'Enregistrement'}
+              </Button>
             </div>
           )}
         </div>
