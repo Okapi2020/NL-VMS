@@ -265,7 +265,7 @@ export function VisitorTypeSelection({
                         <p className="text-sm text-white font-medium">
                           {isEnglish 
                             ? "Would you like to check in as a new visitor instead?" 
-                            : "Souhaitez-vous vous enregistrer en tant que nouveau visiteur?"}
+                            : "Souhaitez-vous vous enregistrer en tant que nouveau visiteur ?"}
                         </p>
                       </div>
                     )}
