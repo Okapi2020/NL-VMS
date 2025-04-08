@@ -30,15 +30,29 @@ function VisitorPortalComponent() {
   const [isLoading, setIsLoading] = useState(false);
   
   // Parse URL query parameters on page load
+  // We use a ref to track whether we've already processed the URL params
+  const [urlParamsProcessed, setUrlParamsProcessed] = useState(false);
+  
   useEffect(() => {
+    // Only process URL parameters once and only if not already checked in or showing form
+    if (urlParamsProcessed || checkedIn || (showForm && !location.includes('?'))) {
+      return;
+    }
+    
     const params = new URLSearchParams(window.location.search);
     const type = params.get('type');
+    
+    // Mark as processed to prevent further processing
+    setUrlParamsProcessed(true);
     
     if (type === 'new') {
       // For new visitors, just show the form
       setShowForm(true);
       setFormDefaultValues({});
       setReturningVisitor(null);
+      
+      // Clean the URL
+      window.history.replaceState(null, '', '/visitor');
     } 
     else if (type === 'returning') {
       // For returning visitors, get the visitor from the API
@@ -46,6 +60,9 @@ function VisitorPortalComponent() {
       if (visitorId) {
         // Set loading state while fetching
         setIsLoading(true);
+        
+        // Clean the URL before proceeding
+        window.history.replaceState(null, '', '/visitor');
         
         fetch(`/api/visitors/${visitorId}`)
           .then(res => {
@@ -57,37 +74,15 @@ function VisitorPortalComponent() {
           .then(data => {
             if (data) {
               console.log('Successfully fetched visitor from URL param:', data);
-              // First reset the form states to prevent any form flashes
-              setShowForm(false);
-              setFormDefaultValues({});
-              setReturningVisitor(null);
-              
-              // Now make the actual check-in API call
-              return fetch('/api/visitors/check-in/returning', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ visitorId: data.id })
-              })
-              .then(response => {
-                if (!response.ok) throw new Error('Check-in request failed');
-                return response.json();
-              })
-              .then(checkInData => {
-                console.log('Successfully checked in from URL param:', checkInData);
-                // Update states to show the success screen
-                setVisitor(checkInData.visitor);
-                setVisit(checkInData.visit);
-                setCheckedIn(true);
-                // Store visitor ID in localStorage for session management
-                localStorage.setItem("visitorId", checkInData.visitor.id.toString());
-              });
+              // Directly check in the visitor
+              checkInReturningVisitor(data);
             }
           })
           .catch(err => {
             console.error('Error processing returning visitor from URL:', err);
-            // On error, redirect to the main check-in page
-            navigate('/visitor', { replace: true });
             setIsLoading(false);
+            // Show the selection modal on error
+            setIsTypeSelectionOpen(true);
           });
       } else {
         setIsTypeSelectionOpen(true);
@@ -97,6 +92,9 @@ function VisitorPortalComponent() {
       // For prefill info (when phone number lookup failed)
       const phoneNumber = params.get('phoneNumber');
       const yearOfBirth = params.get('yearOfBirth');
+      
+      // Clean the URL
+      window.history.replaceState(null, '', '/visitor');
       
       if (phoneNumber) {
         setFormDefaultValues({
@@ -112,7 +110,7 @@ function VisitorPortalComponent() {
       // If no parameters and not already showing form/checked in, show selection modal
       setIsTypeSelectionOpen(true);
     }
-  }, [location, showForm, checkedIn, navigate]);
+  }, [location, showForm, checkedIn, navigate, urlParamsProcessed]);
   
   // Load language preference from localStorage on component mount
   useEffect(() => {
@@ -277,8 +275,15 @@ function VisitorPortalComponent() {
     setIsTypeSelectionOpen(false);
     
     if (visitor) {
+      // Prevent any URL-based navigation by checking if we're on a clean URL
+      if (window.location.pathname !== '/visitor' || window.location.search) {
+        // If we have query parameters or are on a different path,
+        // navigate to clean URL first without triggering the useEffect
+        window.history.replaceState(null, '', '/visitor');
+      }
+      
       // Directly check in the returning visitor without going through the form
-      checkInReturningVisitor(visitor);
+      setTimeout(() => checkInReturningVisitor(visitor), 0);
     } else if (prefill) {
       // Prefill the phone number for a new visitor who tried to return
       setShowForm(true);
