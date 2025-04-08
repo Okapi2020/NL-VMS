@@ -297,6 +297,13 @@ export default function WelcomePage() {
                         </div>
                       </div>
                       
+                      {/* Countdown display - now centered above the button */}
+                      <div className="text-center mb-3 text-sm text-muted-foreground">
+                        {isEnglish 
+                          ? `Redirecting to home in ${countdown} seconds...` 
+                          : `Redirection vers l'accueil dans ${countdown} secondes...`}
+                      </div>
+                      
                       <div className="border-t pt-4 flex justify-center">
                         <Button
                           onClick={handleHomeClick}
@@ -305,13 +312,6 @@ export default function WelcomePage() {
                           <LogIn className="mr-2 h-5 w-5" />
                           {isEnglish ? 'Home' : 'Accueil'}
                         </Button>
-                        
-                        {/* Countdown display */}
-                        <div className="absolute right-6 text-sm text-muted-foreground">
-                          {isEnglish 
-                            ? `Redirecting to home in ${countdown} seconds...` 
-                            : `Redirection vers l'accueil dans ${countdown} secondes...`}
-                        </div>
                       </div>
                     </div>
                   </CardContent>
