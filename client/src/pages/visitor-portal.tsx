@@ -103,13 +103,31 @@ function VisitorPortalComponent() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ visitorId: visitor.id })
               })
-              .then(response => {
+              .then(async response => {
+                const data = await response.json();
+                
+                // Check for already checked in status (409 Conflict)
+                if (response.status === 409 && data.alreadyCheckedIn) {
+                  console.log('Visitor already checked in:', data);
+                  
+                  // Set visitor and visit data
+                  setVisitor(data.visitor);
+                  setVisit(data.visit);
+                  
+                  // Store visitor ID for session management
+                  localStorage.setItem("visitorId", data.visitor.id.toString());
+                  
+                  // Show the already checked in view
+                  setAlreadyCheckedIn(true);
+                  setCheckedIn(false);
+                  setIsLoading(false);
+                  return;
+                }
+                
                 if (!response.ok) {
                   throw new Error('Failed to check in visitor');
                 }
-                return response.json();
-              })
-              .then(data => {
+                
                 console.log('Check-in successful:', data);
                 
                 // Set visitor and visit data
@@ -233,10 +251,19 @@ function VisitorPortalComponent() {
   });
 
   // Handle check-in success (could be new or returning visitor)
-  const handleCheckInSuccess = (visitor: Visitor, visit: Visit) => {
+  const handleCheckInSuccess = (visitor: Visitor, visit: Visit, alreadyCheckedIn?: boolean) => {
     setVisitor(visitor);
     setVisit(visit);
-    setCheckedIn(true);
+    
+    // Handle already checked in case differently
+    if (alreadyCheckedIn) {
+      setAlreadyCheckedIn(true);
+      setCheckedIn(false);
+    } else {
+      setCheckedIn(true);
+      setAlreadyCheckedIn(false);
+    }
+    
     localStorage.setItem("visitorId", visitor.id.toString());
     
     // Reset form-related states

@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/select";
 
 type VisitorCheckInFormProps = {
-  onSuccess: (visitor: Visitor, visit: Visit) => void;
+  onSuccess: (visitor: Visitor, visit: Visit, alreadyCheckedIn?: boolean) => void;
   isEnglish?: boolean;
   defaultValues?: Partial<VisitorFormValues>;
   isReturningVisitor?: boolean;
@@ -135,8 +135,11 @@ export function VisitorCheckInForm({
               : "Vous avez déjà une visite active dans le système.",
           });
           
-          // Pass the visitor and visit data to success handler
-          onSuccess(error.data.visitor, error.data.visit);
+          // Set alreadyCheckedIn to true on the parent component
+          if (typeof onSuccess === 'function') {
+            onSuccess(error.data.visitor, error.data.visit, true);
+          }
+          
           form.reset();
           setContactDetailsValues({ email: "", phoneNumber: "" });
           return;
