@@ -63,7 +63,9 @@ export function VisitorAlreadyCheckedIn({ visitor, visit, isEnglish = true }: Vi
           <div className="relative mb-3">
             <div className="h-16 w-16 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center border-2 border-amber-400">
               <span className="text-amber-600 dark:text-amber-400 text-xl font-bold">
-                {visitor.firstName.charAt(0)}{visitor.lastName.charAt(0)}
+                {visitor.fullName 
+                  ? visitor.fullName.split(' ').map(name => name[0]).join('').substring(0, 2)
+                  : '?'}
               </span>
             </div>
             <div className="absolute -top-1 -right-1 bg-amber-500 dark:bg-amber-600 text-white p-1 rounded-full">
@@ -72,7 +74,7 @@ export function VisitorAlreadyCheckedIn({ visitor, visit, isEnglish = true }: Vi
           </div>
           
           <h2 className="font-medium text-base text-amber-700 dark:text-amber-400 mb-1">
-            {isEnglish ? "Hello" : "Bonjour"}, {visitor.firstName}!
+            {isEnglish ? "Hello" : "Bonjour"}, {visitor.fullName?.split(' ')[0] || "Visitor"}!
           </h2>
           
           <p className="text-center text-sm text-gray-700 dark:text-gray-300">
