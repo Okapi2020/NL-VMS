@@ -8,6 +8,7 @@ import { Settings, Visitor, Visit } from "@shared/schema";
 import { LiveClock } from "@/components/live-clock";
 import { LanguageProvider } from "@/hooks/use-language";
 import { VisitorTypeSelection } from "@/components/visitor-type-selection";
+import { VisitorAlreadyCheckedIn } from "@/components/visitor-already-checked-in";
 
 export default function WelcomePage() {
   // Use state for language toggle (default to French)
@@ -65,6 +66,7 @@ export default function WelcomePage() {
   const [checkedInVisitor, setCheckedInVisitor] = useState<Visitor | null>(null);
   const [checkedInVisit, setCheckedInVisit] = useState<Visit | null>(null);
   const [checkInCompleted, setCheckInCompleted] = useState(false);
+  const [alreadyCheckedIn, setAlreadyCheckedIn] = useState(false);
   
   // Handle returning visitor confirmation - now does direct API call instead of navigation
   const handleReturningVisitorConfirmed = (
@@ -84,6 +86,7 @@ export default function WelcomePage() {
       setCheckedInVisitor(visitor);
       setCheckedInVisit(activeVisit);
       setCheckInCompleted(true);
+      setAlreadyCheckedIn(true);
       localStorage.setItem("visitorId", visitor.id.toString());
       return;
     }
@@ -117,6 +120,7 @@ export default function WelcomePage() {
                 setCheckedInVisitor(visitor);
                 setCheckedInVisit(visitData.visit);
                 setCheckInCompleted(true);
+                setAlreadyCheckedIn(true);
                 localStorage.setItem("visitorId", visitor.id.toString());
                 setDirectCheckInLoading(false);
                 return { alreadyCheckedIn: true };
@@ -182,6 +186,7 @@ export default function WelcomePage() {
     setCheckInCompleted(false);
     setCheckedInVisitor(null);
     setCheckedInVisit(null);
+    setAlreadyCheckedIn(false);
     localStorage.removeItem("visitorId");
   };
   
@@ -272,94 +277,105 @@ export default function WelcomePage() {
               </div>
             ) : checkInCompleted && checkedInVisitor && checkedInVisit ? (
               <div className="max-w-3xl mx-auto">
-                {/* Import VisitorCheckedIn component to show the success screen */}
-                <div className="mb-8 text-center">
-                  <h1 className="text-3xl font-bold">
-                    {isEnglish ? 'Check-in Successful!' : 'Enregistrement Réussi!'}
-                  </h1>
-                </div>
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="space-y-6">
-                      <div className="flex items-center justify-center mb-4">
-                        <div className="h-20 w-20 rounded-full bg-green-100 flex items-center justify-center">
-                          <CheckCircle className="h-12 w-12 text-green-600" />
-                        </div>
-                      </div>
-                      
-                      <div className="text-center">
-                        <h2 className="text-xl font-semibold">
-                          {isEnglish 
-                            ? `Welcome, ${checkedInVisitor.fullName}!` 
-                            : `Bienvenue, ${checkedInVisitor.fullName}!`}
-                        </h2>
-                        <p className="text-muted-foreground mt-1">
-                          {isEnglish 
-                            ? 'You have successfully checked in.' 
-                            : 'Vous vous êtes enregistré avec succès.'}
-                        </p>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-4 bg-muted/30 p-4 rounded-md">
-                        <div>
-                          <p className="text-sm text-muted-foreground">
-                            {isEnglish ? 'Check-in Time' : 'Heure d\'arrivée'}
-                          </p>
-                          <p className="font-medium">
-                            {new Date(checkedInVisit.checkInTime).toLocaleTimeString(
-                              isEnglish ? 'en-US' : 'fr-FR',
-                              { hour: '2-digit', minute: '2-digit' }
-                            )}
-                          </p>
-                        </div>
-                        
-                        <div>
-                          <p className="text-sm text-muted-foreground">
-                            {isEnglish ? 'Date' : 'Date'}
-                          </p>
-                          <p className="font-medium">
-                            {new Date(checkedInVisit.checkInTime).toLocaleDateString(
-                              isEnglish ? 'en-US' : 'fr-FR'
-                            )}
-                          </p>
-                        </div>
-                        
-                        <div>
-                          <p className="text-sm text-muted-foreground">
-                            {isEnglish ? 'Visitor ID' : 'ID de visiteur'}
-                          </p>
-                          <p className="font-medium">{checkedInVisitor.id}</p>
-                        </div>
-                        
-                        <div>
-                          <p className="text-sm text-muted-foreground">
-                            {isEnglish ? 'Visit Purpose' : 'Raison de la visite'}
-                          </p>
-                          <p className="font-medium">
-                            {checkedInVisit.purpose || (isEnglish ? 'Not specified' : 'Non spécifié')}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      {/* Countdown display - now centered above the button */}
-                      <div className="text-center mb-3 text-sm text-muted-foreground">
-                        {isEnglish 
-                          ? `Redirecting to home in ${countdown} seconds...` 
-                          : `Redirection vers l'accueil dans ${countdown} secondes...`}
-                      </div>
-                      
-                      <div className="border-t pt-4 flex justify-center">
-                        <Button
-                          onClick={handleHomeClick}
-                          className="w-40"
-                        >
-                          <LogIn className="mr-2 h-5 w-5" />
-                          {isEnglish ? 'Home' : 'Accueil'}
-                        </Button>
-                      </div>
+                {alreadyCheckedIn ? (
+                  // Show the "Already Checked In" warning screen
+                  <VisitorAlreadyCheckedIn
+                    visitor={checkedInVisitor}
+                    visit={checkedInVisit}
+                    isEnglish={isEnglish}
+                  />
+                ) : (
+                  // Show the regular check-in success screen
+                  <>
+                    <div className="mb-8 text-center">
+                      <h1 className="text-3xl font-bold">
+                        {isEnglish ? 'Check-in Successful!' : 'Enregistrement Réussi!'}
+                      </h1>
                     </div>
-                  </CardContent>
-                </Card>
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="space-y-6">
+                          <div className="flex items-center justify-center mb-4">
+                            <div className="h-20 w-20 rounded-full bg-green-100 flex items-center justify-center">
+                              <CheckCircle className="h-12 w-12 text-green-600" />
+                            </div>
+                          </div>
+                          
+                          <div className="text-center">
+                            <h2 className="text-xl font-semibold">
+                              {isEnglish 
+                                ? `Welcome, ${checkedInVisitor.fullName}!` 
+                                : `Bienvenue, ${checkedInVisitor.fullName}!`}
+                            </h2>
+                            <p className="text-muted-foreground mt-1">
+                              {isEnglish 
+                                ? 'You have successfully checked in.' 
+                                : 'Vous vous êtes enregistré avec succès.'}
+                            </p>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4 bg-muted/30 p-4 rounded-md">
+                            <div>
+                              <p className="text-sm text-muted-foreground">
+                                {isEnglish ? 'Check-in Time' : 'Heure d\'arrivée'}
+                              </p>
+                              <p className="font-medium">
+                                {new Date(checkedInVisit.checkInTime).toLocaleTimeString(
+                                  isEnglish ? 'en-US' : 'fr-FR',
+                                  { hour: '2-digit', minute: '2-digit' }
+                                )}
+                              </p>
+                            </div>
+                            
+                            <div>
+                              <p className="text-sm text-muted-foreground">
+                                {isEnglish ? 'Date' : 'Date'}
+                              </p>
+                              <p className="font-medium">
+                                {new Date(checkedInVisit.checkInTime).toLocaleDateString(
+                                  isEnglish ? 'en-US' : 'fr-FR'
+                                )}
+                              </p>
+                            </div>
+                            
+                            <div>
+                              <p className="text-sm text-muted-foreground">
+                                {isEnglish ? 'Visitor ID' : 'ID de visiteur'}
+                              </p>
+                              <p className="font-medium">{checkedInVisitor.id}</p>
+                            </div>
+                            
+                            <div>
+                              <p className="text-sm text-muted-foreground">
+                                {isEnglish ? 'Visit Purpose' : 'Raison de la visite'}
+                              </p>
+                              <p className="font-medium">
+                                {checkedInVisit.purpose || (isEnglish ? 'Not specified' : 'Non spécifié')}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {/* Countdown display */}
+                          <div className="text-center mb-3 text-sm text-muted-foreground">
+                            {isEnglish 
+                              ? `Redirecting to home in ${countdown} seconds...` 
+                              : `Redirection vers l'accueil dans ${countdown} secondes...`}
+                          </div>
+                          
+                          <div className="border-t pt-4 flex justify-center">
+                            <Button
+                              onClick={handleHomeClick}
+                              className="w-40"
+                            >
+                              <LogIn className="mr-2 h-5 w-5" />
+                              {isEnglish ? 'Home' : 'Accueil'}
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
