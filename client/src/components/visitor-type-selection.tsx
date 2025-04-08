@@ -288,7 +288,13 @@ export function VisitorTypeSelection({
                 
                 <div>
                   <p className="text-muted-foreground">{isEnglish ? "Phone" : "Téléphone"}</p>
-                  <p className="font-medium">{formatPhoneNumber(visitor.phoneNumber)}</p>
+                  <p className="font-medium">
+                    {visitor.phoneNumber.startsWith('+') ? 
+                      visitor.phoneNumber :
+                      (visitor.phoneNumber.startsWith('0') ? 
+                        visitor.phoneNumber : 
+                        `0${formatPhoneNumber(visitor.phoneNumber)}`)}
+                  </p>
                 </div>
                 
                 <div>
@@ -312,7 +318,7 @@ export function VisitorTypeSelection({
               </Button>
               
               <Button onClick={handleConfirmReturningVisitor}>
-                {isEnglish ? "Check In Now" : "S'enregistrer Maintenant"}
+                {isEnglish ? "Check In Now" : "SIGNALER MAINTENANT"}
               </Button>
             </div>
           </div>
