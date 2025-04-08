@@ -276,9 +276,9 @@ export function VisitorTypeSelection({
                   <Button 
                     variant="secondary" 
                     onClick={handleContinueWithNoMatch}
-                    className="bg-green-100 hover:bg-green-200 text-green-700 hover:text-green-800 dark:bg-green-900/30 dark:hover:bg-green-900/50 dark:text-green-500"
+                    className="bg-green-600 hover:bg-green-700 text-white hover:text-white font-medium px-6 py-2 rounded-md shadow-sm transition-all hover:shadow-md dark:bg-green-700 dark:hover:bg-green-800"
                   >
-                    {isEnglish ? "Check In as New Visitor" : "S'enregistrer comme Nouveau Visiteur"}
+                    {isEnglish ? "Check In as New Visitor" : "Sans aucun doute"}
                   </Button>
                 ) : (
                   <Button 
