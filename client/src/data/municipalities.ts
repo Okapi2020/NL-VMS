@@ -1,5 +1,6 @@
 // List of Kinshasa municipalities
 export const KINSHASA_MUNICIPALITIES = [
+  "Bandalungwa",
   "Barumbu",
   "Bumbu",
   "Gombe",
@@ -7,7 +8,6 @@ export const KINSHASA_MUNICIPALITIES = [
   "Kasa-Vubu",
   "Kimbanseke",
   "Kinshasa",
-  "Kingabwa",
   "Kintambo",
   "Kisenso",
   "Lemba",

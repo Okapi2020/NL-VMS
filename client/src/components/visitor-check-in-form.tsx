@@ -574,9 +574,7 @@ export function VisitorCheckInForm({
               <FormItem>
                 <FormLabel className="h-6 flex items-center">
                   <span>{isEnglish ? "Municipality" : "Commune"}</span>
-                  <span className="ml-1 text-xs text-muted-foreground">
-                    {isEnglish ? "(Optional)" : "(Optionnel)"}
-                  </span>
+                  <span className="ml-1 text-red-500">*</span>
                 </FormLabel>
                 <Select
                   onValueChange={(value) => {

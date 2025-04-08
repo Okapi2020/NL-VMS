@@ -99,7 +99,7 @@ export const visitorFormSchema = z.object({
   sex: z.enum(["Masculin", "Feminin"], {
     errorMap: () => ({ message: "Please select either Masculin or Feminin" }),
   }),
-  municipality: z.string().optional(),
+  municipality: z.string().min(1, "Municipality selection is required"),
   email: z.string()
     .email("Please enter a valid email address")
     .refine(email => email === "" || /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email), {
@@ -203,7 +203,7 @@ export const updateVisitorSchema = z.object({
   sex: z.enum(["Masculin", "Feminin"], {
     errorMap: () => ({ message: "Please select either Masculin or Feminin" }),
   }),
-  municipality: z.string().optional(),
+  municipality: z.string().min(1, "Municipality selection is required"),
   email: z.string()
     .email("Invalid email format")
     .refine(email => email === null || email === "" || /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email), {
