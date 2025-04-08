@@ -127,6 +127,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           sex: formData.sex,
           email: formData.email || null,
           phoneNumber: formData.phoneNumber,
+          municipality: formData.municipality,
         });
         
         if (!visitor) {

@@ -835,7 +835,8 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                     <FormLabel>{t("municipality")}</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      value={field.value}
+                      value={field.value || ""}
+                      defaultValue={field.value || ""}
                     >
                       <FormControl>
                         <SelectTrigger>

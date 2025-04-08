@@ -135,6 +135,10 @@ export const translations: TranslationMap = {
     en: 'Municipality',
     fr: 'Commune'
   },
+  selectMunicipality: {
+    en: 'Select municipality',
+    fr: 'Sélectionner une commune'
+  },
   
   // Authentication
   login: {
