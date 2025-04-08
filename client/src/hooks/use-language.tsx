@@ -127,6 +127,10 @@ export const translations: TranslationMap = {
     en: 'Submit',
     fr: 'Soumettre'
   },
+  notSpecified: {
+    en: 'Not specified',
+    fr: 'Non spécifié'
+  },
   
   // Authentication
   login: {
