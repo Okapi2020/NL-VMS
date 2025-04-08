@@ -121,8 +121,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // If visitor doesn't exist, create a new one
       if (!visitor) {
-        // Create a new visitor record
-        console.log("Creating new visitor:", formData.fullName, formData.phoneNumber);
         visitor = await storage.createVisitor({
           fullName: formData.fullName,
           yearOfBirth: formData.yearOfBirth,
@@ -139,17 +137,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isReturningVisitor = true;
         
         // Log the returning visitor for admin awareness
-        console.log(`Returning visitor found: "${visitor.fullName}" (ID: ${visitor.id}). NO data update performed.`);
         await storage.createSystemLog({
           action: "RETURNING_VISITOR",
           details: `Returning visitor "${visitor.fullName}" (ID: ${visitor.id}) checked in.`,
           userId: null // No admin involved, this is visitor self-check-in
         });
-        
-        // IMPORTANT: We DO NOT update the existing visitor's information
-        // This is by design - returning visitors should have their information unchanged
-        // If information needs to be updated, it should be done by an admin
-        // Only create a visit with the existing visitor record
       }
       
       // Create a new visit record
@@ -1085,20 +1077,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { phoneNumber, yearOfBirth } = req.body;
       
-      // Debug phone number format
-      console.log(`Received phone lookup request with phoneNumber: "${phoneNumber}" (length: ${phoneNumber?.length})`);
-      
       if (!phoneNumber) {
         return res.status(400).json({ message: "Phone number is required" });
-      }
-      
-      // Validate phone number format (DRC format: 0XXXXXXXXX)
-      const normalizedPhone = phoneNumber.replace(/\D/g, '');
-      if (normalizedPhone.length !== 10 || !normalizedPhone.startsWith('0')) {
-        return res.status(400).json({ 
-          found: false,
-          message: "Phone number must be 10 digits starting with 0" 
-        });
       }
       
       // Look up visitor by phone number

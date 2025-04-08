@@ -143,36 +143,27 @@ export class DatabaseStorage implements IStorage {
       // Remove all non-digit characters
       let digits = phone.replace(/\D/g, '');
       
-      // Log the digits we're working with
-      console.log(`Normalizing phone number: "${phone}" -> digits: "${digits}" (length: ${digits.length})`);
-      
-      let normalizedNumber = digits;
-      
-      // STORAGE FORMAT: We'll store ALL numbers in the database in consistent format:
-      // - Always keep the full 10 digits with leading zero for DRC numbers
-      
-      // If it starts with country code 243, replace with 0
-      if (normalizedNumber.startsWith('243')) {
-        normalizedNumber = '0' + normalizedNumber.substring(3);
-        console.log(`  After country code conversion: "${normalizedNumber}" (length: ${normalizedNumber.length})`);
+      // If it starts with country code 243, remove it
+      if (digits.startsWith('243')) {
+        digits = digits.substring(3);
       }
       
-      // If it doesn't start with 0 and is 9 digits, add the 0
-      if (!normalizedNumber.startsWith('0') && normalizedNumber.length === 9) {
-        normalizedNumber = '0' + normalizedNumber;
-        console.log(`  Added leading zero: "${normalizedNumber}" (length: ${normalizedNumber.length})`);
+      // If it starts with a 0, remove it (local format)
+      if (digits.startsWith('0')) {
+        digits = digits.substring(1);
       }
       
-      // Log the final normalized number
-      console.log(`  Final normalized number: "${normalizedNumber}" (length: ${normalizedNumber.length})`);
+      // Ensure we only have 9 digits (standard mobile number length without prefix)
+      if (digits.length > 9) {
+        digits = digits.substring(digits.length - 9);
+      }
       
-      // Return the full number WITH leading zero (10 digits total)
-      return normalizedNumber;
+      // Return just the base number without country code or leading zero
+      return digits;
     };
     
     // Normalize the search phone number
     const normalizedSearchPhone = normalizePhoneNumber(phoneNumber);
-    console.log(`Normalized search phone: "${normalizedSearchPhone}" (length: ${normalizedSearchPhone.length})`);
     
     // If the normalized phone number is too short (less than 9 digits), don't search
     if (normalizedSearchPhone.length < 9) {
@@ -182,23 +173,11 @@ export class DatabaseStorage implements IStorage {
     
     // Get all visitors and filter by normalized phone number
     const allVisitors = await db.select().from(visitors);
-    console.log(`Searching among ${allVisitors.length} visitors...`);
     
     // Find a match by normalized phone number
-    const matchedVisitor = allVisitors.find(v => {
-      const normalizedDBPhone = normalizePhoneNumber(v.phoneNumber);
-      const matches = normalizedDBPhone === normalizedSearchPhone;
-      if (matches) {
-        console.log(`Found match! Visitor ${v.id} (${v.fullName}): 
-          DB phone: ${v.phoneNumber} -> normalized: ${normalizedDBPhone}
-          Search: ${phoneNumber} -> normalized: ${normalizedSearchPhone}`);
-      }
-      return matches;
-    });
-    
-    if (!matchedVisitor) {
-      console.log("No visitor found with normalized phone number:", normalizedSearchPhone);
-    }
+    const matchedVisitor = allVisitors.find(v => 
+      normalizePhoneNumber(v.phoneNumber) === normalizedSearchPhone
+    );
     
     return matchedVisitor;
   }

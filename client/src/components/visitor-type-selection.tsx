@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { 
   Dialog, 
   DialogContent, 
@@ -11,7 +11,7 @@ import { CheckCircle, Loader2, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { apiRequest } from "@/lib/queryClient";
 import { Visitor } from "@shared/schema";
-import { formatPhoneNumber, normalizePhoneNumber } from "@/lib/utils";
+import { formatPhoneNumber } from "@/lib/utils";
 
 type VisitorTypeSelectionProps = {
   isOpen: boolean;
@@ -38,16 +38,6 @@ export function VisitorTypeSelection({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [visitor, setVisitor] = useState<Visitor | null>(null);
-  const [lookupTimeout, setLookupTimeout] = useState<NodeJS.Timeout | null>(null);
-  
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (lookupTimeout) {
-        clearTimeout(lookupTimeout);
-      }
-    };
-  }, [lookupTimeout]);
   
   // Reset states when dialog opens/closes
   const resetState = () => {
@@ -60,81 +50,32 @@ export function VisitorTypeSelection({
     setErrorMessage(null);
     setRetryCount(0);
     setVisitor(null);
-    
-    // Clear any pending timeout
-    if (lookupTimeout) {
-      clearTimeout(lookupTimeout);
-      setLookupTimeout(null);
-    }
   };
   
-  // Handle phone number input with formatting and real-time lookup
+  // Handle phone number input with formatting
   const handlePhoneInput = (input: string) => {
     // Strip all non-numeric characters
     const cleaned = input.replace(/\D/g, '');
     
-    // Only take the first 10 digits (for display purposes)
+    // Only take the first 10 digits
     const limited = cleaned.slice(0, 10);
     
-    console.log(`Phone input: "${input}" -> cleaned: "${cleaned}" -> limited: "${limited}"`);
+    // Store raw numeric value
+    setPhoneNumber(limited);
     
-    // Only add a leading zero when input is completely empty or when it's a single digit not starting with 0
-    let finalNumber = limited;
-    if (limited.length === 1 && limited !== '0') {
-      finalNumber = '0' + limited;
-    } else if (limited.length === 0) {
-      finalNumber = '0';
-    }
-    
-    // Store raw numeric value - don't force 10 digits during typing
-    setPhoneNumber(finalNumber);
-    
-    // Apply formatting with spaces for display
-    const formatted = formatPhoneNumber(finalNumber);
+    // Apply formatting with spaces
+    const formatted = formatPhoneNumber(limited);
     setFormattedPhoneNumber(formatted);
-    
-    // If phone number is 10 digits and starts with 0, do a silent lookup
-    if (finalNumber.length === 10 && finalNumber.startsWith('0')) {
-      // Use setTimeout to avoid searching on every keystroke
-      if (lookupTimeout) {
-        clearTimeout(lookupTimeout);
-      }
-      
-      const timeoutId = setTimeout(() => {
-        console.log(`Starting lookup with phone: "${finalNumber}" (length: ${finalNumber.length})`);
-        lookupVisitor(true); // silent check
-      }, 500); // wait half a second after typing stops
-      
-      setLookupTimeout(timeoutId);
-    } else {
-      // Reset found state if phone number is not complete
-      setIsFound(false);
-      setVisitor(null);
-    }
   };
   
-  // Look up visitor by phone number as user types
-  const lookupVisitor = async (skipFullCheck = false) => {
-    if (!skipFullCheck) {
-      setIsLoading(true);
-    }
+  // Look up visitor by phone number
+  const lookupVisitor = async () => {
+    setIsLoading(true);
     setErrorMessage(null);
-    
-    // Ensure the phone number has a leading zero for the lookup
-    let searchPhoneNumber = phoneNumber;
-    
-    // If it's exactly 9 digits (without leading zero), add the zero
-    if (searchPhoneNumber.length === 9 && !searchPhoneNumber.startsWith('0')) {
-      searchPhoneNumber = '0' + searchPhoneNumber;
-      console.log(`Added leading zero for lookup: "${searchPhoneNumber}"`);
-    }
-    
-    // Debug log of phone number being sent
-    console.log(`Submitting phone search: "${searchPhoneNumber}" (length: ${searchPhoneNumber?.length})`);
     
     try {
       const response = await apiRequest("POST", "/api/visitors/lookup", {
-        phoneNumber: searchPhoneNumber,
+        phoneNumber: phoneNumber,
         yearOfBirth: yearOfBirth
       });
       
@@ -143,11 +84,7 @@ export function VisitorTypeSelection({
       if (response.ok && data.found) {
         setIsFound(true);
         setVisitor(data.visitor);
-        
-        // If this is the full check (clicking Next), go to review
-        if (!skipFullCheck) {
-          setStep('review');
-        }
+        setStep('review');
       } else {
         setIsFound(false);
         
@@ -177,9 +114,7 @@ export function VisitorTypeSelection({
         ? "An error occurred while looking up your information." 
         : "Une erreur s'est produite lors de la recherche de vos informations.");
     } finally {
-      if (!skipFullCheck) {
-        setIsLoading(false);
-      }
+      setIsLoading(false);
     }
   };
   
@@ -214,16 +149,8 @@ export function VisitorTypeSelection({
   
   // Handle continue with no match
   const handleContinueWithNoMatch = () => {
-    // Ensure we have a properly formatted phone number with leading zero
-    let finalPhoneNumber = phoneNumber;
-    
-    // If it's 9 digits, add the leading zero
-    if (finalPhoneNumber.length === 9 && !finalPhoneNumber.startsWith('0')) {
-      finalPhoneNumber = '0' + finalPhoneNumber;
-    }
-    
     // Pass the phone number back to the form for pre-filling
-    onReturningVisitorConfirmed(null, { phoneNumber: finalPhoneNumber });
+    onReturningVisitorConfirmed(null, { phoneNumber });
     resetState();
   };
   
@@ -305,39 +232,8 @@ export function VisitorTypeSelection({
                 className="text-lg"
               />
               
-              {isFound && visitor && (
-                <div className="mt-2 space-y-2">
-                  <div className="flex items-center">
-                    <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
-                    <p className="text-sm font-medium text-green-600">
-                      {isEnglish 
-                        ? `Found visitor: ${visitor.fullName}` 
-                        : `Visiteur trouvé: ${visitor.fullName}`}
-                    </p>
-                  </div>
-                  
-                  <Button 
-                    variant="default" 
-                    className="w-full mt-2 bg-green-600 hover:bg-green-700"
-                    onClick={() => setStep('review')}
-                  >
-                    {isEnglish ? "Proceed to Check In" : "Procéder à l'enregistrement"}
-                  </Button>
-                </div>
-              )}
-              
-              {errorMessage && !isFound && phoneNumber.length >= 9 && (
-                <div className="mt-2 space-y-2">
-                  <p className="text-sm text-destructive">{errorMessage}</p>
-                  
-                  <Button 
-                    variant="destructive"
-                    className="w-full mt-2"
-                    onClick={handleContinueWithNoMatch}
-                  >
-                    {isEnglish ? "Register as New Visitor" : "S'inscrire comme nouveau visiteur"}
-                  </Button>
-                </div>
+              {errorMessage && (
+                <p className="text-sm text-destructive mt-1">{errorMessage}</p>
               )}
             </div>
             
@@ -347,21 +243,23 @@ export function VisitorTypeSelection({
                 {isEnglish ? "Back" : "Retour"}
               </Button>
               
-              {/* Only show Next button if we haven't found a visitor yet and 
-                  we don't have the Register as New button visible */}
-              {!isFound && !errorMessage && (
+              <div className="space-x-2">
+                {retryCount > 0 && (
+                  <Button variant="outline" onClick={handleContinueWithNoMatch}>
+                    {isEnglish ? "New Registration" : "Nouvel Enregistrement"}
+                  </Button>
+                )}
+                
                 <Button 
-                  onClick={() => lookupVisitor(false)} 
-                  disabled={(phoneNumber.length !== 9 && phoneNumber.length !== 10) || 
-                           (phoneNumber.length === 10 && !phoneNumber.startsWith('0')) || 
-                           isLoading}
+                  onClick={lookupVisitor} 
+                  disabled={phoneNumber.length < 10 || isLoading}
                 >
                   {isLoading ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : null}
                   {isEnglish ? "Next" : "Suivant"}
                 </Button>
-              )}
+              </div>
             </div>
           </div>
         )}
@@ -391,7 +289,11 @@ export function VisitorTypeSelection({
                 <div>
                   <p className="text-muted-foreground">{isEnglish ? "Phone" : "Téléphone"}</p>
                   <p className="font-medium">
-                    {formatPhoneNumber(visitor.phoneNumber)}
+                    {visitor.phoneNumber.startsWith('+') ? 
+                      visitor.phoneNumber :
+                      (visitor.phoneNumber.startsWith('0') ? 
+                        visitor.phoneNumber : 
+                        `0${formatPhoneNumber(visitor.phoneNumber)}`)}
                   </p>
                 </div>
                 

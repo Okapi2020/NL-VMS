@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { calculateAge, formatPhoneNumber, normalizePhoneNumber } from "@/lib/utils";
+import { calculateAge } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Visitor, Visit, VisitorFormValues } from "@shared/schema";
 import { useLocalizedFormSchema } from "@/hooks/use-localized-form-schema";
@@ -439,47 +439,22 @@ export function VisitorCheckInForm({
                           // Limit to 14 characters total (10 digits plus spaces/formatting)
                           value = value.substring(0, 14);
                           
-                          // Get just the digits and ensure proper format
-                          let digits = value.replace(/\D/g, '');
-                          
-                          // Force leading zero if first digit is not 0
-                          if (digits.length === 1 && digits !== '0') {
-                            digits = '0' + digits;
-                          } else if (digits.length === 0) {
-                            digits = '0';
-                          }
-                          
-                          // Format for display
-                          const formattedValue = digits.length > 0 ? 
-                            formatPhoneNumber(digits) : 
-                            digits;
-                          
-                          // Update display value with formatted number
-                          handleContactDetailsChange("phoneNumber", formattedValue);
+                          handleContactDetailsChange("phoneNumber", value);
                         }}
                         onBlur={(e) => {
                           field.onBlur();
                           
-                          // On blur, normalize the phone number to 10 digits with leading zero
-                          let digits = e.target.value.replace(/\D/g, '');
-                          const normalizedNumber = normalizePhoneNumber(digits);
+                          // On blur, check if this is a valid length
+                          const digits = e.target.value.replace(/\D/g, '');
                           
-                          // Update field value with normalized number
-                          field.onChange(normalizedNumber);
-                          
-                          // Format for display
-                          setContactDetailsValues({
-                            ...contactDetailsValues,
-                            phoneNumber: formatPhoneNumber(normalizedNumber)
-                          });
-                          
-                          // 10-digit DRC format validation (with leading zero)
-                          if (digits.length > 0 && (normalizedNumber.length !== 10 || !normalizedNumber.startsWith('0'))) {
+                          // Phone number should be approximately 10 digits (with or without leading zero)
+                          // If it's international format with country code, it could be 12-13 digits
+                          if (digits.length > 0 && (digits.length < 9 || digits.length > 13)) {
                             form.setError("phoneNumber", { 
                               type: "manual", 
                               message: isEnglish 
-                                ? "Phone number must be 10 digits starting with 0" 
-                                : "Le numéro de téléphone doit comporter 10 chiffres commençant par 0" 
+                                ? "Phone number should be 10 digits" 
+                                : "Le numéro de téléphone doit comporter 10 chiffres" 
                             });
                           } else {
                             form.clearErrors("phoneNumber");
@@ -502,8 +477,8 @@ export function VisitorCheckInForm({
                     </div>
                     <div className="mt-1 text-xs text-muted-foreground">
                       {isEnglish 
-                        ? "Enter a 10-digit phone number starting with 0 (e.g., 0808 382 697)"
-                        : "Entrez un numéro de téléphone à 10 chiffres commençant par 0 (ex: 0808 123 456)"}
+                        ? "Enter a 10-digit phone number (e.g., 0808 382 697)"
+                        : "Entrez un numéro de téléphone à 10 chiffres (ex: 0612 345 678)"}
                     </div>
                   </div>
                 </FormControl>
@@ -574,7 +549,7 @@ export function VisitorCheckInForm({
                   <h4 className="text-sm font-semibold text-muted-foreground">
                     {isEnglish ? "Phone" : "Téléphone"}
                   </h4>
-                  <p className="mt-1">{formatPhoneNumber(normalizePhoneNumber(contactDetailsValues.phoneNumber))}</p>
+                  <p className="mt-1">{contactDetailsValues.phoneNumber}</p>
                 </div>
               </div>
             </CardContent>

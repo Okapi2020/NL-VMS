@@ -77,13 +77,13 @@ export function useLocalizedFormSchema(isEnglish: boolean = true) {
         phone => {
           // Remove all non-digit characters for validation
           const digits = phone.replace(/\D/g, '');
-          // Phone should have exactly 10 digits and start with 0
-          return digits.length === 10 && digits.startsWith('0');
+          // Phone should have exactly 10 digits
+          return digits.length === 10;
         },
         {
           message: isEnglish 
-            ? "Phone number must be 10 digits starting with 0 (e.g., 0XXXXXXXXX)"
-            : "Le numéro de téléphone doit comporter 10 chiffres commençant par 0 (ex. 0XXXXXXXXX)"
+            ? "Phone number must be exactly 10 digits"
+            : "Le numéro de téléphone doit comporter exactement 10 chiffres"
         }
       ),
     purpose: z.string()
@@ -95,11 +95,13 @@ export function useLocalizedFormSchema(isEnglish: boolean = true) {
     const middleName = data.middleName ? ` ${data.middleName} ` : ' ';
     const fullName = data.firstName + middleName + data.lastName;
     
-    // Normalize phone number to 10-digit format with leading zero
+    // Normalize phone number to remove any non-digit characters
     let phoneNumber = data.phoneNumber.replace(/\D/g, '');
     
-    // Ensure it's a 10-digit number with leading zero (keep it as is since we want to store the full format)
-    // We'll handle any conversions when needed in storage.ts
+    // Remove leading zero if present (for country code format)
+    if (phoneNumber.startsWith('0')) {
+      phoneNumber = phoneNumber.substring(1);
+    }
     
     return {
       ...data,
