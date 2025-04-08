@@ -159,7 +159,7 @@ export function VisitorTypeSelection({
     if (visitor) {
       // First close the dialog to prevent flashing UI
       resetState();
-      // Then immediately check in the visitor
+      // Then immediately check in the visitor without URL navigation
       onReturningVisitorConfirmed(visitor);
     }
   };
