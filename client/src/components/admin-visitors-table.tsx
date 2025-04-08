@@ -84,7 +84,7 @@ const editVisitorSchema = z.object({
   sex: z.enum(["Masculin", "Feminin"], {
     errorMap: () => ({ message: "Please select either Masculin or Feminin" }),
   }),
-  municipality: z.string().min(1, "Municipality selection is required"),
+  municipality: z.string().min(1, {message: "Municipality selection is required"}),
   email: z.string().email("Invalid email format").nullable().optional(),
   phoneNumber: z.string().min(7, "Phone number must be at least 7 characters"),
 });
