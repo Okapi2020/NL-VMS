@@ -133,13 +133,50 @@ export default function WelcomePage() {
   const headerAppName = settings?.headerAppName || appName;
   const footerAppName = settings?.footerAppName || appName;
   
-  // Function to handle check out
-  const handleCheckOut = () => {
+  // Function to handle home button click (go back to welcome screen)
+  const handleHomeClick = () => {
     setCheckInCompleted(false);
     setCheckedInVisitor(null);
     setCheckedInVisit(null);
     localStorage.removeItem("visitorId");
   };
+  
+  // Auto-redirect to home page after 7 seconds with countdown
+  const [countdown, setCountdown] = useState(7);
+  
+  useEffect(() => {
+    let redirectTimer: NodeJS.Timeout | null = null;
+    let countdownTimer: NodeJS.Timeout | null = null;
+    
+    if (checkInCompleted && checkedInVisitor) {
+      // Reset countdown when check-in completes
+      setCountdown(7);
+      
+      // Update countdown every second
+      countdownTimer = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(countdownTimer as NodeJS.Timeout);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      
+      // Set the redirect timer
+      redirectTimer = setTimeout(() => {
+        handleHomeClick();
+      }, 7000); // 7 seconds
+    } else {
+      // Reset countdown when not on success screen
+      setCountdown(7);
+    }
+    
+    return () => {
+      if (redirectTimer) clearTimeout(redirectTimer);
+      if (countdownTimer) clearInterval(countdownTimer);
+    };
+  }, [checkInCompleted, checkedInVisitor]);
   
   return (
     <LanguageProvider defaultLanguage={isEnglish ? 'en' : 'fr'}>
@@ -260,19 +297,21 @@ export default function WelcomePage() {
                         </div>
                       </div>
                       
-                      <div className="border-t pt-4 flex justify-between">
+                      <div className="border-t pt-4 flex justify-center">
                         <Button
-                          variant="outline"
-                          onClick={handleCheckOut}
+                          onClick={handleHomeClick}
+                          className="w-40"
                         >
-                          {isEnglish ? 'Check Out' : 'Départ'}
+                          <LogIn className="mr-2 h-5 w-5" />
+                          {isEnglish ? 'Home' : 'Accueil'}
                         </Button>
                         
-                        <Button
-                          onClick={() => window.print()}
-                        >
-                          {isEnglish ? 'Print Badge' : 'Imprimer Badge'}
-                        </Button>
+                        {/* Countdown display */}
+                        <div className="absolute right-6 text-sm text-muted-foreground">
+                          {isEnglish 
+                            ? `Redirecting to home in ${countdown} seconds...` 
+                            : `Redirection vers l'accueil dans ${countdown} secondes...`}
+                        </div>
                       </div>
                     </div>
                   </CardContent>
