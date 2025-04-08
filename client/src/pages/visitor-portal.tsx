@@ -31,11 +31,6 @@ function VisitorPortalComponent() {
   
   // Parse URL query parameters on page load
   useEffect(() => {
-    // If user is already checked in or showing a form, don't process URL params
-    if (checkedIn || showForm) {
-      return;
-    }
-    
     const params = new URLSearchParams(window.location.search);
     const type = params.get('type');
     
@@ -45,6 +40,59 @@ function VisitorPortalComponent() {
       setFormDefaultValues({});
       setReturningVisitor(null);
     } 
+    else if (type === 'returning') {
+      // For returning visitors, get the visitor from the API
+      const visitorId = params.get('visitorId');
+      if (visitorId) {
+        // Set loading state while fetching
+        setIsLoading(true);
+        
+        fetch(`/api/visitors/${visitorId}`)
+          .then(res => {
+            if (!res.ok) {
+              throw new Error('Failed to fetch visitor data');
+            }
+            return res.json();
+          })
+          .then(data => {
+            if (data) {
+              console.log('Successfully fetched visitor from URL param:', data);
+              // First reset the form states to prevent any form flashes
+              setShowForm(false);
+              setFormDefaultValues({});
+              setReturningVisitor(null);
+              
+              // Now make the actual check-in API call
+              return fetch('/api/visitors/check-in/returning', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ visitorId: data.id })
+              })
+              .then(response => {
+                if (!response.ok) throw new Error('Check-in request failed');
+                return response.json();
+              })
+              .then(checkInData => {
+                console.log('Successfully checked in from URL param:', checkInData);
+                // Update states to show the success screen
+                setVisitor(checkInData.visitor);
+                setVisit(checkInData.visit);
+                setCheckedIn(true);
+                // Store visitor ID in localStorage for session management
+                localStorage.setItem("visitorId", checkInData.visitor.id.toString());
+              });
+            }
+          })
+          .catch(err => {
+            console.error('Error processing returning visitor from URL:', err);
+            // On error, redirect to the main check-in page
+            navigate('/visitor', { replace: true });
+            setIsLoading(false);
+          });
+      } else {
+        setIsTypeSelectionOpen(true);
+      }
+    }
     else if (type === 'prefill') {
       // For prefill info (when phone number lookup failed)
       const phoneNumber = params.get('phoneNumber');
@@ -226,12 +274,10 @@ function VisitorPortalComponent() {
   };
 
   const handleReturningVisitorConfirmed = (visitor: Visitor | null, prefill?: { phoneNumber: string; yearOfBirth?: number }) => {
-    // Close the dialog first
     setIsTypeSelectionOpen(false);
     
     if (visitor) {
-      console.log('Handling returning visitor confirmation directly, no URL change');
-      // Directly check in the returning visitor without any URL navigation
+      // Directly check in the returning visitor without going through the form
       checkInReturningVisitor(visitor);
     } else if (prefill) {
       // Prefill the phone number for a new visitor who tried to return
