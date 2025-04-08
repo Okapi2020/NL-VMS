@@ -202,17 +202,20 @@ function VisitorPortalComponent() {
       
       if (response.ok) {
         const data = await response.json();
-        // Handle successful check-in
-        setVisitor(data.visitor);
-        setVisit(data.visit);
-        setCheckedIn(true);
-        // Hide the form and reset form-related states
+        console.log('Successfully checked in returning visitor:', data);
+        
+        // First reset the form-related states
         setShowForm(false);
         setFormDefaultValues({});
         setReturningVisitor(null);
+        
+        // Then update the states that trigger the success view
+        setVisitor(data.visitor);
+        setVisit(data.visit);
+        setCheckedIn(true);
+        
         // Store visitor ID in localStorage for session management
         localStorage.setItem("visitorId", data.visitor.id.toString());
-        console.log('Successfully checked in returning visitor:', data);
       } else {
         console.error('Failed to check in returning visitor:', await response.text());
         // If check-in fails, fall back to the form

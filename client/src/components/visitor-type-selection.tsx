@@ -157,8 +157,10 @@ export function VisitorTypeSelection({
   // Handle confirmation of returning visitor
   const handleConfirmReturningVisitor = () => {
     if (visitor) {
-      onReturningVisitorConfirmed(visitor);
+      // First close the dialog to prevent flashing UI
       resetState();
+      // Then immediately check in the visitor
+      onReturningVisitorConfirmed(visitor);
     }
   };
   
