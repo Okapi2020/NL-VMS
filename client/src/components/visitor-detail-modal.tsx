@@ -99,6 +99,10 @@ export function VisitorDetailModal({
                   <div className="text-sm text-gray-500">{t("birthYear")}</div>
                   <div>{formatYearWithAge(visitor.yearOfBirth, language)}</div>
                 </div>
+                <div>
+                  <div className="text-sm text-gray-500">{t("municipality")}</div>
+                  <div>{visitor.municipality || t("notSpecified")}</div>
+                </div>
               </div>
             </div>
             

@@ -19,6 +19,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { PhoneNumberLink } from "@/components/phone-number-link";
+import { KINSHASA_MUNICIPALITIES } from "@/data/municipalities";
 import { 
   Search, 
   SlidersHorizontal,
@@ -107,6 +108,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
     sex: z.enum(["Masculin", "Feminin"], {
       errorMap: () => ({ message: "Please select either Masculin or Feminin" }),
     }),
+    municipality: z.string().min(1, "Municipality selection is required"),
     email: z.string().email("Invalid email format").nullable().optional(),
     phoneNumber: z.string().min(7, "Phone number must be at least 7 characters"),
   });
@@ -121,6 +123,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
       fullName: selectedVisitor.fullName,
       yearOfBirth: selectedVisitor.yearOfBirth,
       sex: selectedVisitor.sex as "Masculin" | "Feminin",
+      municipality: selectedVisitor.municipality || "",
       email: selectedVisitor.email,
       phoneNumber: selectedVisitor.phoneNumber
     } : undefined
@@ -134,6 +137,7 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
         fullName: selectedVisitor.fullName,
         yearOfBirth: selectedVisitor.yearOfBirth,
         sex: selectedVisitor.sex as "Masculin" | "Feminin",
+        municipality: selectedVisitor.municipality || "",
         email: selectedVisitor.email,
         phoneNumber: selectedVisitor.phoneNumber
       });
@@ -955,6 +959,34 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                   )}
                 />
               </div>
+              
+              <FormField
+                control={form.control}
+                name="municipality"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("municipality")}</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t("selectMunicipality")} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="max-h-[200px]">
+                        {KINSHASA_MUNICIPALITIES.map((municipality) => (
+                          <SelectItem key={municipality} value={municipality}>
+                            {municipality}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               
               <FormField
                 control={form.control}

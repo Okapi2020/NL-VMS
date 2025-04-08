@@ -22,6 +22,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/hooks/use-language";
 import { VisitorDetailModal } from "./visitor-detail-modal";
+import { KINSHASA_MUNICIPALITIES } from "@/data/municipalities";
 import { 
   Search, 
   UserRound, 
@@ -83,6 +84,7 @@ const editVisitorSchema = z.object({
   sex: z.enum(["Masculin", "Feminin"], {
     errorMap: () => ({ message: "Please select either Masculin or Feminin" }),
   }),
+  municipality: z.string().min(1, "Municipality selection is required"),
   email: z.string().email("Invalid email format").nullable().optional(),
   phoneNumber: z.string().min(7, "Phone number must be at least 7 characters"),
 });
@@ -293,6 +295,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
       fullName: selectedVisitor.fullName,
       yearOfBirth: selectedVisitor.yearOfBirth,
       sex: selectedVisitor.sex as "Masculin" | "Feminin",
+      municipality: selectedVisitor.municipality || "",
       email: selectedVisitor.email,
       phoneNumber: selectedVisitor.phoneNumber
     } : undefined
@@ -306,6 +309,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
         fullName: selectedVisitor.fullName,
         yearOfBirth: selectedVisitor.yearOfBirth,
         sex: selectedVisitor.sex as "Masculin" | "Feminin",
+        municipality: selectedVisitor.municipality || "",
         email: selectedVisitor.email,
         phoneNumber: selectedVisitor.phoneNumber
       });
@@ -500,6 +504,13 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 </div>
               </TableHead>
               
+              {/* Municipality Column */}
+              <TableHead>
+                <div className="flex items-center">
+                  <span className="uppercase text-xs font-medium text-gray-500">{t("municipality")}</span>
+                </div>
+              </TableHead>
+              
               {/* Badge ID Column */}
               <TableHead>
                 <div className="flex items-center">
@@ -568,6 +579,13 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                           t("noPhoneProvided")
                         )}
                       </div>
+                    </div>
+                  </TableCell>
+                  
+                  {/* Municipality */}
+                  <TableCell>
+                    <div className="text-sm">
+                      {visitor.municipality || t("notSpecified")}
                     </div>
                   </TableCell>
                   
@@ -802,6 +820,34 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                       <SelectContent>
                         <SelectItem value="Masculin">{t("male")}</SelectItem>
                         <SelectItem value="Feminin">{t("female")}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="municipality"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("municipality")}</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t("selectMunicipality")} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="max-h-[200px]">
+                        {KINSHASA_MUNICIPALITIES.map((municipality) => (
+                          <SelectItem key={municipality} value={municipality}>
+                            {municipality}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
