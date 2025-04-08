@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, Loader2, ArrowLeft } from "lucide-react";
+import { CheckCircle, Loader2, ArrowLeft, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { apiRequest } from "@/lib/queryClient";
 import { Visitor } from "@shared/schema";
@@ -252,15 +252,24 @@ export function VisitorTypeSelection({
               />
               
               {errorMessage && (
-                <div className="text-sm text-destructive mt-1">
-                  <p>{errorMessage}</p>
-                  {retryCount > 0 && (
-                    <p className="mt-1 font-medium">
-                      {isEnglish 
-                        ? "Would you like to check in as a new visitor instead?" 
-                        : "Souhaitez-vous vous enregistrer en tant que nouveau visiteur?"}
-                    </p>
-                  )}
+                <div className="mt-3 mb-2">
+                  <div className="bg-red-900/20 border border-red-400/30 rounded-md p-3">
+                    <div className="flex items-center">
+                      <AlertTriangle className="h-5 w-5 text-orange-400 mr-2 shrink-0" />
+                      <p className="text-sm text-orange-400 font-medium">
+                        {errorMessage}
+                      </p>
+                    </div>
+                    {retryCount > 0 && (
+                      <div className="mt-3 pt-3 border-t border-red-400/30">
+                        <p className="text-sm text-white font-medium">
+                          {isEnglish 
+                            ? "Would you like to check in as a new visitor instead?" 
+                            : "Souhaitez-vous vous enregistrer en tant que nouveau visiteur?"}
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
