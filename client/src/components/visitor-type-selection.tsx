@@ -90,18 +90,17 @@ export function VisitorTypeSelection({
         
         // Different error message based on step and retry count
         if (step === 'phone-input') {
-          setErrorMessage(isEnglish 
-            ? "No visitor found with this phone number." 
-            : "Aucun visiteur trouvé avec ce numéro de téléphone.");
-            
-          // If this is the first try, allow a retry
+          // If this is the first try, give a simple message and allow a retry
           if (retryCount === 0) {
+            setErrorMessage(isEnglish 
+              ? "No visitor found with this phone number." 
+              : "Aucun visiteur trouvé avec ce numéro de téléphone.");
             setRetryCount(1);
           } else {
-            // If it's the second try, suggest check with reception
+            // If it's the second try, be more helpful with options
             setErrorMessage(isEnglish 
-              ? "Still not found. Please check with reception if you're a returning visitor." 
-              : "Toujours introuvable. Veuillez vérifier à la réception si vous êtes un visiteur récurrent.");
+              ? "We couldn't find any records with this phone number." 
+              : "Nous n'avons trouvé aucun enregistrement avec ce numéro de téléphone.");
           }
         } else if (step === 'year-input') {
           setErrorMessage(isEnglish 
@@ -246,7 +245,16 @@ export function VisitorTypeSelection({
               />
               
               {errorMessage && (
-                <p className="text-sm text-destructive mt-1">{errorMessage}</p>
+                <div className="text-sm text-destructive mt-1">
+                  <p>{errorMessage}</p>
+                  {retryCount > 0 && (
+                    <p className="mt-1 font-medium">
+                      {isEnglish 
+                        ? "Would you like to check in as a new visitor instead?" 
+                        : "Souhaitez-vous vous enregistrer en tant que nouveau visiteur?"}
+                    </p>
+                  )}
+                </div>
               )}
             </div>
             
@@ -258,8 +266,12 @@ export function VisitorTypeSelection({
               
               <div className="space-x-2">
                 {retryCount > 0 && (
-                  <Button variant="outline" onClick={handleContinueWithNoMatch}>
-                    {isEnglish ? "New Registration" : "Nouvel Enregistrement"}
+                  <Button 
+                    variant="secondary" 
+                    onClick={handleContinueWithNoMatch}
+                    className="bg-green-100 hover:bg-green-200 text-green-700 hover:text-green-800 dark:bg-green-900/30 dark:hover:bg-green-900/50 dark:text-green-500"
+                  >
+                    {isEnglish ? "Check In as New Visitor" : "S'enregistrer comme Nouveau Visiteur"}
                   </Button>
                 )}
                 
