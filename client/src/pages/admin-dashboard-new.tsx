@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminVisitorsTable } from "@/components/admin-visitors-table";
-import { AdminVisitHistory } from "@/components/admin-visit-history";
+import { AdminVisitTimeline } from "@/components/admin-visit-timeline";
 import { AdminSettings } from "@/components/admin-settings";
 import { DayOfWeekChart } from "@/components/analytics/day-of-week-chart";
 import { HourlyDistributionChart } from "@/components/analytics/hourly-distribution-chart";
@@ -582,7 +582,7 @@ export default function AdminDashboard() {
                             />
                           </TabsContent>
                           <TabsContent value="history">
-                            <AdminVisitHistory 
+                            <AdminVisitTimeline 
                               visitHistory={visitHistory} 
                               isLoading={isLoadingVisitHistory} 
                             />
@@ -602,7 +602,7 @@ export default function AdminDashboard() {
                   <CardContent className="p-6">
                     <h3 className="text-lg font-medium mb-4">All Visitors</h3>
                     <p className="text-gray-500 mb-4">View and manage all visitors registered in the system.</p>
-                    <AdminVisitHistory 
+                    <AdminVisitTimeline 
                       visitHistory={visitHistory} 
                       isLoading={isLoadingVisitHistory} 
                     />

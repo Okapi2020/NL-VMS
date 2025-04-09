@@ -1,0 +1,39 @@
+in the current mockup can you add upto 8 passed date and make it scrollable, is that possible?
+
+I'll update the mockup to include more historical visits (8 past dates) and make the timeline section scrollable. This will demonstrate how the interface handles a longer history while keeping the UI clean.
+
+
+Visitor Timeline Mockup
+Interactive artifact ∙ Version 2 
+I've updated the mockup to include 8 historical visits spanning different dates, and made the timeline section scrollable. The updates include:
+
+Scrollable Timeline Area: I've added a max-height limitation with overflow-y-auto to create a scrollable container for the timeline. This ensures the UI stays compact while still allowing access to the complete history.
+8 Past Visits: The timeline now includes visits on:
+8 April 2025 (4 visits on the same day)
+7 April 2025 (1 visit)
+2 April 2025 (1 visit)
+25 March 2025 (1 visit)
+10 March 2025 (1 visit)
+Visit Variety: I've added different visit durations (from 0 minutes to over 2 hours) and different visit types (Ordinary, Cancelled, Short, Extended) to show how the interface handles various scenarios.
+Visual Distinction: Each visit maintains the timeline dot and connecting line, which helps users track the chronological sequence even when scrolling.
+This approach allows your interface to handle extensive visitor history while keeping the UI clean and organized. Users can easily scroll through a visitor's complete history without cluttering the main interface.
+
+The scrollable container will be particularly useful for frequent visitors with extensive histories, while still providing all the necessary information in a visually appealing timeline format.
+
+Can you add like a "load more" for when there are a much longer history?
+
+I'll add a "Load More" button at the end of the timeline to handle cases with extensive visit history.
+
+
+Visitor Timeline Mockup
+Interactive artifact ∙ Version 3 
+I've added a "Load More" button at the end of the visitor timeline that indicates there are additional visits available to view. This enhancement provides several benefits:
+
+Performance Optimization: Instead of loading potentially hundreds of visits at once, the interface can load them in manageable batches.
+User Feedback: The button explicitly states how many additional visits are available ("15 visites précédentes"), giving users clear expectations.
+Visual Design: The button includes a downward arrow icon to indicate that clicking will reveal more content below, following standard UI patterns.
+Responsive Design: The button spans the full width of the timeline, making it an easy target to click regardless of device.
+Styled Consistently: The button styling matches the rest of the interface, using the same color scheme, border radius, and hover effects.
+This approach is particularly valuable for visitors with extensive histories where displaying all visits at once could lead to performance issues or excessive scrolling. It provides a good balance between showing recent history immediately while making older history accessible when needed.
+
+Your developers could implement this with pagination or infinite scrolling, depending on your system's architecture and performance considerations.
