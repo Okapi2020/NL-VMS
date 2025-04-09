@@ -44,7 +44,8 @@ export function setupAuth(app: Express) {
       secure: false, // Set to true in production with HTTPS
       httpOnly: true,
       sameSite: 'lax',
-      path: '/'
+      path: '/',
+      domain: undefined // Let the browser set this automatically
     }
   };
 
@@ -115,27 +116,16 @@ export function setupAuth(app: Express) {
           return next(err);
         }
         
-        // Regenerate session to prevent session fixation
-        const prevSession = req.session;
-        req.session.regenerate((err) => {
-          if (err) {
-            console.error("Session regeneration error:", err);
-            return next(err);
-          }
-          
-          // Copy data from previous session
-          Object.assign(req.session, prevSession);
-          
-          console.log("Login successful for:", user.username);
-          console.log("New Session ID:", req.sessionID);
-          console.log("Session data:", req.session);
-          
-          // Add session cookie debugging
-          const cookieHeader = res.getHeader('Set-Cookie');
-          console.log("Setting cookies:", cookieHeader);
-          
-          return res.status(200).json(user);
-        });
+        // Skip session regeneration in development to help with login issues
+        console.log("Login successful for:", user.username);
+        console.log("Session ID:", req.sessionID);
+        console.log("Session data:", req.session);
+        
+        // Add session cookie debugging
+        const cookieHeader = res.getHeader('Set-Cookie');
+        console.log("Setting cookies:", cookieHeader);
+        
+        return res.status(200).json(user);
       });
     })(req, res, next);
   });
