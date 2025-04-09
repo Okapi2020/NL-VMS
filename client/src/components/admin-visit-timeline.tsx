@@ -328,18 +328,33 @@ function AdminVisitTimelineComponent({ visitHistory, isLoading }: AdminVisitTime
   // Consolidate visits by visitor
   const consolidatedVisits: Record<number, TimelineEntry> = {};
   
-  visitHistory.forEach(item => {
-    const { visitor, visit } = item;
-    
-    if (!consolidatedVisits[visitor.id]) {
-      consolidatedVisits[visitor.id] = {
-        visitor,
-        visits: [visit]
-      };
-    } else {
-      consolidatedVisits[visitor.id].visits.push(visit);
-    }
-  });
+  try {
+    visitHistory.forEach(item => {
+      if (!item || !item.visitor || !item.visit) {
+        console.error("Invalid visit history item:", item);
+        return; // Skip this item
+      }
+      
+      const { visitor, visit } = item;
+      
+      if (!visitor.id) {
+        console.error("Visitor missing ID:", visitor);
+        return; // Skip this item
+      }
+      
+      if (!consolidatedVisits[visitor.id]) {
+        consolidatedVisits[visitor.id] = {
+          visitor,
+          visits: [visit]
+        };
+      } else {
+        consolidatedVisits[visitor.id].visits.push(visit);
+      }
+    });
+  } catch (error) {
+    console.error("Error processing visit history:", error);
+    return <div className="py-4 text-center text-red-500">Error processing visit history. Please refresh and try again.</div>;
+  }
   
   // Convert to array for filtering and sorting
   const visitorTimeline = Object.values(consolidatedVisits);
@@ -1018,7 +1033,7 @@ function AdminVisitTimelineComponent({ visitHistory, isLoading }: AdminVisitTime
       {selectedVisitor && (
         <VisitorDetailModal
           visitor={selectedVisitor}
-          visit={consolidatedVisits[selectedVisitor.id]?.visits?.[0]} // Pass the most recent visit from the timeline data
+          visit={visitHistory.find(v => v.visitor.id === selectedVisitor.id)?.visit}
           isOpen={isDetailModalOpen}
           onClose={() => setIsDetailModalOpen(false)}
           onEdit={() => handleEditClick(selectedVisitor)}
