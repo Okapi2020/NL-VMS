@@ -70,13 +70,15 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DateRange } from "react-day-picker";
 import { VisitorDetailModal } from "./visitor-detail-modal";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 type AdminVisitHistoryProps = {
   visitHistory: { visit: Visit; visitor: Visitor }[];
   isLoading: boolean;
 };
 
-export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistoryProps) {
+// Core component separated to be wrapped with error boundary
+function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHistoryProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { language, t } = useLanguage();
@@ -1106,5 +1108,14 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
         showDeleteButton={true} // Show delete button for visit history
       />
     </div>
+  );
+}
+
+// Export a wrapper that includes error boundary
+export function AdminVisitHistory(props: AdminVisitHistoryProps) {
+  return (
+    <ErrorBoundary fallback={<div className="p-4 text-center">An error occurred while loading the visit history. Please refresh the page and try again.</div>}>
+      <AdminVisitHistoryComponent {...props} />
+    </ErrorBoundary>
   );
 }
