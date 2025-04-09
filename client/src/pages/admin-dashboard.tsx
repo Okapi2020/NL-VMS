@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminVisitorsTable } from "@/components/admin-visitors-table";
 import { AdminVisitHistory } from "@/components/admin-visit-history";
+import { AdminVisitTimeline } from "@/components/admin-visit-timeline";
 import { AdminSettings } from "@/components/admin-settings";
 import { AdminSystemLogs } from "@/components/admin-system-logs";
 import { DayOfWeekChart } from "@/components/analytics/day-of-week-chart";
@@ -669,20 +670,43 @@ export default function AdminDashboard() {
                   </Card>
                 </TabsContent>
                 <TabsContent value="history">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>{t("visitHistory")}</CardTitle>
+                  <div className="mb-4 flex items-center justify-between">
+                    <div>
+                      <CardTitle className="mb-2">{t("visitHistory")}</CardTitle>
                       <CardDescription>
                         {t("completeVisitRecord")}
                       </CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      <AdminVisitHistory
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" onClick={handleExportData}>
+                        <Download className="mr-2 h-4 w-4" />
+                        {t("exportData")}
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <Tabs defaultValue="detailed" className="w-full">
+                    <TabsList className="w-[400px] mb-4">
+                      <TabsTrigger value="detailed">Detailed View</TabsTrigger>
+                      <TabsTrigger value="timeline">Timeline View</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="detailed">
+                      <Card>
+                        <CardContent className="p-0">
+                          <AdminVisitHistory
+                            visitHistory={visitHistory}
+                            isLoading={isLoadingVisitHistory}
+                          />
+                        </CardContent>
+                      </Card>
+                    </TabsContent>
+                    <TabsContent value="timeline">
+                      <AdminVisitTimeline
                         visitHistory={visitHistory}
                         isLoading={isLoadingVisitHistory}
                       />
-                    </CardContent>
-                  </Card>
+                    </TabsContent>
+                  </Tabs>
                 </TabsContent>
               </Tabs>
             )}

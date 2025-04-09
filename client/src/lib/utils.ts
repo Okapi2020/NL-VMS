@@ -54,28 +54,22 @@ export function formatDateShort(date: Date | string, language: 'en' | 'fr' = 'en
   });
 }
 
-export function formatDuration(startDate: Date | string, endDate: Date | string | null, language: 'en' | 'fr' = 'en'): string {
-  // If endDate is null, we can't calculate duration
-  if (!endDate) {
-    return "N/A";
-  }
-  
-  try {
-    // Parse dates correctly
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    
-    // Validate the dates
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      return "Invalid date";
-    }
-    
-    // Calculate duration in milliseconds
-    const durationMs = end.getTime() - start.getTime();
+// Overloaded function to handle either dates or milliseconds
+export function formatDuration(durationMs: number, language?: 'en' | 'fr'): string;
+export function formatDuration(startDate: Date | string, endDate: Date | string | null, language?: 'en' | 'fr'): string;
+export function formatDuration(
+  startDateOrDuration: Date | string | number, 
+  endDateOrLanguage?: Date | string | null | 'en' | 'fr', 
+  languageParam?: 'en' | 'fr'
+): string {
+  // If first parameter is a number, it's milliseconds duration
+  if (typeof startDateOrDuration === 'number') {
+    const durationMs = startDateOrDuration;
+    const language = (endDateOrLanguage as 'en' | 'fr') || 'en';
     
     // If duration is negative or unreasonably large, there may be a data issue
-    if (durationMs < 0 || durationMs > 1000 * 60 * 60 * 24) { // Cap at 24 hours
-      return "Check dates";
+    if (durationMs < 0) {
+      return "Invalid duration";
     }
     
     // Convert to minutes
@@ -91,9 +85,53 @@ export function formatDuration(startDate: Date | string, endDate: Date | string 
     // For French, use 'h' for hours and 'min' for minutes
     // For English, use 'h' for hours and 'm' for minutes
     return `${hours}h ${remainingMinutes}${language === 'fr' ? 'min' : 'm'}`;
-  } catch (error) {
-    console.error("Error formatting duration:", error);
-    return "Error";
+  } 
+  // Otherwise, it's the original date-based function
+  else {
+    const startDate = startDateOrDuration;
+    const endDate = endDateOrLanguage as (Date | string | null);
+    const language = languageParam || 'en';
+    
+    // If endDate is null, we can't calculate duration
+    if (!endDate) {
+      return "N/A";
+    }
+    
+    try {
+      // Parse dates correctly
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      
+      // Validate the dates
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        return "Invalid date";
+      }
+      
+      // Calculate duration in milliseconds
+      const durationMs = end.getTime() - start.getTime();
+      
+      // If duration is negative or unreasonably large, there may be a data issue
+      if (durationMs < 0 || durationMs > 1000 * 60 * 60 * 24) { // Cap at 24 hours
+        return "Check dates";
+      }
+      
+      // Convert to minutes
+      const minutes = Math.floor(durationMs / (1000 * 60));
+      
+      if (minutes < 60) {
+        return `${minutes} ${language === 'fr' ? 'min' : 'min'}`;
+      }
+      
+      const hours = Math.floor(minutes / 60);
+      const remainingMinutes = minutes % 60;
+      
+      // For French, use 'h' for hours and 'min' for minutes
+      // For English, use 'h' for hours and 'm' for minutes
+      return `${hours}h ${remainingMinutes}${language === 'fr' ? 'min' : 'm'}`;
+    } catch (error) {
+      console.error("Error formatting duration:", error);
+      return "Error";
+    }
   }
 }
 
