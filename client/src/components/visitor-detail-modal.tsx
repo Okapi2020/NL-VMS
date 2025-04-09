@@ -7,11 +7,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { formatDate, formatTimeOnly, formatDateShort, formatDuration, formatBadgeId, formatYearWithAge, getInitials } from "@/lib/utils";
+import { formatDate, formatTimeOnly, formatDateShort, formatDuration, formatBadgeId, formatYearWithAge } from "@/lib/utils";
 import { useLanguage } from "@/hooks/use-language";
 import { X, Pencil, Trash2, ShieldCheck } from "lucide-react";
 import { PhoneNumberLink } from "@/components/phone-number-link";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 type VisitorDetailModalProps = {
   visitor?: Visitor;
@@ -75,22 +74,15 @@ export function VisitorDetailModal({
             <div className="mb-8">
               <h3 className="text-md font-semibold border-b pb-2 mb-4 text-gray-700">{t("personalInformation")}</h3>
               <div className="space-y-4 bg-gray-50 p-4 rounded-md">
-                <div className="flex items-center gap-3 mb-2">
-                  <Avatar className="h-16 w-16 bg-primary/10">
-                    <AvatarFallback className="text-primary text-xl font-medium">
-                      {getInitials(visitor.fullName)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="text-sm text-gray-500">{t("name")}</div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{visitor.fullName}</span>
-                      {visitor.verified && (
-                        <span title={t("verifiedVisitor")}>
-                          <ShieldCheck className="h-4 w-4 text-blue-500" />
-                        </span>
-                      )}
-                    </div>
+                <div>
+                  <div className="text-sm text-gray-500">{t("name")}</div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{visitor.fullName}</span>
+                    {visitor.verified && (
+                      <span title={t("verifiedVisitor")}>
+                        <ShieldCheck className="h-4 w-4 text-blue-500" />
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div>
