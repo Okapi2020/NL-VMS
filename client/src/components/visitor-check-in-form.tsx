@@ -608,7 +608,7 @@ export function VisitorCheckInForm({
         </div>
       ),
       validate: async () => {
-        // Validate phone number, email, and municipality (if provided)
+        // Validate phone number, email, and municipality (required)
         return await form.trigger(["phoneNumber", "email", "municipality"]);
       }
     },

@@ -109,7 +109,7 @@ export function useLocalizedFormSchema(isEnglish: boolean = true) {
       ...data,
       fullName: fullName.trim(),
       phoneNumber: phoneNumber,
-      municipality: data.municipality || undefined // Ensure municipality is properly passed
+      municipality: data.municipality // Don't convert empty string to undefined to ensure validation works
     };
   });
 
