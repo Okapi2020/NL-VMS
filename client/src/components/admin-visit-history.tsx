@@ -821,7 +821,7 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                           <span>View</span>
                         </Button>
                         
-                        {showDeletedVisitors ? (
+                        {showDeletedVisitors && (
                           <Button
                             variant="outline"
                             size="sm"
@@ -832,21 +832,6 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                           >
                             <ArchiveRestore className="h-4 w-4 mr-1" />
                             Restore
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                            onClick={() => {
-                              const confirm = window.confirm(`Are you sure you want to delete ${visitor.fullName}?`);
-                              if (confirm) {
-                                deleteVisitorMutation.mutate(visitor.id);
-                              }
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            Delete
                           </Button>
                         )}
                       </div>
