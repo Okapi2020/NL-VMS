@@ -135,6 +135,12 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
   // Update form values when selectedVisitor changes
   useEffect(() => {
     if (selectedVisitor) {
+      // Format phone number with leading zero if needed
+      let formattedPhoneNumber = selectedVisitor.phoneNumber;
+      if (formattedPhoneNumber && !formattedPhoneNumber.startsWith('0') && !formattedPhoneNumber.startsWith('+')) {
+        formattedPhoneNumber = '0' + formattedPhoneNumber;
+      }
+      
       form.reset({
         id: selectedVisitor.id,
         fullName: selectedVisitor.fullName,
@@ -142,7 +148,7 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
         sex: selectedVisitor.sex as "Masculin" | "Feminin",
         municipality: selectedVisitor.municipality || "",
         email: selectedVisitor.email,
-        phoneNumber: selectedVisitor.phoneNumber
+        phoneNumber: formattedPhoneNumber
       });
     }
   }, [selectedVisitor, form]);
@@ -1024,7 +1030,22 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                   <FormItem>
                     <FormLabel>{t("phoneNumber")}</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input 
+                        placeholder="0xxxxxxxx" 
+                        {...field}
+                        onChange={(e) => {
+                          // Get value without any leading zero
+                          let value = e.target.value.replace(/^0+/, '');
+                          
+                          // If the value doesn't start with a + (international format)
+                          // and it's not empty, add a leading zero
+                          if (value && !value.startsWith('+')) {
+                            value = '0' + value;
+                          }
+                          
+                          field.onChange(value);
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
