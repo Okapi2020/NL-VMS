@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { formatTimeOnly, formatDateShort, formatDuration, formatBadgeId, calculateAge, normalizeText } from "@/lib/utils";
+import { formatTimeOnly, formatDateShort, formatDuration, formatBadgeId, calculateAge, normalizeText, getInitials } from "@/lib/utils";
 import { Visit, Visitor, UpdateVisitor } from "@shared/schema";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -20,6 +20,7 @@ import { Loading, ButtonLoading } from "@/components/ui/loading";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useLanguage } from "@/hooks/use-language";
 import { VisitorDetailModal } from "./visitor-detail-modal";
 import { KINSHASA_MUNICIPALITIES } from "@/data/municipalities";
@@ -560,10 +561,17 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   
                   {/* Visitor Information */}
                   <TableCell>
-                    <div className="flex flex-col">
-                      <div className="font-medium">{visitor.fullName}</div>
-                      <div className="text-sm text-gray-500">
-                        {visitor.sex} {visitor.yearOfBirth} ({calculateAge(visitor.yearOfBirth)} {language === 'fr' ? 'ans' : 'yrs'})
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-9 w-9 bg-primary/10">
+                        <AvatarFallback className="text-primary font-medium">
+                          {getInitials(visitor.fullName)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <div className="font-medium">{visitor.fullName}</div>
+                        <div className="text-sm text-gray-500">
+                          {visitor.sex} {visitor.yearOfBirth} ({calculateAge(visitor.yearOfBirth)} {language === 'fr' ? 'ans' : 'yrs'})
+                        </div>
                       </div>
                     </div>
                   </TableCell>

@@ -180,6 +180,21 @@ export function normalizePhoneNumber(phoneNumber: string): string {
   return digits;
 }
 
+/**
+ * Get initials from a person's full name
+ * e.g. "John Doe" -> "JD", "Alice" -> "A"
+ */
+export function getInitials(name: string): string {
+  if (!name) return '';
+  
+  return name
+    .split(' ')
+    .map(word => word[0]?.toUpperCase())
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('');
+}
+
 export function exportToCSV(data: any[], filename: string) {
   if (!data || !data.length) {
     return;

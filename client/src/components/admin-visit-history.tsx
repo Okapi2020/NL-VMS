@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatDate, formatTimeOnly, formatDuration, formatBadgeId, formatYearWithAge, normalizeText } from "@/lib/utils";
+import { formatDate, formatTimeOnly, formatDuration, formatBadgeId, formatYearWithAge, normalizeText, getInitials } from "@/lib/utils";
 import { Visit, Visitor } from "@shared/schema";
 import { useLanguage } from "@/hooks/use-language";
 import { Input } from "@/components/ui/input";
@@ -67,6 +67,7 @@ import {
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Checkbox } from "@/components/ui/checkbox"; 
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DateRange } from "react-day-picker";
 import { VisitorDetailModal } from "./visitor-detail-modal";
 
@@ -707,11 +708,18 @@ export function AdminVisitHistory({ visitHistory, isLoading }: AdminVisitHistory
                     
                     {/* Visitor Information */}
                     <TableCell className="py-4">
-                      <div className="flex flex-col">
-                        <div className="font-medium text-gray-900">{visitor.fullName}</div>
-                        <div className="flex space-x-4 text-sm text-gray-500">
-                          <span>{visitor.sex}</span>
-                          <span>{formatYearWithAge(visitor.yearOfBirth, language)}</span>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9 bg-primary/10">
+                          <AvatarFallback className="text-primary font-medium">
+                            {getInitials(visitor.fullName)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <div className="font-medium text-gray-900">{visitor.fullName}</div>
+                          <div className="flex space-x-4 text-sm text-gray-500">
+                            <span>{visitor.sex}</span>
+                            <span>{formatYearWithAge(visitor.yearOfBirth, language)}</span>
+                          </div>
                         </div>
                       </div>
                     </TableCell>
