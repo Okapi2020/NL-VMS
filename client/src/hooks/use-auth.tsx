@@ -69,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw error;
       }
     },
-    onSuccess: (user: Admin) => {
+    onSuccess: async (user: Admin) => {
       console.log("Login successful, setting user data:", user);
       
       // Update the cached user data
@@ -83,14 +83,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: `Welcome back, ${user.username}!`,
       });
       
-      // Navigate to admin dashboard
-      console.log("Redirecting to admin dashboard");
-      navigate("/admin");
+      // Add a small delay to make sure the session is properly established
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Verify user data was set correctly
-      setTimeout(() => {
-        console.log("Current user data:", queryClient.getQueryData(["/api/admin/user"]));
-      }, 500);
+      console.log("Current user data:", queryClient.getQueryData(["/api/admin/user"]));
+      
+      // Force a page reload to ensure fresh state
+      window.location.href = '/admin';
     },
     onError: (error: Error) => {
       console.error("Login mutation error:", error);

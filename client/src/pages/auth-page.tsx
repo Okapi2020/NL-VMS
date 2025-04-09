@@ -1,4 +1,4 @@
-import { useEffect, useContext } from "react";
+import { useEffect, useContext, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -65,14 +65,20 @@ export default function AuthPage() {
       const userData = await res.json();
       console.log("Login successful, user data:", userData);
       
-      // Redirect to admin dashboard
-      navigate("/admin");
+      // Add a small delay to make sure the session is properly established
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Force a page reload to ensure fresh state
+      window.location.href = '/admin';
     } catch (error) {
       console.error("Login error:", error);
       alert("Login failed: An error occurred");
     }
   };
 
+  // State for login status when using direct login
+  const [isDirectLoginPending, setIsDirectLoginPending] = useState(false);
+  
   // Create a dummy authentication state if auth context is not available
   let userState: {
     user: Admin | null,
@@ -86,9 +92,11 @@ export default function AuthPage() {
     isLoading: false,
     loginMutation: {
       mutate: (data: LoginFormValues) => {
-        handleDirectLogin(data);
+        setIsDirectLoginPending(true);
+        handleDirectLogin(data)
+          .finally(() => setIsDirectLoginPending(false));
       },
-      isPending: false
+      isPending: isDirectLoginPending
     }
   };
   
@@ -138,7 +146,9 @@ export default function AuthPage() {
     
     if (authContext === null) {
       // Use direct login if no auth context is available
-      handleDirectLogin(data);
+      setIsDirectLoginPending(true);
+      handleDirectLogin(data)
+        .finally(() => setIsDirectLoginPending(false));
     } else {
       // Use the mutation if context is available
       loginMutation.mutate(data);
