@@ -33,6 +33,9 @@ export function setupAuth(app: Express) {
     console.warn("No SESSION_SECRET in environment, using a default one");
   }
 
+  const isDevelopment = process.env.NODE_ENV !== 'production';
+  console.log(`Current environment: ${isDevelopment ? 'development' : 'production'}`);
+  
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "visitor-management-system-secret",
     resave: false,
@@ -41,9 +44,9 @@ export function setupAuth(app: Express) {
     name: 'vmsid', // Custom cookie name instead of the default 'connect.sid'
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      secure: false, // Set to true in production with HTTPS
+      secure: isDevelopment ? false : true, // Only use secure cookies in production
       httpOnly: true,
-      sameSite: 'lax',
+      sameSite: isDevelopment ? 'lax' : 'strict', // More permissive in development
       path: '/',
       domain: undefined // Let the browser set this automatically
     }

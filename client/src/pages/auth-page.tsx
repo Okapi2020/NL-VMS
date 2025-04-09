@@ -65,11 +65,28 @@ export default function AuthPage() {
       const userData = await res.json();
       console.log("Login successful, user data:", userData);
       
-      // Add a small delay to make sure the session is properly established
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Add a longer delay in development to make sure the session is properly established
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Force a page reload to ensure fresh state
-      window.location.href = '/admin';
+      // Try to validate authentication before redirecting
+      try {
+        const checkAuthRes = await fetch("/api/admin/user", {
+          credentials: "include"
+        });
+        
+        if (checkAuthRes.ok) {
+          console.log("Authentication verified, redirecting to admin dashboard");
+          // Force a page reload to ensure fresh state
+          window.location.href = '/admin';
+        } else {
+          console.error("Session verification failed after login");
+          alert("Login successful but unable to establish session. Please try again.");
+        }
+      } catch (verifyError) {
+        console.error("Error verifying session:", verifyError);
+        // Still try to redirect anyway
+        window.location.href = '/admin';
+      }
     } catch (error) {
       console.error("Login error:", error);
       alert("Login failed: An error occurred");
