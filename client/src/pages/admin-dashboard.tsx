@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminVisitorsTable } from "@/components/admin-visitors-table";
 import { AdminVisitHistory } from "@/components/admin-visit-history";
-import { AdminVisitTimeline } from "@/components/admin-visit-timeline-simplified";
+import { AdminVisitTimeline } from "@/components/admin-visit-timeline-robust";
 import { AdminSettings } from "@/components/admin-settings";
 import { AdminSystemLogs } from "@/components/admin-system-logs";
 import { DayOfWeekChart } from "@/components/analytics/day-of-week-chart";
@@ -705,6 +705,7 @@ export default function AdminDashboard() {
                       <AdminVisitTimeline
                         visitHistory={visitHistory}
                         isLoading={isLoadingVisitHistory}
+                        error={visitHistoryError}
                       />
                     </TabsContent>
                   </Tabs>
