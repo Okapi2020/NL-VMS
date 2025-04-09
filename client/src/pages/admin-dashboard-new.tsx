@@ -37,7 +37,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 export default function AdminDashboard() {
   const { user, logoutMutation } = useAuth();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("current");
+  const [activeTab, setActiveTab] = useState("history");
   const [activeView, setActiveView] = useState("dashboard");
   
   // Get application settings
@@ -569,7 +569,7 @@ export default function AdminDashboard() {
                 <div className="mt-2 border-t border-gray-200 pt-4">
                   <Card>
                     <CardContent className="p-6">
-                      <Tabs defaultValue="current" onValueChange={setActiveTab}>
+                      <Tabs defaultValue="history" onValueChange={setActiveTab}>
                         <TabsList className="grid w-full grid-cols-2 max-w-md">
                           <TabsTrigger value="current">Current Visitors</TabsTrigger>
                           <TabsTrigger value="history">Visit History</TabsTrigger>
