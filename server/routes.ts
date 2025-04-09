@@ -313,11 +313,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/admin/visit-history", ensureAuthenticated, async (req, res) => {
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+      console.log(`Fetching visit history with limit: ${limit}`);
+      
       const visitHistoryWithVisitors = await storage.getVisitHistoryWithVisitors(limit);
+      
+      // Apply additional validation to ensure the data is in the expected format
+      if (!Array.isArray(visitHistoryWithVisitors)) {
+        throw new Error("Invalid visit history data format");
+      }
+      
+      // Log the total count of visits
+      console.log(`Retrieved ${visitHistoryWithVisitors.length} visit history records`);
+      
       res.status(200).json(visitHistoryWithVisitors);
     } catch (error) {
       console.error("Get visit history error:", error);
-      res.status(500).json({ message: "Internal server error" });
+      res.status(500).json({ 
+        message: "An error occurred while loading the visit history. Please refresh the page and try again.",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
   

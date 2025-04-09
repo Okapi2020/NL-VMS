@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Search, Trash2, Eye, ArchiveRestore, Clock, Calendar, CheckCircle, XCircle, ChevronUp, ChevronDown, SlidersHorizontal, Tag, ChevronRight, Info } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Component } from "react";
 import { DateRange } from "react-day-picker";
 import { Visitor, Visit } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
@@ -37,9 +37,31 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-const ErrorBoundary = ({ children, fallback }: { children: React.ReactNode, fallback: React.ReactNode }) => {
-  return <>{children}</>;
-};
+// Proper error boundary implementation
+class ErrorBoundary extends Component<
+  { children: React.ReactNode; fallback: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode; fallback: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(_: Error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: any) {
+    console.error("Error in timeline component:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
@@ -1273,7 +1295,14 @@ function AdminVisitTimelineComponent({ visitHistory, isLoading }: AdminVisitTime
 // Export a wrapper that includes error boundary
 export function AdminVisitTimeline(props: AdminVisitTimelineProps) {
   return (
-    <ErrorBoundary fallback={<div className="p-4 text-center">An error occurred while loading the visit history. Please refresh the page and try again.</div>}>
+    <ErrorBoundary 
+      fallback={
+        <div className="p-4 m-4 border rounded-md bg-red-50 text-red-800 shadow-sm">
+          <p className="text-center font-medium">An error occurred while loading the visit history.</p>
+          <p className="text-center mt-2">Please refresh the page and try again.</p>
+        </div>
+      }
+    >
       <AdminVisitTimelineComponent {...props} />
     </ErrorBoundary>
   );
