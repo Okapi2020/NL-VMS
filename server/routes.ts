@@ -193,7 +193,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get the visitor
       console.log('Looking up visitor with ID:', visitorId);
-      const visitor = await storage.getVisitor(visitorId);
+      let visitor = await storage.getVisitor(visitorId);
       
       if (!visitor) {
         console.error('Visitor not found for ID:', visitorId);
@@ -214,10 +214,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Increment visit count for returning visitor
+      const updatedVisitor = await storage.incrementVisitCount(visitor.id);
+      if (updatedVisitor) {
+        visitor = updatedVisitor;
+      }
+      
       // Log the returning visitor for admin awareness
       await storage.createSystemLog({
         action: "RETURNING_VISITOR_DIRECT",
-        details: `Returning visitor "${visitor.fullName}" (ID: ${visitor.id}) directly checked in.`,
+        details: `Returning visitor "${visitor.fullName}" (ID: ${visitor.id}) directly checked in. Visit count: ${visitor.visitCount}.`,
         userId: null // No admin involved, this is visitor self-check-in
       });
       
@@ -606,6 +612,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(200).json(logs);
     } catch (error) {
       console.error("Get system logs error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Visitor report endpoints
+  
+  // Create a new visitor report
+  app.post("/api/admin/visitor-reports", ensureAuthenticated, async (req, res) => {
+    try {
+      const adminId = req.user?.id; // Get the current admin's ID
+      
+      // Validate the report data
+      if (!req.body.visitorId || !req.body.reportType || !req.body.description || !req.body.severityLevel) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+      
+      // Create the report
+      const report = await storage.createVisitorReport({
+        visitorId: req.body.visitorId,
+        adminId: adminId || 0, // Fallback to 0 if adminId is undefined
+        reportType: req.body.reportType,
+        description: req.body.description,
+        severityLevel: req.body.severityLevel,
+      });
+      
+      // Add a system log entry
+      await storage.createSystemLog({
+        action: "VISITOR_REPORT_CREATED",
+        details: `Admin created a ${req.body.severityLevel} severity report for visitor ID ${req.body.visitorId}`,
+        userId: adminId,
+        affectedRecords: 1,
+      });
+      
+      res.status(201).json(report);
+    } catch (error) {
+      console.error("Error creating visitor report:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Get all reports
+  app.get("/api/admin/visitor-reports", ensureAuthenticated, async (req, res) => {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+      const reports = await storage.getVisitorReports(limit);
+      res.status(200).json(reports);
+    } catch (error) {
+      console.error("Error getting visitor reports:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Get a specific report
+  app.get("/api/admin/visitor-reports/:id", ensureAuthenticated, async (req, res) => {
+    try {
+      const reportId = parseInt(req.params.id);
+      if (isNaN(reportId)) {
+        return res.status(400).json({ message: "Invalid report ID" });
+      }
+      
+      const report = await storage.getVisitorReport(reportId);
+      if (!report) {
+        return res.status(404).json({ message: "Report not found" });
+      }
+      
+      res.status(200).json(report);
+    } catch (error) {
+      console.error("Error getting visitor report:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Get all reports for a specific visitor
+  app.get("/api/admin/visitors/:id/reports", ensureAuthenticated, async (req, res) => {
+    try {
+      const visitorId = parseInt(req.params.id);
+      if (isNaN(visitorId)) {
+        return res.status(400).json({ message: "Invalid visitor ID" });
+      }
+      
+      const reports = await storage.getVisitorReportsByVisitor(visitorId);
+      res.status(200).json(reports);
+    } catch (error) {
+      console.error("Error getting visitor reports:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Update a report's status/notes
+  app.patch("/api/admin/visitor-reports/:id", ensureAuthenticated, async (req, res) => {
+    try {
+      const reportId = parseInt(req.params.id);
+      if (isNaN(reportId)) {
+        return res.status(400).json({ message: "Invalid report ID" });
+      }
+      
+      // Validate update data
+      if (!req.body.status) {
+        return res.status(400).json({ message: "Status is required" });
+      }
+      
+      // Ensure the report exists
+      const existingReport = await storage.getVisitorReport(reportId);
+      if (!existingReport) {
+        return res.status(404).json({ message: "Report not found" });
+      }
+      
+      // Update the report
+      const updatedReport = await storage.updateVisitorReport({
+        id: reportId,
+        status: req.body.status,
+        resolutionNotes: req.body.resolutionNotes,
+        resolutionDate: req.body.resolutionDate ? new Date(req.body.resolutionDate) : undefined
+      });
+      
+      // Log the update
+      await storage.createSystemLog({
+        action: "VISITOR_REPORT_UPDATED",
+        details: `Admin updated report #${reportId} status to ${req.body.status}`,
+        userId: req.user?.id,
+        affectedRecords: 1,
+      });
+      
+      res.status(200).json(updatedReport);
+    } catch (error) {
+      console.error("Error updating visitor report:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
