@@ -247,7 +247,7 @@ export function AdminVisitorReports() {
       const response = await apiRequest("PATCH", `/api/admin/visitor-reports/${data.id}`, {
         status: data.status,
         resolutionNotes: data.resolutionNotes,
-        resolutionDate: data.status === "Resolved" ? new Date() : undefined,
+        resolutionDate: data.status === "Resolved" ? new Date().toISOString() : undefined,
       });
       return response.json();
     },
@@ -324,9 +324,9 @@ export function AdminVisitorReports() {
   };
 
   // Format date for display
-  const formatDate = (dateString: string | null | undefined): string => {
+  const formatDate = (dateString: string | Date | null | undefined): string => {
     if (!dateString) return "N/A";
-    const date = new Date(dateString);
+    const date = dateString instanceof Date ? dateString : new Date(dateString);
     return date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 

@@ -9,6 +9,7 @@ import { AdminVisitorsTable } from "@/components/admin-visitors-table";
 import { AdminVisitHistory } from "@/components/admin-visit-history";
 import { AdminSettings } from "@/components/admin-settings";
 import { AdminSystemLogs } from "@/components/admin-system-logs";
+import { AdminVisitorReports } from "@/components/admin-visitor-reports";
 import { DayOfWeekChart } from "@/components/analytics/day-of-week-chart";
 import { HourlyDistributionChart } from "@/components/analytics/hourly-distribution-chart";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -690,6 +691,10 @@ export default function AdminDashboard() {
             {/* Reports View */}
             {activeView === "reports" && (
               <div className="space-y-6">
+                {/* Visitor Reports Section */}
+                <AdminVisitorReports />
+                
+                {/* Export Options Section */}
                 <div className="bg-white shadow rounded-lg divide-y divide-gray-200">
                   <div className="px-4 py-5 sm:px-6">
                     <h2 className="text-lg font-medium text-gray-900">{t("exportOptions")}</h2>
