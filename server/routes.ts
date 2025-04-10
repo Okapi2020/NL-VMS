@@ -148,10 +148,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
         
+        // Increment visit count for returning visitors
+        visitor = await storage.incrementVisitCount(visitor.id) || visitor;
+        
         // Log the returning visitor for admin awareness
         await storage.createSystemLog({
           action: "RETURNING_VISITOR",
-          details: `Returning visitor "${visitor.fullName}" (ID: ${visitor.id}) checked in.`,
+          details: `Returning visitor "${visitor.fullName}" (ID: ${visitor.id}) checked in. Visit count: ${visitor.visitCount}.`,
           userId: null // No admin involved, this is visitor self-check-in
         });
       }
