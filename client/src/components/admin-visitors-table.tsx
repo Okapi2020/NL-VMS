@@ -38,6 +38,7 @@ import {
   Pencil, 
   Trash2,
   X,
+  Repeat,
   LogOut,
   Eye
 } from "lucide-react";
@@ -102,7 +103,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
   const [processingVerificationIds, setProcessingVerificationIds] = useState<Set<number>>(new Set());
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300); // Debounce search input by 300ms
-  const [sortField, setSortField] = useState<"name" | "checkIn" | "duration">("checkIn");
+  const [sortField, setSortField] = useState<"name" | "checkIn" | "duration" | "visitCount">("checkIn");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedVisitor, setSelectedVisitor] = useState<Visitor | null>(null);
@@ -350,7 +351,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
     setSortDirection(sortDirection === "asc" ? "desc" : "asc");
   };
 
-  const handleSortChange = (field: "name" | "checkIn" | "duration") => {
+  const handleSortChange = (field: "name" | "checkIn" | "duration" | "visitCount") => {
     if (field === sortField) {
       toggleSortDirection();
     } else {
@@ -398,6 +399,9 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
         const aDuration = new Date().getTime() - new Date(a.visit.checkInTime).getTime();
         const bDuration = new Date().getTime() - new Date(b.visit.checkInTime).getTime();
         comparison = aDuration - bDuration;
+        break;
+      case "visitCount":
+        comparison = (a.visitor.visitCount || 0) - (b.visitor.visitCount || 0);
         break;
     }
     
@@ -523,6 +527,22 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 <div className="flex items-center">
                   <Tag className="mr-1 h-4 w-4" />
                   <span className="uppercase text-xs font-medium text-gray-500">{t("badge")}</span>
+                </div>
+              </TableHead>
+              
+              {/* Visit Count Column */}
+              <TableHead
+                className="cursor-pointer" 
+                onClick={() => handleSortChange("visitCount")}
+              >
+                <div className="flex items-center">
+                  <RepeatIcon className="mr-1 h-4 w-4" />
+                  <span className="uppercase text-xs font-medium text-gray-500">{t("visits")}</span>
+                  {sortField === "visitCount" && (
+                    sortDirection === "asc" ? 
+                    <ChevronUp className="ml-1 h-4 w-4" /> : 
+                    <ChevronDown className="ml-1 h-4 w-4" />
+                  )}
                 </div>
               </TableHead>
               
