@@ -536,7 +536,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 onClick={() => handleSortChange("visitCount")}
               >
                 <div className="flex items-center">
-                  <RepeatIcon className="mr-1 h-4 w-4" />
+                  <Repeat className="mr-1 h-4 w-4" />
                   <span className="uppercase text-xs font-medium text-gray-500">{t("visits")}</span>
                   {sortField === "visitCount" && (
                     sortDirection === "asc" ? 
@@ -634,6 +634,22 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                           <Badge variant="outline" className="bg-blue-50 text-blue-800 border-blue-200 flex items-center gap-1 px-2 py-0.5">
                             <span className="text-xs font-medium">{t("verified")}</span>
                             <CheckCircle className="h-3.5 w-3.5 text-blue-600" />
+                          </Badge>
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
+                  
+                  {/* Visit Count */}
+                  <TableCell>
+                    <div className="flex items-center">
+                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                        <span className="font-medium">{visitor.visitCount || 1}</span>
+                      </Badge>
+                      {(visitor.visitCount || 1) > 10 && (
+                        <span className="ml-1.5">
+                          <Badge className="px-1.5 py-0 bg-amber-100 hover:bg-amber-200 text-amber-700 border-amber-200">
+                            <span className="text-xs font-medium">{t("regular")}</span>
                           </Badge>
                         </span>
                       )}
