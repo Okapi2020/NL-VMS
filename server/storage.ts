@@ -39,6 +39,7 @@ export interface IStorage {
   restoreVisitor(id: number): Promise<Visitor | undefined>;
   permanentlyDeleteVisitor(id: number): Promise<boolean>;
   emptyRecycleBin(): Promise<boolean>;
+  incrementVisitCount(visitorId: number): Promise<Visitor | undefined>;
   
   // Visit methods
   createVisit(visit: InsertVisit): Promise<Visit>;
@@ -48,6 +49,13 @@ export interface IStorage {
   updateVisit(visit: UpdateVisit): Promise<Visit | undefined>;
   checkOutAllActiveVisits(): Promise<number>; // Return the number of visits that were checked out
   getVisitorWithActiveVisit(visitorId: number): Promise<{ visitor: Visitor, visit: Visit } | undefined>;
+  
+  // Visitor Report methods
+  createVisitorReport(report: InsertVisitorReport): Promise<VisitorReport>;
+  getVisitorReport(id: number): Promise<VisitorReport | undefined>;
+  getVisitorReports(limit?: number): Promise<VisitorReport[]>;
+  getVisitorReportsByVisitor(visitorId: number): Promise<VisitorReport[]>;
+  updateVisitorReport(report: UpdateVisitorReport): Promise<VisitorReport | undefined>;
   getVisitWithVisitor(visitId: number): Promise<{ visit: Visit, visitor: Visitor } | undefined>;
   getActiveVisitsWithVisitors(): Promise<{ visit: Visit, visitor: Visitor }[]>;
   getVisitHistoryWithVisitors(limit?: number): Promise<{ visit: Visit, visitor: Visitor }[]>;

@@ -28,6 +28,7 @@ export const visitors = pgTable("visitors", {
   municipality: varchar("municipality", { length: 100 }),
   verified: boolean("verified").default(false).notNull(),
   deleted: boolean("deleted").default(false).notNull(),
+  visitCount: integer("visit_count").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -302,3 +303,55 @@ export const insertSystemLogSchema = createInsertSchema(systemLogs).pick({
 
 export type SystemLog = typeof systemLogs.$inferSelect;
 export type InsertSystemLog = z.infer<typeof insertSystemLogSchema>;
+
+// Visitor Reports schema
+export const visitorReports = pgTable("visitor_reports", {
+  id: serial("id").primaryKey(),
+  visitorId: integer("visitor_id").notNull().references(() => visitors.id),
+  adminId: integer("admin_id").notNull().references(() => admins.id),
+  reportType: varchar("report_type", { length: 50 }).notNull(),
+  description: text("description").notNull(),
+  severityLevel: varchar("severity_level", { length: 20 }).notNull(),
+  status: varchar("status", { length: 20 }).default("Open").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  resolutionDate: timestamp("resolution_date"),
+  resolutionNotes: text("resolution_notes"),
+});
+
+// Relations for visitor reports
+export const visitorReportsRelations = relations(visitorReports, ({ one }) => ({
+  visitor: one(visitors, {
+    fields: [visitorReports.visitorId],
+    references: [visitors.id],
+  }),
+  admin: one(admins, {
+    fields: [visitorReports.adminId],
+    references: [admins.id],
+  }),
+}));
+
+// Update visitor relations to include reports
+export const visitorsRelationsWithReports = relations(visitors, ({ many }) => ({
+  visits: many(visits),
+  reports: many(visitorReports),
+}));
+
+// Create schemas for visitor reports
+export const insertVisitorReportSchema = createInsertSchema(visitorReports).pick({
+  visitorId: true,
+  adminId: true,
+  reportType: true,
+  description: true,
+  severityLevel: true,
+});
+
+export const updateVisitorReportSchema = z.object({
+  id: z.number(),
+  status: z.enum(["Open", "Under Review", "Resolved"]),
+  resolutionNotes: z.string().optional(),
+  resolutionDate: z.date().optional(),
+});
+
+export type VisitorReport = typeof visitorReports.$inferSelect;
+export type InsertVisitorReport = z.infer<typeof insertVisitorReportSchema>;
+export type UpdateVisitorReport = z.infer<typeof updateVisitorReportSchema>;
