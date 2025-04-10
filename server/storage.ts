@@ -9,6 +9,12 @@ import {
 import { visits, type Visit, type InsertVisit, type UpdateVisit } from "@shared/schema";
 import { settings, type Settings, type UpdateSettings } from "@shared/schema";
 import { systemLogs, type SystemLog, type InsertSystemLog } from "@shared/schema";
+import { 
+  visitorReports, 
+  type VisitorReport, 
+  type InsertVisitorReport, 
+  type UpdateVisitorReport 
+} from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull } from "drizzle-orm";
 import { sql } from "drizzle-orm/sql/sql";
@@ -317,6 +323,20 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
+  async incrementVisitCount(visitorId: number): Promise<Visitor | undefined> {
+    try {
+      const [updatedVisitor] = await db
+        .update(visitors)
+        .set({ visitCount: sql`${visitors.visitCount} + 1` })
+        .where(eq(visitors.id, visitorId))
+        .returning();
+      return updatedVisitor;
+    } catch (error) {
+      console.error("Error incrementing visit count:", error);
+      return undefined;
+    }
+  }
+  
   // Visit methods
   async createVisit(visit: InsertVisit): Promise<Visit> {
     const [createdVisit] = await db
@@ -602,6 +622,88 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error fetching system logs:", error);
       return [];
+    }
+  }
+
+  // Visitor Report methods
+  async createVisitorReport(report: InsertVisitorReport): Promise<VisitorReport> {
+    try {
+      const [createdReport] = await db
+        .insert(visitorReports)
+        .values(report)
+        .returning();
+      return createdReport;
+    } catch (error) {
+      console.error("Error creating visitor report:", error);
+      throw error;
+    }
+  }
+
+  async getVisitorReport(id: number): Promise<VisitorReport | undefined> {
+    try {
+      const [report] = await db
+        .select()
+        .from(visitorReports)
+        .where(eq(visitorReports.id, id));
+      return report;
+    } catch (error) {
+      console.error("Error fetching visitor report:", error);
+      return undefined;
+    }
+  }
+
+  async getVisitorReports(limit: number = 100): Promise<VisitorReport[]> {
+    try {
+      return await db
+        .select()
+        .from(visitorReports)
+        .orderBy(desc(visitorReports.createdAt))
+        .limit(limit);
+    } catch (error) {
+      console.error("Error fetching visitor reports:", error);
+      return [];
+    }
+  }
+
+  async getVisitorReportsByVisitor(visitorId: number): Promise<VisitorReport[]> {
+    try {
+      return await db
+        .select()
+        .from(visitorReports)
+        .where(eq(visitorReports.visitorId, visitorId))
+        .orderBy(desc(visitorReports.createdAt));
+    } catch (error) {
+      console.error("Error fetching visitor reports by visitor:", error);
+      return [];
+    }
+  }
+
+  async updateVisitorReport(report: UpdateVisitorReport): Promise<VisitorReport | undefined> {
+    try {
+      const updateData: any = {
+        status: report.status
+      };
+      
+      if (report.resolutionNotes !== undefined) {
+        updateData.resolutionNotes = report.resolutionNotes;
+      }
+      
+      if (report.status === "Resolved" && !report.resolutionDate) {
+        updateData.resolutionDate = new Date();
+      } else if (report.resolutionDate) {
+        updateData.resolutionDate = report.resolutionDate;
+      }
+      
+      const [updatedReport] = await db
+        .update(visitorReports)
+        .set(updateData)
+        .where(eq(visitorReports.id, report.id))
+        .returning();
+        
+      return updatedReport;
+    } catch (error) {
+      console.error("Error updating visitor report:", error);
+      return undefined;
     }
   }
 }

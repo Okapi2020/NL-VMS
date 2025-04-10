@@ -20,6 +20,20 @@ async function migrate() {
       END $$;
     `);
     
+    // Add 'visit_count' column to visitors table if it doesn't exist
+    await db.execute(sql`
+      DO $$ 
+      BEGIN 
+        IF NOT EXISTS (
+          SELECT 1 
+          FROM information_schema.columns 
+          WHERE table_name = 'visitors' AND column_name = 'visit_count'
+        ) THEN 
+          ALTER TABLE visitors ADD COLUMN visit_count INTEGER NOT NULL DEFAULT 0;
+        END IF;
+      END $$;
+    `);
+    
     // Add 'preferred_language' column to admins table if it doesn't exist
     await db.execute(sql`
       DO $$ 
@@ -89,6 +103,22 @@ async function migrate() {
         'light',
         'en'
       WHERE NOT EXISTS (SELECT 1 FROM settings);
+    `);
+    
+    // Create visitor_reports table if it doesn't exist
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS visitor_reports (
+        id SERIAL PRIMARY KEY,
+        visitor_id INTEGER NOT NULL REFERENCES visitors(id),
+        admin_id INTEGER NOT NULL REFERENCES admins(id),
+        report_type VARCHAR(50) NOT NULL,
+        description TEXT NOT NULL,
+        severity_level VARCHAR(20) NOT NULL,
+        status VARCHAR(20) NOT NULL DEFAULT 'Open',
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        resolution_date TIMESTAMP,
+        resolution_notes TEXT
+      );
     `);
     
     console.log("Migration completed successfully!");
