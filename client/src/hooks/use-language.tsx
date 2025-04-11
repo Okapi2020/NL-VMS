@@ -909,15 +909,15 @@ export const translations: TranslationMap = {
     en: 'Badge',
     fr: 'Badge'
   },
-  visits: {
+  visitsColumn: {
     en: 'Visits',
     fr: 'Visites'
   },
-  time: {
+  timeColumn: {
     en: 'Time',
     fr: 'Heure'
   },
-  actions: {
+  actionsColumn: {
     en: 'Actions',
     fr: 'Actions'
   },
@@ -929,7 +929,7 @@ export const translations: TranslationMap = {
     en: 'years old',
     fr: 'ans'
   },
-  visitorDetails: {
+  visitorDetailsTitle: {
     en: 'Visitor Details',
     fr: 'Détails du visiteur'
   },
@@ -949,7 +949,7 @@ export const translations: TranslationMap = {
     en: 'Total Visits',
     fr: 'Visites totales'
   },
-  edit: {
+  editVisitorButton: {
     en: 'Edit Visitor',
     fr: 'Modifier le visiteur'
   },
@@ -961,7 +961,7 @@ export const translations: TranslationMap = {
     en: 'Cancel',
     fr: 'Annuler'
   },
-  fullName: {
+  fullNameField: {
     en: 'Full Name',
     fr: 'Nom complet'
   },
