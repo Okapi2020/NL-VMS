@@ -840,6 +840,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Partner Tracking Feature - Set visit partner (frontend API endpoint)
+  app.post("/api/admin/set-visit-partner", ensureAuthenticated, async (req, res) => {
+    try {
+      const partnerData = updateVisitPartnerSchema.parse(req.body);
+      
+      // Check if the visit exists
+      const visit = await storage.getVisit(partnerData.visitId);
+      if (!visit) {
+        return res.status(404).json({ message: "Visit not found" });
+      }
+      
+      // Check if the partner visit exists
+      if (partnerData.partnerId !== null) {
+        const partnerVisit = await storage.getVisit(partnerData.partnerId);
+        if (!partnerVisit) {
+          return res.status(404).json({ message: "Partner visit not found" });
+        }
+      }
+      
+      // Check if both visits are active (only if we have a partnerId)
+      if (partnerData.partnerId !== null) {
+        const partnerVisit = await storage.getVisit(partnerData.partnerId);
+        if (!partnerVisit) {
+          return res.status(404).json({ message: "Partner visit not found" });
+        }
+        
+        if (!visit.active || !partnerVisit.active) {
+          return res.status(400).json({ message: "Cannot partner with inactive visits. Both visits must be active." });
+        }
+        
+        // Don't allow a visit to be partnered with itself
+        if (visit.id === partnerVisit.id) {
+          return res.status(400).json({ message: "Cannot set a visit as its own partner" });
+        }
+      }
+      
+      // Update the partner relationship
+      const success = await storage.updateVisitPartner(partnerData);
+      
+      if (!success) {
+        return res.status(500).json({ message: "Failed to update visit partner" });
+      }
+      
+      // Create system log
+      const adminId = req.user?.id;
+      await storage.createSystemLog({
+        action: "VISIT_PARTNER_ADDED",
+        details: `Visit ID ${partnerData.visitId} partnered with Visit ID ${partnerData.partnerId}`,
+        userId: adminId,
+        affectedRecords: 2, // Both visits are affected when adding a partner
+      });
+      
+      // Return success response
+      res.status(200).json({ 
+        success: true, 
+        message: "Partner assigned successfully" 
+      });
+    } catch (error) {
+      return handleZodError(error, res);
+    }
+  });
+  
+  // Partner Tracking Feature - Remove visit partner (frontend API endpoint)
+  app.post("/api/admin/remove-visit-partner", ensureAuthenticated, async (req, res) => {
+    try {
+      const partnerData = updateVisitPartnerSchema.parse({
+        visitId: req.body.visitId,
+        partnerId: null
+      });
+      
+      // Check if the visit exists
+      const visit = await storage.getVisit(partnerData.visitId);
+      if (!visit) {
+        return res.status(404).json({ message: "Visit not found" });
+      }
+      
+      // Update the partner relationship (remove partner)
+      const success = await storage.updateVisitPartner(partnerData);
+      
+      if (!success) {
+        return res.status(500).json({ message: "Failed to remove visit partner" });
+      }
+      
+      // Create system log
+      const adminId = req.user?.id;
+      await storage.createSystemLog({
+        action: "VISIT_PARTNER_REMOVED",
+        details: `Partner removed from Visit ID ${partnerData.visitId}`,
+        userId: adminId,
+        affectedRecords: 1
+      });
+      
+      // Return success response
+      res.status(200).json({ 
+        success: true, 
+        message: "Partner removed successfully" 
+      });
+    } catch (error) {
+      return handleZodError(error, res);
+    }
+  });
+  
   // Partner Tracking Feature - Get visit partner details
   app.get("/api/admin/visits/:id/partner", ensureAuthenticated, async (req, res) => {
     try {

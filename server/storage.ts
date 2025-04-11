@@ -6,7 +6,7 @@ import {
   type UpdateVisitorVerification,
   type UpdateVisitor
 } from "@shared/schema";
-import { visits, type Visit, type InsertVisit, type UpdateVisit } from "@shared/schema";
+import { visits, type Visit, type InsertVisit, type UpdateVisit, type UpdateVisitPartner } from "@shared/schema";
 import { settings, type Settings, type UpdateSettings } from "@shared/schema";
 import { systemLogs, type SystemLog, type InsertSystemLog } from "@shared/schema";
 import { 
