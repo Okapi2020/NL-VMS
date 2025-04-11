@@ -385,7 +385,7 @@ export const translations: TranslationMap = {
     en: 'Empty Bin',
     fr: 'Vider la corbeille'
   },
-  restore: {
+  restoreAction: {
     en: 'Restore',
     fr: 'Restaurer'
   },
@@ -993,7 +993,7 @@ export const translations: TranslationMap = {
     en: 'Email Address (Optional)',
     fr: 'Adresse e-mail (Facultatif)'
   },
-  phoneNumber: {
+  phoneNumberDisplay: {
     en: 'Phone Number',
     fr: 'Numéro de téléphone'
   },
@@ -1133,7 +1133,7 @@ export const translations: TranslationMap = {
     en: 'Next page',
     fr: 'Page suivante'
   },
-  of: {
+  ofPage: {
     en: 'of',
     fr: 'sur'
   },
@@ -1145,7 +1145,7 @@ export const translations: TranslationMap = {
     en: 'Details',
     fr: 'Détails'
   },
-  restore: {
+  restoreButton: {
     en: 'Restore',
     fr: 'Restaurer'
   },
