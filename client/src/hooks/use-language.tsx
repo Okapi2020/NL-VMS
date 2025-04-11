@@ -34,6 +34,11 @@ export const translations: TranslationMap = {
     fr: 'jours'
   },
   
+  visits: {
+    en: 'VISITS',
+    fr: 'VISITES'
+  },
+  
   visitPortal: {
     en: 'Visit Portal',
     fr: 'Portail des visites'

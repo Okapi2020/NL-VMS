@@ -661,7 +661,7 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
               >
                 <div className="flex items-center">
                   <Clock className="mr-1 h-4 w-4" />
-                  <span className="uppercase text-xs font-medium text-gray-500">Visite</span>
+                  <span className="uppercase text-xs font-medium text-gray-500">{t("time") || "Time"}</span>
                   {(sortField === "checkIn" || sortField === "checkOut") && (
                     sortDirection === "asc" ? 
                     <ChevronUp className="ml-1 h-4 w-4" /> : 
