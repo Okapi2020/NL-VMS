@@ -45,6 +45,10 @@ const translations: TranslationConfig = {
     en: "Average Visit Duration",
     fr: "Durée moyenne de visite"
   },
+  "totalRegisteredVisitors": {
+    en: "Total Registered Visitors",
+    fr: "Total des visiteurs enregistrés"
+  },
   "resetAvgDuration": {
     en: "Reset Counter",
     fr: "Réinitialiser"
