@@ -119,6 +119,8 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
   const [isAutoCheckoutProcessing, setIsAutoCheckoutProcessing] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedVisitDetails, setSelectedVisitDetails] = useState<{ visitor: Visitor, visit: Visit } | null>(null);
+  const [isPartnerDialogOpen, setIsPartnerDialogOpen] = useState(false);
+  const [selectedVisitForPartner, setSelectedVisitForPartner] = useState<{ visitor: Visitor, visit: Visit } | null>(null);
 
   const checkOutMutation = useMutation({
     mutationFn: async (visitId: number) => {
@@ -243,6 +245,82 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
       });
     }
   });
+  
+  // Partner management functions
+  const setPartnerMutation = useMutation({
+    mutationFn: async ({ visitId, partnerId }: { visitId: number; partnerId: number }) => {
+      const res = await apiRequest("POST", "/api/admin/set-visit-partner", { visitId, partnerId });
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: t("success"),
+        description: t("partnersLinked", { defaultValue: "Partners successfully linked" }),
+      });
+      // Close the dialog
+      setIsPartnerDialogOpen(false);
+      // Reset selected visit
+      setSelectedVisitForPartner(null);
+      // Refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
+    },
+    onError: (error) => {
+      toast({
+        title: t("error"),
+        description: `Failed to set partner: ${error.message}`,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  const removePartnerMutation = useMutation({
+    mutationFn: async (visitId: number) => {
+      const res = await apiRequest("POST", "/api/admin/remove-visit-partner", { visitId });
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: t("success"),
+        description: t("partnerRemoved", { defaultValue: "Partner relationship removed" }),
+      });
+      // Close the dialog
+      setIsPartnerDialogOpen(false);
+      // Reset selected visit
+      setSelectedVisitForPartner(null);
+      // Refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
+    },
+    onError: (error) => {
+      toast({
+        title: t("error"),
+        description: `Failed to remove partner: ${error.message}`,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Handle opening partner dialog
+  const handlePartnerDialog = (visitor: Visitor, visit: Visit) => {
+    setSelectedVisitForPartner({ visitor, visit });
+    setIsPartnerDialogOpen(true);
+  };
+  
+  // Handle selecting a partner
+  const handleSelectPartner = (partnerId: number) => {
+    if (!selectedVisitForPartner) return;
+    
+    setPartnerMutation.mutate({
+      visitId: selectedVisitForPartner.visit.id,
+      partnerId
+    });
+  };
+  
+  // Handle removing a partner
+  const handleRemovePartner = () => {
+    if (!selectedVisitForPartner) return;
+    
+    removePartnerMutation.mutate(selectedVisitForPartner.visit.id);
+  };
   
   // Auto-checkout all visitors mutation
   const autoCheckoutMutation = useMutation({
@@ -551,6 +629,14 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 </div>
               </TableHead>
               
+              {/* Partner Column */}
+              <TableHead>
+                <div className="flex items-center">
+                  <Users className="mr-1 h-4 w-4" />
+                  <span className="uppercase text-xs font-medium text-gray-500">{t("partner", { defaultValue: "Partner" })}</span>
+                </div>
+              </TableHead>
+              
               {/* Visit Time Information */}
               <TableHead 
                 className="cursor-pointer" 
@@ -661,6 +747,23 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                     </div>
                   </TableCell>
                   
+                  {/* Partner */}
+                  <TableCell>
+                    <div className="flex items-center">
+                      {visit.partnerId ? (
+                        <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 flex items-center gap-1">
+                          <Link2 className="h-3.5 w-3.5 mr-1" />
+                          <span className="font-medium">
+                            {paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || 
+                              formatBadgeId(paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.id || 0)}
+                          </span>
+                        </Badge>
+                      ) : (
+                        <span className="text-sm text-gray-500">{t("noPartner", { defaultValue: "No partner" })}</span>
+                      )}
+                    </div>
+                  </TableCell>
+                  
                   {/* Visit Time */}
                   <TableCell>
                     <div className="flex items-center">
@@ -701,6 +804,16 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                           <LogOut className="h-4 w-4 mr-1" />
                         )}
                         <span>{processingIds.has(visit.id) ? t("processing") : t("checkOut")}</span>
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePartnerDialog(visitor, visit)}
+                        className="h-8 px-3 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 border-indigo-200"
+                      >
+                        <UserPlus className="h-4 w-4 mr-1" />
+                        <span>{t("partner", { defaultValue: "Partner" })}</span>
                       </Button>
                     </div>
                   </TableCell>
@@ -999,6 +1112,104 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
           showDeleteButton={false} // Hide delete button for current visitors
         />
       )}
+      
+      {/* Partner Selection Dialog */}
+      <Dialog open={isPartnerDialogOpen} onOpenChange={setIsPartnerDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("selectPartner", { defaultValue: "Select Partner" })}</DialogTitle>
+            <DialogDescription>
+              {selectedVisitForPartner && 
+                t("selectPartnerDescription", { 
+                  defaultValue: `Select a partner for ${selectedVisitForPartner.visitor.fullName} who arrived together.`
+                })
+              }
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            {selectedVisitForPartner?.visit.partnerId ? (
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 p-3 border rounded-md bg-indigo-50">
+                  <Users className="h-5 w-5 text-indigo-600" />
+                  <div className="flex-1">
+                    <p className="font-medium">
+                      {t("currentlyPartneredWith", { defaultValue: "Currently partnered with" })}:
+                    </p>
+                    <div className="text-sm mt-1">
+                      {visits.find(item => item.visit.id === selectedVisitForPartner.visit.partnerId)?.visitor.fullName || 
+                        formatBadgeId(visits.find(item => item.visit.id === selectedVisitForPartner.visit.partnerId)?.visitor.id || 0)}
+                    </div>
+                  </div>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleRemovePartner()}
+                    className="ml-auto"
+                  >
+                    <UserMinus className="h-4 w-4 mr-1" />
+                    {t("removePartner", { defaultValue: "Remove" })}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                  <Input
+                    placeholder={t("searchForVisitor", { defaultValue: "Search for a visitor..." })}
+                    className="pl-9"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                
+                <div className="border rounded-md overflow-hidden max-h-[300px] overflow-y-auto">
+                  {paginatedVisits.filter(item => 
+                    // Exclude the current visitor and any already paired visitors
+                    item.visit.id !== selectedVisitForPartner?.visit.id && 
+                    !item.visit.partnerId
+                  ).map(({ visitor, visit }) => (
+                    <div 
+                      key={visit.id}
+                      className="flex items-center gap-3 p-3 border-b last:border-b-0 hover:bg-gray-50 cursor-pointer"
+                      onClick={() => handleSelectPartner(visit.id)}
+                    >
+                      <Avatar className="h-9 w-9 bg-primary/10">
+                        <AvatarFallback className="text-primary font-medium">
+                          {getInitials(visitor.fullName)}
+                        </AvatarFallback>
+                      </Avatar>
+                      
+                      <div className="flex-1">
+                        <div className="font-medium">{visitor.fullName}</div>
+                        <div className="text-sm text-gray-500">
+                          {t("badgeColon", { defaultValue: "Badge:" })} {formatBadgeId(visitor.id)} | {t("timeColon", { defaultValue: "Time:" })} {formatTimeOnly(visit.checkInTime, language)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {paginatedVisits.filter(item => 
+                    item.visit.id !== selectedVisitForPartner?.visit.id && 
+                    !item.visit.partnerId
+                  ).length === 0 && (
+                    <div className="p-4 text-center text-gray-500">
+                      {t("noAvailablePartners", { defaultValue: "No available partners found. All visitors are already paired or no other visitors are checked in." })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsPartnerDialogOpen(false)}>
+              {t("close", { defaultValue: "Close" })}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
