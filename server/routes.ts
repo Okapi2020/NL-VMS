@@ -1218,8 +1218,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       const returningVisitors = Object.values(visitorVisitCounts).filter(count => Number(count) > 1).length;
-      const returningVisitorsPercentage = allVisitors.length > 0 
-        ? Math.round((returningVisitors / allVisitors.length) * 100) 
+      
+      // Filter out deleted visitors for a more accurate count
+      const activeVisitors = allVisitors.filter(visitor => !visitor.deleted);
+      
+      const returningVisitorsPercentage = activeVisitors.length > 0 
+        ? Math.round((returningVisitors / activeVisitors.length) * 100) 
         : 0;
       
       const stats = {
@@ -1228,7 +1232,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         averageVisitDuration: avgDurationMinutes,
         uniqueVisitorsToday,
         percentChangeFromAvg: percentChange,
-        totalRegisteredVisitors: allVisitors.length,
+        totalRegisteredVisitors: activeVisitors.length, // Only count non-deleted visitors
         returningVisitors,
         returningVisitorsPercentage,
         peakHour,
