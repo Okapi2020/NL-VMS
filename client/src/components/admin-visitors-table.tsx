@@ -687,15 +687,15 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   {/* Visitor Information */}
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-9 w-9 bg-primary/10">
-                        <AvatarFallback className="text-primary font-medium">
+                      <div className="h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center">
+                        <span className="text-blue-600 font-medium text-sm">
                           {getInitials(visitor.fullName)}
-                        </AvatarFallback>
-                      </Avatar>
+                        </span>
+                      </div>
                       <div className="flex flex-col">
                         <div className="font-medium">{visitor.fullName}</div>
                         <div className="text-sm text-gray-500">
-                          {visitor.sex} {visitor.yearOfBirth} ({calculateAge(visitor.yearOfBirth)} {language === 'fr' ? 'ans' : 'yrs'})
+                          {visitor.sex} {visitor.yearOfBirth} ({calculateAge(visitor.yearOfBirth)} ans)
                         </div>
                       </div>
                     </div>
@@ -704,12 +704,14 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   {/* Contact Information */}
                   <TableCell className="hidden md:table-cell">
                     <div className="flex flex-col">
-                      <div className="text-sm text-gray-600">{visitor.email || t("noEmailProvided")}</div>
+                      <div className="text-sm text-gray-500 italic">
+                        {visitor.email ? visitor.email : "Aucun courriel fourni"}
+                      </div>
                       <div className="text-sm">
                         {visitor.phoneNumber ? (
-                          <PhoneNumberLink phoneNumber={visitor.phoneNumber} />
+                          `+${visitor.phoneNumber.replace(/^0+|^\+/, '')}`
                         ) : (
-                          t("noPhoneProvided")
+                          "Aucun téléphone fourni"
                         )}
                       </div>
                     </div>
@@ -724,18 +726,8 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   
                   {/* Badge ID */}
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-sm font-medium bg-blue-50 text-blue-800">
-                        {formatBadgeId(visitor.id)}
-                      </span>
-                      {visitor.verified && (
-                        <span title={t("verifiedVisitor")} className="relative top-px">
-                          <Badge variant="outline" className="bg-blue-50 text-blue-800 border-blue-200 flex items-center gap-1 px-2 py-0.5">
-                            <span className="text-xs font-medium">{t("verified")}</span>
-                            <CheckCircle className="h-3.5 w-3.5 text-blue-600" />
-                          </Badge>
-                        </span>
-                      )}
+                    <div className="px-2.5 py-1 rounded-md text-sm font-medium bg-blue-50 text-blue-800 inline-block">
+                      {formatBadgeId(visitor.id)}
                     </div>
                   </TableCell>
                   
