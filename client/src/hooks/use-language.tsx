@@ -869,10 +869,6 @@ export const translations: TranslationMap = {
     en: 'New visitor check-in',
     fr: 'Nouvel enregistrement de visiteur'
   },
-  success: {
-    en: 'Success',
-    fr: 'Succès'
-  },
   partnersLinked: {
     en: 'Partners linked',
     fr: 'Partenaires associés'
