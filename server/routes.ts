@@ -383,10 +383,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         active: false,
       });
       
+      // First, get the original visit to check if it has a partner
+      const originalVisit = await storage.getVisit(visitData.id);
+      if (!originalVisit) {
+        return res.status(404).json({ message: "Visit not found" });
+      }
+      
+      // Update the primary visit
       const updatedVisit = await storage.updateVisit(visitData);
       
       if (!updatedVisit) {
         return res.status(404).json({ message: "Visit not found" });
+      }
+      
+      // If the visit has a partner, also check out the partner visit
+      if (originalVisit.partnerId) {
+        // Get partner visit to confirm it exists and is still active
+        const partnerVisit = await storage.getVisit(originalVisit.partnerId);
+        
+        if (partnerVisit && partnerVisit.active) {
+          // Check out the partner visit with the same checkout time
+          const partnerVisitData = updateVisitSchema.parse({
+            id: originalVisit.partnerId,
+            checkOutTime: visitData.checkOutTime,
+            active: false,
+          });
+          
+          await storage.updateVisit(partnerVisitData);
+          
+          // Create system log for the synchronized checkout
+          const adminId = req.user?.id;
+          await storage.createSystemLog({
+            action: "PARTNER_SYNCHRONIZED_CHECKOUT",
+            details: `Partner visit ID ${originalVisit.partnerId} was automatically checked out with visit ID ${visitData.id}`,
+            userId: adminId,
+            affectedRecords: 2,
+          });
+          
+          console.log(`Partner synchronized checkout: Visit #${visitData.id} and partner #${originalVisit.partnerId}`);
+        }
       }
       
       res.status(200).json(updatedVisit);

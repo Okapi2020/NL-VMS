@@ -1242,7 +1242,7 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                            ) && (
                             <SelectItem key={selectedVisit.partnerId} value={String(selectedVisit.partnerId)}>
                               {visitHistory.find(item => item.visit.id === selectedVisit.partnerId)?.visitor.fullName || 
-                               `Visitor #${formatBadgeId(selectedVisit.partnerId)}`} (Current Partner)
+                               `Visitor #${formatBadgeId(selectedVisit.partnerId)}`} ({t("currentPartner", { defaultValue: "Current Partner" })})
                             </SelectItem>
                           )}
                           {visitHistory.filter(item => 

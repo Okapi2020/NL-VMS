@@ -853,6 +853,14 @@ export const translations: TranslationMap = {
     en: 'No matching partners found. Try a different search term.',
     fr: 'Aucun partenaire correspondant trouvé. Essayez un autre terme de recherche.'
   },
+  partnerDescription: {
+    en: 'Link another active visitor who arrived together with this visitor',
+    fr: 'Associer un autre visiteur actif qui est arrivé ensemble avec ce visiteur'
+  },
+  currentPartner: {
+    en: 'Current Partner',
+    fr: 'Partenaire actuel'
+  },
   viewDetails: {
     en: 'View details',
     fr: 'Voir les détails'
