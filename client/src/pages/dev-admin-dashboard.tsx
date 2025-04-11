@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminVisitorsTable } from "@/components/admin-visitors-table";
-import { AdminVisitHistory } from "@/components/admin-visit-history";
+import { AdminVisitHistory } from "@/components/admin-visit-history-redesigned";
 import { AdminVisitorReports } from "@/components/admin-visitor-reports";
 import { Visit, Visitor } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
