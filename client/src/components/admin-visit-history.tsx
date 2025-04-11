@@ -210,6 +210,46 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
     }
   });
   
+  // Set partner mutation
+  const setPartnerMutation = useMutation({
+    mutationFn: async ({ visitId, partnerId }: { visitId: number, partnerId: number | null }) => {
+      const res = await apiRequest("POST", "/api/admin/set-visit-partner", { visitId, partnerId });
+      return await res.json();
+    },
+    onSuccess: () => {
+      // Close partner dialog
+      setIsPartnerDialogOpen(false);
+      setSelectedVisitForPartner(null);
+      
+      // Show success message
+      toast({
+        title: t("success", { defaultValue: "Success" }),
+        description: t("partnerAssignedSuccessfully", { defaultValue: "Partner assigned successfully" }),
+      });
+      
+      // Refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
+    },
+    onError: (error) => {
+      toast({
+        title: t("error", { defaultValue: "Error" }),
+        description: `${t("failedToAssignPartner", { defaultValue: "Failed to assign partner" })}: ${error.message}`,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Handle select partner
+  const handleSelectPartner = (partnerId: number) => {
+    if (selectedVisitForPartner) {
+      setPartnerMutation.mutate({
+        visitId: selectedVisitForPartner.visit.id,
+        partnerId
+      });
+    }
+  };
+  
   // Restore visitor mutation
   const restoreVisitorMutation = useMutation({
     mutationFn: async (visitorId: number) => {
@@ -902,6 +942,23 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                           <span>View</span>
                         </Button>
                         
+                        {/* Partner button for active visits that don't have a partner already */}
+                        {visit.active && !visit.partnerId && !showDeletedVisitors && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="px-3 py-1 text-green-600 hover:bg-green-50 rounded-md border border-green-200 flex items-center h-8"
+                            onClick={() => {
+                              setSelectedVisitForPartner({ visit, visitor });
+                              setIsPartnerDialogOpen(true);
+                              setPartnerSearchTerm("");
+                            }}
+                          >
+                            <UserPlus className="h-4 w-4 mr-1" />
+                            <span>{t("partner", { defaultValue: "Partner" })}</span>
+                          </Button>
+                        )}
+                        
                         {showDeletedVisitors && (
                           <Button
                             variant="outline"
@@ -1188,6 +1245,107 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
         }}
         showDeleteButton={true} // Show delete button for visit history
       />
+      
+      {/* Partner Selection Dialog */}
+      <Dialog open={isPartnerDialogOpen} onOpenChange={setIsPartnerDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{t("selectPartner", { defaultValue: "Select Partner" })}</DialogTitle>
+            <DialogDescription>
+              {selectedVisitForPartner && t("selectPartnerDescription", {
+                fullName: selectedVisitForPartner.visitor.fullName,
+                defaultValue: `Select a partner for ${selectedVisitForPartner.visitor.fullName} who arrived together.`
+              })}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            {selectedVisitForPartner && (
+              <div className="space-y-4">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                  <Input
+                    placeholder={t("searchForVisitor", { defaultValue: "Search for a visitor..." })}
+                    className="pl-9"
+                    value={partnerSearchTerm}
+                    onChange={(e) => setPartnerSearchTerm(e.target.value)}
+                  />
+                </div>
+                
+                <div className="border rounded-md overflow-hidden max-h-[300px] overflow-y-auto">
+                  {/* Use the full visits array instead of just paginated visits to show all possible partners */}
+                  {visitHistory.filter(item => {
+                    // Exclude the current visitor and any already paired visitors
+                    const isNotCurrentAndNotPaired = 
+                      item.visit.id !== selectedVisitForPartner.visit.id && 
+                      !item.visit.partnerId && 
+                      item.visit.active;
+                    
+                    // Apply search filter if there is a search term
+                    if (!partnerSearchTerm) return isNotCurrentAndNotPaired;
+                    
+                    const normalizedSearchTerm = normalizeText(partnerSearchTerm);
+                    return isNotCurrentAndNotPaired && (
+                      normalizeText(item.visitor.fullName).includes(normalizedSearchTerm) ||
+                      formatBadgeId(item.visitor.id).toLowerCase().includes(normalizedSearchTerm) ||
+                      (item.visitor.phoneNumber && normalizeText(item.visitor.phoneNumber).includes(normalizedSearchTerm))
+                    );
+                  }).map(({ visitor, visit }) => (
+                    <div 
+                      key={visit.id}
+                      className="flex items-center gap-3 p-3 border-b last:border-b-0 hover:bg-gray-50 cursor-pointer"
+                      onClick={() => handleSelectPartner(visit.id)}
+                    >
+                      <Avatar className="h-9 w-9 bg-primary/10">
+                        <AvatarFallback className="text-primary font-medium">
+                          {getInitials(visitor.fullName)}
+                        </AvatarFallback>
+                      </Avatar>
+                      
+                      <div className="flex-1">
+                        <div className="font-medium">{visitor.fullName}</div>
+                        <div className="text-sm text-gray-500">
+                          {t("badgeColon", { defaultValue: "Badge:" })} {formatBadgeId(visitor.id)} | {t("timeColon", { defaultValue: "Time:" })} {formatTimeOnly(visit.checkInTime, language)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {visitHistory.filter(item => {
+                    // Use the same filter logic as above for consistency
+                    const isNotCurrentAndNotPaired = 
+                      item.visit.id !== selectedVisitForPartner.visit.id && 
+                      !item.visit.partnerId && 
+                      item.visit.active;
+                    
+                    // Apply search filter if there is a search term
+                    if (!partnerSearchTerm) return isNotCurrentAndNotPaired;
+                    
+                    const normalizedSearchTerm = normalizeText(partnerSearchTerm);
+                    return isNotCurrentAndNotPaired && (
+                      normalizeText(item.visitor.fullName).includes(normalizedSearchTerm) ||
+                      formatBadgeId(item.visitor.id).toLowerCase().includes(normalizedSearchTerm) ||
+                      (item.visitor.phoneNumber && normalizeText(item.visitor.phoneNumber).includes(normalizedSearchTerm))
+                    );
+                  }).length === 0 && (
+                    <div className="p-4 text-center text-gray-500">
+                      {partnerSearchTerm ? 
+                        t("noMatchingPartners", { defaultValue: "No matching partners found. Try a different search term." }) :
+                        t("noAvailablePartners", { defaultValue: "No available partners found. All visitors are already paired or no other visitors are checked in." })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsPartnerDialogOpen(false)}>
+              {t("close", { defaultValue: "Close" })}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
