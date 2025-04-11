@@ -8,8 +8,10 @@ import {
   updateVisitorVerificationSchema,
   updateVisitorSchema,
   updateAdminLanguageSchema,
+  updateVisitPartnerSchema,
   type Visitor,
-  type UpdateAdminLanguage
+  type UpdateAdminLanguage,
+  type UpdateVisitPartner
 } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
