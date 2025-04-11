@@ -2,20 +2,39 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useWebSocket, WebSocketMessage } from './use-websocket';
 import { useToast } from './use-toast';
 
-// Types for the check-in notification
-export interface CheckInNotification {
+// Types for notifications
+export type NotificationType = 'check-in' | 'partner-update';
+
+export interface BaseNotification {
   id: string;
-  visitorId: number;
-  visitorName: string;
-  phoneNumber: string;
-  purpose: string;
+  type: NotificationType;
   timestamp: string;
   read: boolean;
 }
 
+export interface CheckInNotification extends BaseNotification {
+  type: 'check-in';
+  visitorId: number;
+  visitorName: string;
+  phoneNumber: string;
+  purpose: string;
+}
+
+export interface PartnerUpdateNotification extends BaseNotification {
+  type: 'partner-update';
+  action: 'linked' | 'unlinked';
+  visitorId: number;
+  visitorName: string;
+  partnerId: number | null;
+  partnerName: string | null;
+}
+
+// Union type for all notification types
+export type Notification = CheckInNotification | PartnerUpdateNotification;
+
 // Context interface
 interface NotificationContextType {
-  notifications: CheckInNotification[];
+  notifications: Notification[];
   unreadCount: number;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
