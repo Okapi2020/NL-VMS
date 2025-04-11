@@ -121,6 +121,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
   const [selectedVisitor, setSelectedVisitor] = useState<Visitor | null>(null);
   const [selectedVisitDetails, setSelectedVisitDetails] = useState<{ visitor: Visitor, visit: Visit } | null>(null);
   const [selectedVisitForPartner, setSelectedVisitForPartner] = useState<{ visitor: Visitor, visit: Visit } | null>(null);
+  const [partnerSearchTerm, setPartnerSearchTerm] = useState("");
   
   // Form for editing visitors
   const form = useForm<EditVisitorFormValues>({
@@ -395,9 +396,19 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
     
     const visitId = selectedVisitForPartner.visit.id;
     
-    apiRequest("POST", "/api/admin/assign-partner", { visitId, partnerId })
+    apiRequest("POST", "/api/admin/set-visit-partner", { visitId, partnerId })
       .then(res => {
-        if (!res.ok) throw new Error("Failed to assign partner");
+        if (!res.ok) {
+          return res.text().then(text => {
+            // Try to parse as JSON, but if it fails, use the raw text
+            try {
+              const errorJson = JSON.parse(text);
+              throw new Error(errorJson.message || "Failed to assign partner");
+            } catch (e) {
+              throw new Error(`Failed to assign partner: ${text.substring(0, 100)}`);
+            }
+          });
+        }
         return res.json();
       })
       .then(() => {
@@ -413,7 +424,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
       .catch(error => {
         toast({
           title: t("error"),
-          description: `Failed to update partner: ${error.message}`,
+          description: `${error.message}`,
           variant: "destructive",
         });
       });
@@ -1149,8 +1160,9 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
             
             <div className="space-y-4 max-h-[300px] overflow-y-auto">
               {/* List of potential partners (all other current visitors) */}
-              {visits
-                .filter(({ visit, visitor }) => {
+              {(() => {
+                // Filter potential partners once
+                const potentialPartners = visits.filter(({ visit, visitor }) => {
                   // Don't show the current visitor
                   if (visit.id === selectedVisitForPartner?.visit.id) return false;
                   
@@ -1167,47 +1179,39 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   }
                   
                   return true;
-                })
-                .map(({ visitor, visit }) => (
-                  <div 
-                    key={visit.id}
-                    className="flex items-center p-2 rounded-md hover:bg-gray-50 cursor-pointer border"
-                    onClick={() => handleAssignPartner(visit.id)}
-                  >
-                    <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                      <span className="text-blue-600 font-medium text-sm">
-                        {getInitials(visitor.fullName)}
-                      </span>
-                    </div>
-                    <div className="ml-3">
-                      <div className="text-sm font-medium">{visitor.fullName}</div>
-                      <div className="text-xs text-gray-500">
-                        {formatBadgeId(visitor.id)} • {formatTimeOnly(visit.checkInTime, language)}
+                });
+                
+                // Display either the list or "no results" message
+                return potentialPartners.length > 0 ? (
+                  // List of available partners
+                  potentialPartners.map(({ visitor, visit }) => (
+                    <div 
+                      key={visit.id}
+                      className="flex items-center p-2 rounded-md hover:bg-gray-50 cursor-pointer border"
+                      onClick={() => handleAssignPartner(visit.id)}
+                    >
+                      <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                        <span className="text-blue-600 font-medium text-sm">
+                          {getInitials(visitor.fullName)}
+                        </span>
+                      </div>
+                      <div className="ml-3">
+                        <div className="text-sm font-medium">{visitor.fullName}</div>
+                        <div className="text-xs text-gray-500">
+                          {formatBadgeId(visitor.id)} • {formatTimeOnly(visit.checkInTime, language)}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-                
-                {visits.filter(({ visit, visitor }) => {
-                  if (visit.id === selectedVisitForPartner?.visit.id) return false;
-                  if (visit.partnerId && visit.partnerId !== selectedVisitForPartner?.visit.id) return false;
-                  
-                  if (partnerSearchTerm) {
-                    const badgeId = formatBadgeId(visitor.id).toLowerCase();
-                    const searchLower = partnerSearchTerm.toLowerCase();
-                    return visitor.fullName.toLowerCase().includes(searchLower) || 
-                           badgeId.includes(searchLower) ||
-                           String(visitor.id).includes(searchLower);
-                  }
-                  
-                  return true;
-                }).length === 0 && (
+                  ))
+                ) : (
+                  // No results message
                   <div className="text-center p-4 text-gray-500 italic">
                     {partnerSearchTerm 
                       ? t("noMatchingPartners", { defaultValue: "No partners found matching your search. Try a different name or badge ID." })
                       : t("noAvailablePartners", { defaultValue: "No available partners. All visitors are already paired or checked out." })}
                   </div>
-                )}
+                );
+              })()}
             </div>
           </div>
           
