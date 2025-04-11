@@ -799,8 +799,14 @@ function AdminVisitTimelineComponent({ visitHistory, isLoading }: AdminVisitTime
                               {visitor.email}
                             </a>
                           )}
+                          {!visitor.email && (
+                            <span className="text-gray-400 italic">{t("noEmail", { defaultValue: "No email" })}</span>
+                          )}
                           {visitor.phoneNumber && (
                             <PhoneNumberLink phoneNumber={visitor.phoneNumber} />
+                          )}
+                          {!visitor.phoneNumber && (
+                            <span className="text-gray-400 italic">{t("noPhoneProvided", { defaultValue: "No phone provided" })}</span>
                           )}
                         </div>
                       </div>
