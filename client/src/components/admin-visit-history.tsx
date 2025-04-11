@@ -900,8 +900,18 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                             <Users className="h-3.5 w-3.5 mr-1" />
                             <span className="font-medium">
                               {/* Look for the partner in the full visitHistory array, not just paginatedVisits */}
-                              {visitHistory.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || 
-                                formatBadgeId(visitHistory.find(item => item.visit.id === visit.partnerId)?.visitor.id || 0)}
+                              {(() => {
+                                // Find the partner visit and visitor
+                                const partnerVisit = visitHistory.find(item => item.visit.id === visit.partnerId);
+                                
+                                if (partnerVisit) {
+                                  return partnerVisit.visitor.fullName;
+                                } else {
+                                  // If partner not found in current visitHistory, try to display badge ID
+                                  const partnerId = visit.partnerId || 0;
+                                  return `Visitor #${formatBadgeId(partnerId)}`;
+                                }
+                              })()}
                             </span>
                           </Badge>
                         ) : (
@@ -1222,6 +1232,19 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                                 {visitor.fullName} ({formatBadgeId(visitor.id)})
                               </SelectItem>
                             ))}
+                          
+                          {/* If the current partner is not in the filtered list (e.g., not active), still show it as an option */}
+                          {selectedVisit?.partnerId && 
+                           !visitHistory.some(item => 
+                             item.visit.id === selectedVisit.partnerId && 
+                             (item.visit.active && 
+                              (item.visit.id === selectedVisit.partnerId || !item.visit.partnerId))
+                           ) && (
+                            <SelectItem key={selectedVisit.partnerId} value={String(selectedVisit.partnerId)}>
+                              {visitHistory.find(item => item.visit.id === selectedVisit.partnerId)?.visitor.fullName || 
+                               `Visitor #${formatBadgeId(selectedVisit.partnerId)}`} (Current Partner)
+                            </SelectItem>
+                          )}
                           {visitHistory.filter(item => 
                             item.visit.id !== selectedVisit?.id && 
                             item.visit.active &&
