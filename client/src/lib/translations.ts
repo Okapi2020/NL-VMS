@@ -24,6 +24,10 @@ const translations: TranslationConfig = {
   "partnerAssigned": {
     en: "Partner assigned successfully",
     fr: "Partenaire assigné avec succès"
+  },
+  "currentPartner": {
+    en: "Current partner",
+    fr: "Partenaire actuel"
   }
 };
 
