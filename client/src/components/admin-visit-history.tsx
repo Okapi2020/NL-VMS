@@ -121,6 +121,10 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
     municipality: z.string().min(1, "Municipality selection is required"),
     email: z.string().email("Invalid email format").nullable().optional(),
     phoneNumber: z.string().min(7, "Phone number must be at least 7 characters"),
+    // Add a partner field for the visit - it will be a visit ID or null
+    partnerId: z.number().nullable().optional(),
+    // We need the visit ID too for partner assignment
+    visitId: z.number(),
   });
 
   type EditVisitorFormValues = z.infer<typeof editVisitorSchema>;
@@ -128,20 +132,22 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
   // Edit form
   const form = useForm<EditVisitorFormValues>({
     resolver: zodResolver(editVisitorSchema),
-    defaultValues: selectedVisitor ? {
+    defaultValues: (selectedVisitor && selectedVisit) ? {
       id: selectedVisitor.id,
       fullName: selectedVisitor.fullName,
       yearOfBirth: selectedVisitor.yearOfBirth,
       sex: selectedVisitor.sex as "Masculin" | "Feminin",
       municipality: selectedVisitor.municipality || "",
       email: selectedVisitor.email,
-      phoneNumber: selectedVisitor.phoneNumber
+      phoneNumber: selectedVisitor.phoneNumber,
+      visitId: selectedVisit.id,
+      partnerId: selectedVisit.partnerId || null
     } : undefined
   });
   
-  // Update form values when selectedVisitor changes
+  // Update form values when selectedVisitor or selectedVisit changes
   useEffect(() => {
-    if (selectedVisitor) {
+    if (selectedVisitor && selectedVisit) {
       // Format phone number with leading zero if needed
       let formattedPhoneNumber = selectedVisitor.phoneNumber;
       if (formattedPhoneNumber && !formattedPhoneNumber.startsWith('0') && !formattedPhoneNumber.startsWith('+')) {
@@ -155,10 +161,12 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
         sex: selectedVisitor.sex as "Masculin" | "Feminin",
         municipality: selectedVisitor.municipality || "",
         email: selectedVisitor.email,
-        phoneNumber: formattedPhoneNumber
+        phoneNumber: formattedPhoneNumber,
+        visitId: selectedVisit.id,
+        partnerId: selectedVisit.partnerId || null
       });
     }
-  }, [selectedVisitor, form]);
+  }, [selectedVisitor, selectedVisit, form]);
   
   // Edit visitor mutation
   const editVisitorMutation = useMutation({
@@ -298,7 +306,19 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
   });
   
   const onSubmit = (data: EditVisitorFormValues) => {
+    // First, update the visitor information
     editVisitorMutation.mutate(data);
+    
+    // Then, if the visit has a partnerId, handle the partner update separately
+    if (selectedVisit && data.visitId && data.partnerId !== undefined) {
+      // Only update the partner if it has changed
+      if (selectedVisit.partnerId !== data.partnerId) {
+        setPartnerMutation.mutate({
+          visitId: data.visitId,
+          partnerId: data.partnerId
+        });
+      }
+    }
   };
   
   const verifyVisitorMutation = useMutation({
@@ -879,8 +899,9 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                           <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 flex items-center gap-1">
                             <Users className="h-3.5 w-3.5 mr-1" />
                             <span className="font-medium">
-                              {paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || 
-                                formatBadgeId(paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.id || 0)}
+                              {/* Look for the partner in the full visitHistory array, not just paginatedVisits */}
+                              {visitHistory.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || 
+                                formatBadgeId(visitHistory.find(item => item.visit.id === visit.partnerId)?.visitor.id || 0)}
                             </span>
                           </Badge>
                         ) : (
@@ -942,22 +963,7 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                           <span>View</span>
                         </Button>
                         
-                        {/* Partner button for active visits that don't have a partner already */}
-                        {visit.active && !visit.partnerId && !showDeletedVisitors && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="px-3 py-1 text-green-600 hover:bg-green-50 rounded-md border border-green-200 flex items-center h-8"
-                            onClick={() => {
-                              setSelectedVisitForPartner({ visit, visitor });
-                              setIsPartnerDialogOpen(true);
-                              setPartnerSearchTerm("");
-                            }}
-                          >
-                            <UserPlus className="h-4 w-4 mr-1" />
-                            <span>{t("partner", { defaultValue: "Partner" })}</span>
-                          </Button>
-                        )}
+                        {/* Partner button no longer needed as it's in the Edit modal */}
                         
                         {showDeletedVisitors && (
                           <Button
@@ -1184,6 +1190,58 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                 )}
               />
               
+              {/* Only show Partner field for active visits */}
+              {selectedVisit?.active && (
+                <FormField
+                  control={form.control}
+                  name="partnerId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("partner", { defaultValue: "Partner" })}</FormLabel>
+                      <Select
+                        onValueChange={(value) => field.onChange(value ? Number(value) : null)}
+                        value={field.value ? String(field.value) : ""}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={t("selectPartner", { defaultValue: "Select a partner" })} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="max-h-[300px] overflow-y-auto">
+                          <SelectItem value="">{t("noPartner", { defaultValue: "No partner" })}</SelectItem>
+                          {visitHistory
+                            .filter(item => (
+                              // Filter for active visits that are not the current visit
+                              item.visit.id !== selectedVisit?.id && 
+                              item.visit.active &&
+                              // Only include visitors without partners or those already paired with this visitor
+                              (!item.visit.partnerId || item.visit.partnerId === selectedVisit?.id)
+                            ))
+                            .map(({ visitor, visit }) => (
+                              <SelectItem key={visit.id} value={String(visit.id)}>
+                                {visitor.fullName} ({formatBadgeId(visitor.id)})
+                              </SelectItem>
+                            ))}
+                          {visitHistory.filter(item => 
+                            item.visit.id !== selectedVisit?.id && 
+                            item.visit.active &&
+                            (!item.visit.partnerId || item.visit.partnerId === selectedVisit?.id)
+                          ).length === 0 && (
+                            <div className="p-2 text-center text-gray-500 text-sm">
+                              {t("noAvailablePartners", { defaultValue: "No available partners" })}
+                            </div>
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        {t("partnerDescription", { defaultValue: "Link another active visitor who arrived together with this visitor" })}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+              
               <DialogFooter className="gap-2 sm:gap-0">
                 <DialogClose asChild>
                   <Button type="button" variant="outline" className="mt-4">
@@ -1193,9 +1251,9 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                 <Button 
                   type="submit" 
                   className="mt-4"
-                  disabled={editVisitorMutation.isPending}
+                  disabled={editVisitorMutation.isPending || setPartnerMutation.isPending}
                 >
-                  {editVisitorMutation.isPending ? (
+                  {(editVisitorMutation.isPending || setPartnerMutation.isPending) ? (
                     <span className="flex items-center">
                       <div className="animate-spin mr-2 h-4 w-4">
                         <svg
