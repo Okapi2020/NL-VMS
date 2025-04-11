@@ -253,8 +253,8 @@ function AdminVisitTimelineComponent({ visitHistory, isLoading }: AdminVisitTime
     },
     onSuccess: (data) => {
       toast({
-        title: "Success",
-        description: data.message || "Visitor deleted successfully",
+        title: t("success", { defaultValue: "Success" }),
+        description: data.message || t("visitorDeleted", { defaultValue: "Visitor deleted successfully" }),
       });
       // Refresh data
       queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
@@ -277,8 +277,8 @@ function AdminVisitTimelineComponent({ visitHistory, isLoading }: AdminVisitTime
     },
     onSuccess: (data) => {
       toast({
-        title: "Success",
-        description: data.message || "Visitor restored successfully",
+        title: t("success", { defaultValue: "Success" }),
+        description: data.message || t("visitorRestored", { defaultValue: "Visitor restored successfully" }),
       });
       
       // If we're in trash bin view, check if it's now empty
@@ -330,8 +330,10 @@ function AdminVisitTimelineComponent({ visitHistory, isLoading }: AdminVisitTime
     },
     onSuccess: (_, { verified }) => {
       toast({
-        title: "Success",
-        description: `Visitor ${verified ? "verified" : "unverified"} successfully`,
+        title: t("success", { defaultValue: "Success" }),
+        description: verified 
+          ? t("visitorVerified", { defaultValue: "Visitor verified successfully" })
+          : t("visitorUnverified", { defaultValue: "Visitor unverified successfully" }),
       });
       // Refresh both current visitors and visit history
       queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
@@ -382,8 +384,8 @@ function AdminVisitTimelineComponent({ visitHistory, isLoading }: AdminVisitTime
     // This would typically fetch more visits from the API
     // For now, we'll just update the state to show all visits for this visitor
     toast({
-      title: "Loading more visits",
-      description: "Additional visits have been loaded for this visitor.",
+      title: t("loadingMoreVisits", { defaultValue: "Loading more visits" }),
+      description: t("additionalVisitsLoaded", { defaultValue: "Additional visits have been loaded for this visitor." }),
     });
   };
 
@@ -553,8 +555,8 @@ function AdminVisitTimelineComponent({ visitHistory, isLoading }: AdminVisitTime
                 
                 if (deletedVisitors.length === 0) {
                   toast({
-                    title: "Information",
-                    description: "The trash bin is empty.",
+                    title: t("information", { defaultValue: "Information" }),
+                    description: t("trashBinEmpty", { defaultValue: "The trash bin is empty." }),
                   });
                   // Don't show trash bin if empty
                   setShowDeletedVisitors(false);

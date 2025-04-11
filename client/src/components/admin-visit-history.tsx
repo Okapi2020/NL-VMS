@@ -202,8 +202,8 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
     },
     onSuccess: (data) => {
       toast({
-        title: "Success",
-        description: data.message || "Visitor deleted successfully",
+        title: t("success", { defaultValue: "Success" }),
+        description: data.message || t("visitorDeleted", { defaultValue: "Visitor deleted successfully" }),
       });
       // Refresh data
       queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
@@ -266,8 +266,8 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
     },
     onSuccess: (data) => {
       toast({
-        title: "Success",
-        description: data.message || "Visitor restored successfully",
+        title: t("success", { defaultValue: "Success" }),
+        description: data.message || t("visitorRestored", { defaultValue: "Visitor restored successfully" }),
       });
       
       // If we're in trash bin view, check if it's now empty
@@ -331,8 +331,10 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
     },
     onSuccess: (_, { verified }) => {
       toast({
-        title: "Success",
-        description: `Visitor ${verified ? "verified" : "unverified"} successfully`,
+        title: t("success", { defaultValue: "Success" }),
+        description: verified 
+          ? t("visitorVerified", { defaultValue: "Visitor verified successfully" })
+          : t("visitorUnverified", { defaultValue: "Visitor unverified successfully" }),
       });
       // Refresh both current visitors and visit history
       queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
