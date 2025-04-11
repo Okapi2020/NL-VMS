@@ -593,14 +593,14 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
               </TableHead>
               
               {/* Contact Information */}
-              <TableHead>
+              <TableHead className="hidden md:table-cell">
                 <div className="flex items-center">
                   <span className="uppercase text-xs font-medium text-gray-500">{t("contact")}</span>
                 </div>
               </TableHead>
               
               {/* Municipality Column */}
-              <TableHead>
+              <TableHead className="hidden md:table-cell">
                 <div className="flex items-center">
                   <span className="uppercase text-xs font-medium text-gray-500">{t("municipality")}</span>
                 </div>
@@ -616,7 +616,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
               
               {/* Visit Count Column */}
               <TableHead
-                className="cursor-pointer" 
+                className="hidden sm:table-cell cursor-pointer" 
                 onClick={() => handleSortChange("visitCount")}
               >
                 <div className="flex items-center">
@@ -698,7 +698,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   </TableCell>
                   
                   {/* Contact Information */}
-                  <TableCell>
+                  <TableCell className="hidden md:table-cell">
                     <div className="flex flex-col">
                       <div className="text-sm text-gray-600">{visitor.email || t("noEmailProvided")}</div>
                       <div className="text-sm">
@@ -712,7 +712,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   </TableCell>
                   
                   {/* Municipality */}
-                  <TableCell>
+                  <TableCell className="hidden md:table-cell">
                     <div className="text-sm">
                       {visitor.municipality || t("notSpecified")}
                     </div>
@@ -736,7 +736,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   </TableCell>
                   
                   {/* Visit Count */}
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     <div className="flex items-center">
                       <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                         <span className="font-medium">{visitor.visitCount || 1}</span>
