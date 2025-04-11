@@ -8,60 +8,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { formatTimeOnly, formatDateShort, formatDuration, formatBadgeId, calculateAge, normalizeText, getInitials } from "@/lib/utils";
-import { Visit, Visitor, UpdateVisitor, UpdateVisitPartner } from "@shared/schema";
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { apiRequestWithRetry, useGlobalErrorHandler } from "@/lib/api";
-import { useToast } from "@/hooks/use-toast";
-import { useDebounce } from "@/hooks/use-debounce";
-import { ErrorBoundary } from "@/components/error-boundary";
-import { Loading, ButtonLoading } from "@/components/ui/loading";
-import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useLanguage } from "@/hooks/use-language";
-import { VisitorDetailModal } from "./visitor-detail-modal";
-import { KINSHASA_MUNICIPALITIES } from "@/data/municipalities";
-import { 
-  Search, 
-  UserRound, 
-  Clock, 
-  CalendarClock, 
-  ChevronDown, 
-  ChevronUp, 
-  Tag, 
-  Phone, 
-  ShieldCheck, 
-  CheckCircle,
-  Pencil, 
-  Trash2,
-  X,
-  Repeat,
-  LogOut,
-  Eye,
-  Users,
-  UserPlus,
-  Link,
-  Link2,
-  UserMinus,
-  Settings
-} from "lucide-react";
-
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogClose,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -74,736 +27,623 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useForm } from "react-hook-form";
+import {
+  Bell,
+  Search,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  LogOut,
+  UserPlus,
+  Filter,
+  User,
+  Phone,
+  Mail,
+  MapPin,
+  Tag,
+  Repeat,
+  Users,
+  Clock,
+  Settings,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/hooks/use-language";
+import { apiRequest } from "@/lib/queryClient";
+import { useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { PhoneNumberLink } from "@/components/phone-number-link";
+import { KINSHASA_MUNICIPALITIES } from "@/lib/constants";
+import { formatTimeOnly, formatDateOnly, formatDateTime } from "@/lib/date-utils";
+
+// Types for the data
+type Visit = {
+  id: number;
+  visitorId: number;
+  checkInTime: Date;
+  checkOutTime: Date | null;
+  purpose: string;
+  partnerId: number | null;
+};
+
+type Visitor = {
+  id: number;
+  fullName: string;
+  yearOfBirth: number;
+  sex: string;
+  email: string | null;
+  phoneNumber: string;
+  municipality: string | null;
+  verified: boolean;
+  deleted: boolean;
+  visitCount: number;
+  createdAt: Date;
+};
 
 type AdminVisitorsTableProps = {
   visits: { visit: Visit; visitor: Visitor }[];
   isLoading: boolean;
 };
 
-// Form schema for editing visitor
+// Form validation schema
 const editVisitorSchema = z.object({
-  id: z.number(),
-  fullName: z.string().min(2, "Full name must be at least 2 characters"),
-  yearOfBirth: z.number().min(1900, "Year of birth must be after 1900").max(new Date().getFullYear(), "Year of birth cannot be in the future"),
-  sex: z.enum(["Masculin", "Feminin"], {
-    errorMap: () => ({ message: "Please select either Masculin or Feminin" }),
-  }),
-  municipality: z.string().min(1, {message: "Municipality selection is required"}),
-  email: z.string().email("Invalid email format").nullable().optional(),
-  phoneNumber: z.string().min(7, "Phone number must be at least 7 characters"),
+  fullName: z.string().min(2, { message: "Full name is required" }),
+  yearOfBirth: z.number().min(1900).max(new Date().getFullYear()),
+  sex: z.string().min(1, { message: "Sex is required" }),
+  municipality: z.string().nullable(),
+  email: z.string().email().nullable().optional(),
+  phoneNumber: z.string().min(10, { message: "Valid phone number is required" }),
 });
 
 type EditVisitorFormValues = z.infer<typeof editVisitorSchema>;
 
-// Wrap component with error boundary
 function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTableProps) {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const { handleApiError } = useGlobalErrorHandler();
   const { t, language } = useLanguage();
-  const [processingIds, setProcessingIds] = useState<Set<number>>(new Set());
-  const [processingVerificationIds, setProcessingVerificationIds] = useState<Set<number>>(new Set());
-  const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearchTerm = useDebounce(searchTerm, 300); // Debounce search input by 300ms
-  const [sortField, setSortField] = useState<"name" | "checkIn" | "duration" | "visitCount">("checkIn");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedVisitor, setSelectedVisitor] = useState<Visitor | null>(null);
+  const queryClient = useQueryClient();
+  
+  // State for table functionality
   const [selectedVisitors, setSelectedVisitors] = useState<number[]>([]);
+  const [processingIds, setProcessingIds] = useState<Set<number>>(new Set());
+  const [filteredVisits, setFilteredVisits] = useState<{ visit: Visit; visitor: Visitor }[]>(visits);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [sortField, setSortField] = useState<string>("checkIn");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isAutoCheckoutProcessing, setIsAutoCheckoutProcessing] = useState(false);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [selectedVisitDetails, setSelectedVisitDetails] = useState<{ visitor: Visitor, visit: Visit } | null>(null);
-  const [isPartnerDialogOpen, setIsPartnerDialogOpen] = useState(false);
-  const [selectedVisitForPartner, setSelectedVisitForPartner] = useState<{ visitor: Visitor, visit: Visit } | null>(null);
 
-  const checkOutMutation = useMutation({
-    mutationFn: async (visitId: number) => {
-      const res = await apiRequest("POST", "/api/admin/check-out-visitor", { visitId });
-      return await res.json();
+  // State for dialogs
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [isPartnerDialogOpen, setIsPartnerDialogOpen] = useState(false);
+  const [selectedVisitor, setSelectedVisitor] = useState<Visitor | null>(null);
+  const [selectedVisitDetails, setSelectedVisitDetails] = useState<{ visitor: Visitor, visit: Visit } | null>(null);
+  const [selectedVisitForPartner, setSelectedVisitForPartner] = useState<{ visitor: Visitor, visit: Visit } | null>(null);
+  
+  // Form for editing visitors
+  const form = useForm<EditVisitorFormValues>({
+    resolver: zodResolver(editVisitorSchema),
+    defaultValues: {
+      fullName: "",
+      yearOfBirth: new Date().getFullYear() - 30,
+      sex: "",
+      municipality: null,
+      email: "",
+      phoneNumber: "",
     },
-    onMutate: (visitId) => {
-      setProcessingIds(prev => new Set(prev).add(visitId));
-    },
-    onSuccess: () => {
-      toast({
-        title: "Success",
-        description: t("checkoutSuccess"),
+  });
+  
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredVisits.length / itemsPerPage);
+  const paginatedVisits = filteredVisits.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  
+  // Check if all visitors on the current page are selected
+  const headerChecked = paginatedVisits.length > 0 && 
+    paginatedVisits.every(item => selectedVisitors.includes(item.visitor.id));
+  
+  // Update filtered visits when visits change
+  useEffect(() => {
+    applyFiltersAndSort();
+  }, [visits, searchQuery, sortField, sortDirection]);
+  
+  // Helper functions
+  const getInitials = (name: string) => {
+    if (!name) return "";
+    return name
+      .split(" ")
+      .map(part => part[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
+  };
+  
+  const formatBadgeId = (id: number) => {
+    return `VIS-${id.toString().padStart(4, "0")}`;
+  };
+  
+  const calculateAge = (yearOfBirth: number) => {
+    return new Date().getFullYear() - yearOfBirth;
+  };
+  
+  const calculateDuration = (checkInTime: Date) => {
+    const checkIn = new Date(checkInTime);
+    const now = new Date();
+    const diffMs = now.getTime() - checkIn.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    
+    if (diffMins < 60) {
+      return `${diffMins}min`;
+    } else {
+      const hours = Math.floor(diffMins / 60);
+      const mins = diffMins % 60;
+      return `${hours}h${mins > 0 ? ` ${mins}min` : ""}`;
+    }
+  };
+  
+  const applyFiltersAndSort = () => {
+    let result = [...visits];
+    
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(({ visitor, visit }) => {
+        return (
+          visitor.fullName.toLowerCase().includes(query) ||
+          (visitor.email && visitor.email.toLowerCase().includes(query)) ||
+          visitor.phoneNumber.includes(query) ||
+          (visitor.municipality && visitor.municipality.toLowerCase().includes(query)) ||
+          formatBadgeId(visitor.id).toLowerCase().includes(query)
+        );
       });
-      // Refresh both current visitors and visit history
+    }
+    
+    // Apply sorting
+    result = result.sort((a, b) => {
+      if (sortField === "name") {
+        return sortDirection === "asc"
+          ? a.visitor.fullName.localeCompare(b.visitor.fullName)
+          : b.visitor.fullName.localeCompare(a.visitor.fullName);
+      } else if (sortField === "visitCount") {
+        const countA = a.visitor.visitCount || 0;
+        const countB = b.visitor.visitCount || 0;
+        return sortDirection === "asc" ? countA - countB : countB - countA;
+      } else if (sortField === "checkIn") {
+        const checkInA = new Date(a.visit.checkInTime).getTime();
+        const checkInB = new Date(b.visit.checkInTime).getTime();
+        return sortDirection === "asc" ? checkInA - checkInB : checkInB - checkInA;
+      }
+      return 0;
+    });
+    
+    setFilteredVisits(result);
+  };
+  
+  const handleSortChange = (field: string) => {
+    if (sortField === field) {
+      // Toggle direction if same field
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      // Set new field and default to descending
+      setSortField(field);
+      setSortDirection("desc");
+    }
+  };
+  
+  const handleCheckOut = async (visitId: number) => {
+    if (processingIds.has(visitId)) return;
+    
+    try {
+      // Add to processing set
+      setProcessingIds(new Set(processingIds.add(visitId)));
+      
+      // Check if this visit has a partner
+      const visit = visits.find(item => item.visit.id === visitId)?.visit;
+      const checkOutVisitIds = [visitId];
+      
+      if (visit?.partnerId) {
+        // If partner exists, add to the checkOutVisitIds
+        checkOutVisitIds.push(visit.partnerId);
+      }
+      
+      // Check out all visits
+      await Promise.all(
+        checkOutVisitIds.map(id => 
+          apiRequest("POST", "/api/admin/check-out-visitor", { visitId: id })
+            .then(res => res.json())
+        )
+      );
+      
+      // Show success message
+      toast({
+        title: t("success"),
+        description: checkOutVisitIds.length > 1 
+          ? t("partnersCheckedOut", { defaultValue: "Visitor and partner checked out successfully" })
+          : t("visitorCheckedOut", { defaultValue: "Visitor checked out successfully" }),
+      });
+      
+      // Refresh data
       queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
-    },
-    onError: (error) => {
+    } catch (error) {
       toast({
         title: t("error"),
-        description: `Failed to check out visitor: ${error.message}`,
+        description: `Failed to check out visitor: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
-    },
-    onSettled: (_, __, visitId) => {
-      setProcessingIds(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(visitId);
-        return newSet;
-      });
+    } finally {
+      // Remove from processing set
+      processingIds.delete(visitId);
+      setProcessingIds(new Set(processingIds));
     }
-  });
-
-  const verifyVisitorMutation = useMutation({
-    mutationFn: async ({ visitorId, verified }: { visitorId: number, verified: boolean }) => {
-      const res = await apiRequest("POST", "/api/admin/verify-visitor", { visitorId, verified });
-      return await res.json();
-    },
-    onMutate: ({ visitorId }) => {
-      setProcessingVerificationIds(prev => new Set(prev).add(visitorId));
-    },
-    onSuccess: (_, { verified }) => {
-      toast({
-        title: t("success"),
-        description: verified ? t("visitorVerified") : t("visitorUnverified"),
-      });
-      // Refresh both current visitors and visit history
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
-    },
-    onError: (error) => {
-      toast({
-        title: t("error"),
-        description: `Failed to update verification status: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-    onSettled: (_, __, { visitorId }) => {
-      setProcessingVerificationIds(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(visitorId);
-        return newSet;
-      });
-    }
-  });
-
-  const handleVerifyToggle = (visitorId: number, currentStatus: boolean) => {
-    verifyVisitorMutation.mutate({ 
-      visitorId, 
-      verified: !currentStatus 
-    });
   };
 
-  // Edit visitor mutation
-  const editVisitorMutation = useMutation({
-    mutationFn: async (visitorData: EditVisitorFormValues) => {
-      const res = await apiRequest("PUT", "/api/admin/update-visitor", visitorData);
-      return await res.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: t("success"),
-        description: t("visitorUpdated"),
-      });
-      // Close the dialog
-      setIsEditDialogOpen(false);
-      // Refresh data
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
-    },
-    onError: (error) => {
-      toast({
-        title: t("error"),
-        description: `Failed to update visitor: ${error.message}`,
-        variant: "destructive",
-      });
+  const handleHeaderCheckChange = (checked: boolean) => {
+    if (checked) {
+      setSelectedVisitors(paginatedVisits.map(item => item.visitor.id));
+    } else {
+      setSelectedVisitors([]);
     }
-  });
+  };
   
-  // Delete visitor mutation
-  const deleteVisitorMutation = useMutation({
-    mutationFn: async (visitorId: number) => {
-      const res = await apiRequest("DELETE", `/api/admin/delete-visitor/${visitorId}`);
-      return await res.json();
-    },
-    onSuccess: (data) => {
-      toast({
-        title: t("success"),
-        description: data.message || t("visitorDeleted"),
-      });
-      // Refresh data
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
-    },
-    onError: (error) => {
-      toast({
-        title: t("error"),
-        description: `Failed to delete visitor: ${error.message}`,
-        variant: "destructive",
-      });
-    }
-  });
-  
-  // Partner management functions
-  const setPartnerMutation = useMutation({
-    mutationFn: async ({ visitId, partnerId }: { visitId: number; partnerId: number }) => {
-      const res = await apiRequest("POST", "/api/admin/set-visit-partner", { visitId, partnerId });
-      return await res.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: t("success"),
-        description: t("partnersLinked", { defaultValue: "Partners successfully linked" }),
-      });
-      // Close the dialog
-      setIsPartnerDialogOpen(false);
-      // Reset selected visit
-      setSelectedVisitForPartner(null);
-      // Refresh data
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
-    },
-    onError: (error) => {
-      toast({
-        title: t("error"),
-        description: `Failed to set partner: ${error.message}`,
-        variant: "destructive",
-      });
-    }
-  });
-  
-  const removePartnerMutation = useMutation({
-    mutationFn: async (visitId: number) => {
-      const res = await apiRequest("POST", "/api/admin/remove-visit-partner", { visitId });
-      return await res.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: t("success"),
-        description: t("partnerRemoved", { defaultValue: "Partner relationship removed" }),
-      });
-      // Close the dialog
-      setIsPartnerDialogOpen(false);
-      // Reset selected visit
-      setSelectedVisitForPartner(null);
-      // Refresh data
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
-    },
-    onError: (error) => {
-      toast({
-        title: t("error"),
-        description: `Failed to remove partner: ${error.message}`,
-        variant: "destructive",
-      });
-    }
-  });
-  
-  // Handle opening partner dialog
   const handlePartnerDialog = (visitor: Visitor, visit: Visit) => {
     setSelectedVisitForPartner({ visitor, visit });
     setIsPartnerDialogOpen(true);
   };
   
-  // Handle selecting a partner
-  const handleSelectPartner = (partnerId: number) => {
-    if (!selectedVisitForPartner) return;
-    
-    setPartnerMutation.mutate({
-      visitId: selectedVisitForPartner.visit.id,
-      partnerId
-    });
-  };
-  
-  // Handle removing a partner
-  const handleRemovePartner = () => {
-    if (!selectedVisitForPartner) return;
-    
-    removePartnerMutation.mutate(selectedVisitForPartner.visit.id);
-  };
-  
-  // Auto-checkout all visitors mutation
-  const autoCheckoutMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/admin/auto-checkout");
-      return await res.json();
-    },
-    onMutate: () => {
-      setIsAutoCheckoutProcessing(true);
-    },
-    onSuccess: (data) => {
-      toast({
-        title: t("success"),
-        description: data.message || `Successfully checked out ${data.count} visitors`,
-      });
-      // Refresh data
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
-    },
-    onError: (error) => {
-      toast({
-        title: t("error"),
-        description: `Failed to auto-checkout visitors: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-    onSettled: () => {
-      setIsAutoCheckoutProcessing(false);
-    }
-  });
-
-  // Handle opening visitor detail modal
   const handleOpenDetailModal = (visitor: Visitor, visit: Visit) => {
     setSelectedVisitDetails({ visitor, visit });
-    setIsDetailModalOpen(true);
+    setIsDetailDialogOpen(true);
   };
   
-  // Handle edit visitor
   const handleEditVisitor = (visitor: Visitor) => {
     setSelectedVisitor(visitor);
+    form.reset({
+      fullName: visitor.fullName,
+      yearOfBirth: visitor.yearOfBirth,
+      sex: visitor.sex,
+      municipality: visitor.municipality,
+      email: visitor.email || "",
+      phoneNumber: visitor.phoneNumber,
+    });
     setIsEditDialogOpen(true);
   };
   
-  // Handle delete visitor
-  const handleDeleteVisitor = (visitorId: number, fullName: string) => {
-    if (confirm(t("confirmDeleteVisitor", { name: fullName }))) {
-      deleteVisitorMutation.mutate(visitorId);
-    }
-  };
-  
-  // Edit form
-  const form = useForm<EditVisitorFormValues>({
-    resolver: zodResolver(editVisitorSchema),
-    defaultValues: selectedVisitor ? {
-      id: selectedVisitor.id,
-      fullName: selectedVisitor.fullName,
-      yearOfBirth: selectedVisitor.yearOfBirth,
-      sex: selectedVisitor.sex as "Masculin" | "Feminin",
-      municipality: selectedVisitor.municipality || "",
-      email: selectedVisitor.email,
-      phoneNumber: selectedVisitor.phoneNumber
-    } : undefined
-  });
-  
-  // Update form values when selectedVisitor changes
-  useEffect(() => {
-    if (selectedVisitor) {
-      // Format phone number with leading zero if needed
-      let formattedPhoneNumber = selectedVisitor.phoneNumber;
-      if (formattedPhoneNumber && !formattedPhoneNumber.startsWith('0') && !formattedPhoneNumber.startsWith('+')) {
-        formattedPhoneNumber = '0' + formattedPhoneNumber;
-      }
-      
-      form.reset({
-        id: selectedVisitor.id,
-        fullName: selectedVisitor.fullName,
-        yearOfBirth: selectedVisitor.yearOfBirth,
-        sex: selectedVisitor.sex as "Masculin" | "Feminin",
-        municipality: selectedVisitor.municipality || "",
-        email: selectedVisitor.email,
-        phoneNumber: formattedPhoneNumber
-      });
-    }
-  }, [selectedVisitor, form]);
-  
   const onSubmit = (data: EditVisitorFormValues) => {
-    editVisitorMutation.mutate(data);
+    if (!selectedVisitor) return;
+    
+    apiRequest("PATCH", `/api/admin/visitors/${selectedVisitor.id}`, data)
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to update visitor");
+        return res.json();
+      })
+      .then(() => {
+        toast({
+          title: t("success"),
+          description: t("visitorUpdated", { defaultValue: "Visitor information updated successfully" }),
+        });
+        setIsEditDialogOpen(false);
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/visitors"] });
+      })
+      .catch(error => {
+        toast({
+          title: t("error"),
+          description: `Failed to update visitor: ${error.message}`,
+          variant: "destructive",
+        });
+      });
   };
   
-  const handleCheckOut = (visitId: number) => {
-    if (confirm(t("confirmCheckout"))) {
-      checkOutMutation.mutate(visitId);
-    }
+  const handleAssignPartner = (partnerId: number | null) => {
+    if (!selectedVisitForPartner) return;
+    
+    const visitId = selectedVisitForPartner.visit.id;
+    
+    apiRequest("POST", "/api/admin/assign-partner", { visitId, partnerId })
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to assign partner");
+        return res.json();
+      })
+      .then(() => {
+        toast({
+          title: t("success"),
+          description: partnerId 
+            ? t("partnerAssigned", { defaultValue: "Partner assigned successfully" })
+            : t("partnerRemoved", { defaultValue: "Partner removed successfully" }),
+        });
+        setIsPartnerDialogOpen(false);
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
+      })
+      .catch(error => {
+        toast({
+          title: t("error"),
+          description: `Failed to update partner: ${error.message}`,
+          variant: "destructive",
+        });
+      });
   };
-
-  // Calculate visit duration
-  const calculateDuration = (checkInTime: Date | string): string => {
-    const startTime = new Date(checkInTime).getTime();
-    const currentTime = new Date().getTime();
-    const durationMs = currentTime - startTime;
-    
-    // Convert to minutes
-    const minutes = Math.floor(durationMs / (1000 * 60));
-    
-    return `${minutes} min`;
-  };
-
-  // Handle sort change
-  const toggleSortDirection = () => {
-    setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-  };
-
-  const handleSortChange = (field: "name" | "checkIn" | "duration" | "visitCount") => {
-    if (field === sortField) {
-      toggleSortDirection();
-    } else {
-      setSortField(field);
-      setSortDirection("desc"); // Default to descending for new sort field
-    }
-  };
-
-  if (isLoading) {
-    return <div className="py-4 text-center">Loading current visitors...</div>;
-  }
-
-  if (visits.length === 0) {
-    return <div className="py-4 text-center">No visitors currently checked in.</div>;
-  }
-
-  // Filter visits based on search term (using debounced search term for better performance)
-  const filteredVisits = visits.filter(({ visitor }) => {
-    if (!debouncedSearchTerm) return true;
-    
-    // Generate badge ID for searching
-    const badgeId = formatBadgeId(visitor.id).toLowerCase();
-    const normalizedSearchTerm = normalizeText(debouncedSearchTerm);
-    
-    return (
-      normalizeText(visitor.fullName).includes(normalizedSearchTerm) ||
-      (visitor.email && normalizeText(visitor.email).includes(normalizedSearchTerm)) ||
-      normalizeText(visitor.phoneNumber).includes(normalizedSearchTerm) ||
-      badgeId.includes(normalizedSearchTerm)
-    );
-  });
-
-  // Sort the filtered visits
-  const sortedVisits = [...filteredVisits].sort((a, b) => {
-    let comparison = 0;
-    
-    switch (sortField) {
-      case "name":
-        comparison = a.visitor.fullName.localeCompare(b.visitor.fullName);
-        break;
-      case "checkIn":
-        comparison = new Date(a.visit.checkInTime).getTime() - new Date(b.visit.checkInTime).getTime();
-        break;
-      case "duration":
-        const aDuration = new Date().getTime() - new Date(a.visit.checkInTime).getTime();
-        const bDuration = new Date().getTime() - new Date(b.visit.checkInTime).getTime();
-        comparison = aDuration - bDuration;
-        break;
-      case "visitCount":
-        comparison = (a.visitor.visitCount || 0) - (b.visitor.visitCount || 0);
-        break;
-    }
-    
-    return sortDirection === "asc" ? comparison : -comparison;
-  });
   
-  // Calculate pagination
-  const totalPages = Math.ceil(sortedVisits.length / itemsPerPage);
-  const paginatedVisits = sortedVisits.slice(
-    (page - 1) * itemsPerPage,
-    page * itemsPerPage
-  );
-
-  // Safely show loading state
-  if (isLoading) {
-    return <Loading text={t("loadingCurrentVisitors")} />;
-  }
-
-  // Safely show empty state
-  if (visits.length === 0) {
-    return (
-      <div className="py-6 text-center">
-        <div className="text-gray-500 mb-2">{t("noVisitorsCurrentlyCheckedIn")}</div>
-        <div className="text-sm text-gray-400">{t("whenVisitorsCheckIn")}</div>
-      </div>
-    );
-  }
-
   return (
-    <div>
-      {/* Search bar */}
-      <div className="mb-4 px-4 pt-4">
-        <div className="relative">
+    <div className="space-y-4">
+      {/* Header with search and filters */}
+      <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between px-4 pt-4">
+        <div className="relative w-full sm:w-64 lg:w-96">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
           <Input
-            placeholder={t("searchByNameBadgePhoneEmail")}
-            className="w-full pl-9"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            type="text"
+            placeholder={t("searchVisitors", { defaultValue: "Search visitors..." })}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 h-10"
           />
         </div>
-      </div>
-      
-      {/* Auto-checkout button */}
-      <div className="flex justify-between items-center mb-4 px-4">
-        <div className="text-sm text-gray-500">
-          {t("showing")} {paginatedVisits.length} {t("of")} {sortedVisits.length} {t("activeVisitors")}
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex items-center gap-2"
-          onClick={() => {
-            if (confirm(t("confirmAutoCheckout", { defaultValue: "Are you sure you want to check out all active visitors?" }))) {
-              autoCheckoutMutation.mutate();
-            }
-          }}
-          disabled={isAutoCheckoutProcessing || visits.length === 0}
+        
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="flex items-center gap-1.5"
+          onClick={() => setIsFilterOpen(!isFilterOpen)}
         >
-          {isAutoCheckoutProcessing ? (
-            <>
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-              {t("processing", { defaultValue: "Processing..." })}
-            </>
-          ) : (
-            <>
-              <LogOut className="h-4 w-4" />
-              {t("checkOutAll", { defaultValue: "Check Out All Visitors" })}
-            </>
-          )}
+          <Filter className="h-4 w-4" />
+          {t("filters", { defaultValue: "Filters" })}
+          <ChevronDown className="h-3 w-3 opacity-50" />
         </Button>
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto border rounded-md shadow-sm relative">
-        <div className="absolute -bottom-7 right-2 text-xs text-gray-500 md:hidden">
-          <span>{t("swipeToSeeMore", { defaultValue: "← Swipe to see more →" })}</span>
-        </div>
-        <div className="w-full min-w-[900px] lg:min-w-[1100px]">
-          <Table className="w-full whitespace-nowrap">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[40px]">
-                <Checkbox
-                  checked={paginatedVisits.length > 0 && selectedVisitors.length === paginatedVisits.length}
-                  onCheckedChange={(checked: boolean) => {
-                    if (checked) {
-                      setSelectedVisitors(paginatedVisits.map(item => item.visitor.id));
-                    } else {
-                      setSelectedVisitors([]);
-                    }
-                  }}
-                />
-              </TableHead>
-              
-              {/* Visitor Information */}
-              <TableHead 
-                className="cursor-pointer" 
-                onClick={() => handleSortChange("name")}
-              >
-                <div className="flex items-center">
-                  <span className="uppercase text-xs font-medium text-gray-500">{t("visiteur")}</span>
-                  {sortField === "name" && (
-                    sortDirection === "asc" ? 
-                    <ChevronUp className="ml-1 h-4 w-4" /> : 
-                    <ChevronDown className="ml-1 h-4 w-4" />
-                  )}
-                </div>
-              </TableHead>
-              
-              {/* Contact Information */}
-              <TableHead className="hidden md:table-cell">
-                <div className="flex items-center">
-                  <span className="uppercase text-xs font-medium text-gray-500">{t("contact")}</span>
-                </div>
-              </TableHead>
-              
-              {/* Municipality Column */}
-              <TableHead className="hidden md:table-cell">
-                <div className="flex items-center">
-                  <span className="uppercase text-xs font-medium text-gray-500">{t("municipality")}</span>
-                </div>
-              </TableHead>
-              
-              {/* Badge ID Column */}
-              <TableHead>
-                <div className="flex items-center">
-                  <Tag className="mr-1 h-4 w-4" />
-                  <span className="uppercase text-xs font-medium text-gray-500">{t("badge")}</span>
-                </div>
-              </TableHead>
-              
-              {/* Visit Count Column */}
-              <TableHead
-                className="hidden sm:table-cell cursor-pointer" 
-                onClick={() => handleSortChange("visitCount")}
-              >
-                <div className="flex items-center">
-                  <Repeat className="mr-1 h-4 w-4" />
-                  <span className="uppercase text-xs font-medium text-gray-500">{t("visits")}</span>
-                  {sortField === "visitCount" && (
-                    sortDirection === "asc" ? 
-                    <ChevronUp className="ml-1 h-4 w-4" /> : 
-                    <ChevronDown className="ml-1 h-4 w-4" />
-                  )}
-                </div>
-              </TableHead>
-              
-              {/* Partner Column */}
-              <TableHead>
-                <div className="flex items-center">
-                  <Users className="mr-1 h-4 w-4" />
-                  <span className="uppercase text-xs font-medium text-gray-500">{t("partner", { defaultValue: "Partner" })}</span>
-                </div>
-              </TableHead>
-              
-              {/* Visit Time Information */}
-              <TableHead 
-                className="cursor-pointer" 
-                onClick={() => handleSortChange("checkIn")}
-              >
-                <div className="flex items-center">
-                  <Clock className="mr-1 h-4 w-4" />
-                  <span className="uppercase text-xs font-medium text-gray-500">{t("time")}</span>
-                  {sortField === "checkIn" && (
-                    sortDirection === "asc" ? 
-                    <ChevronUp className="ml-1 h-4 w-4" /> : 
-                    <ChevronDown className="ml-1 h-4 w-4" />
-                  )}
-                </div>
-              </TableHead>
-              
-              {/* Actions */}
-              <TableHead className="text-right">
-                <div className="flex items-center justify-end">
-                  <Settings className="mr-1 h-4 w-4" />
-                  <span className="uppercase text-xs font-medium text-gray-500">{t("actions")}</span>
-                </div>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedVisits.length > 0 ? (
-              paginatedVisits.map(({ visitor, visit }) => (
-                <TableRow key={visit.id} className="hover:bg-gray-50">
-                  <TableCell className="py-4 whitespace-nowrap">
+      <div className="border rounded-md shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <div className="min-w-[900px] lg:min-w-[1100px]">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[40px]">
                     <Checkbox
-                      checked={selectedVisitors.includes(visitor.id)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedVisitors([...selectedVisitors, visitor.id]);
-                        } else {
-                          setSelectedVisitors(selectedVisitors.filter(id => id !== visitor.id));
-                        }
-                      }}
+                      checked={headerChecked}
+                      onCheckedChange={handleHeaderCheckChange}
+                      aria-label={t("selectAll", { defaultValue: "Select all" })}
                     />
-                  </TableCell>
+                  </th>
                   
                   {/* Visitor Information */}
-                  <TableCell className="py-4 whitespace-nowrap">
+                  <th 
+                    scope="col" 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                    onClick={() => handleSortChange("name")}
+                  >
                     <div className="flex items-center">
-                      <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                        <span className="text-blue-600 font-medium text-sm">
-                          {getInitials(visitor.fullName)}
-                        </span>
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{visitor.fullName}</div>
-                        <div className="text-sm text-gray-500">
-                          {visitor.sex} {visitor.yearOfBirth} ({calculateAge(visitor.yearOfBirth)} ans)
-                        </div>
-                      </div>
+                      <User className="mr-1 h-4 w-4" />
+                      <span>{t("visitor", { defaultValue: "Visitor" })}</span>
+                      {sortField === "name" && (
+                        sortDirection === "asc" ? 
+                        <ChevronUp className="ml-1 h-4 w-4" /> : 
+                        <ChevronDown className="ml-1 h-4 w-4" />
+                      )}
                     </div>
-                  </TableCell>
+                  </th>
                   
                   {/* Contact Information */}
-                  <TableCell className="py-4 whitespace-nowrap hidden md:table-cell">
-                    <div className="text-sm text-gray-500">
-                      {visitor.email ? (
-                        <div>{visitor.email}</div>
-                      ) : (
-                        <div className="italic">Aucun courriel fourni</div>
-                      )}
-                      <div>{visitor.phoneNumber ? `+${visitor.phoneNumber.replace(/^0+|^\+/, '')}` : "Aucun téléphone fourni"}</div>
-                    </div>
-                  </TableCell>
-                  
-                  {/* Municipality */}
-                  <TableCell className="py-4 whitespace-nowrap hidden md:table-cell">
-                    <div className="text-sm text-gray-500">
-                      {visitor.municipality || t("notSpecified")}
-                    </div>
-                  </TableCell>
-                  
-                  {/* Badge ID */}
-                  <TableCell className="py-4 whitespace-nowrap">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-md bg-blue-100 text-blue-800">
-                      {formatBadgeId(visitor.id)}
-                    </span>
-                  </TableCell>
-                  
-                  {/* Visit Count */}
-                  <TableCell className="py-4 whitespace-nowrap hidden sm:table-cell">
-                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                      {visitor.visitCount || 1}
-                    </span>
-                  </TableCell>
-                  
-                  {/* Partner */}
-                  <TableCell className="py-4 whitespace-nowrap">
-                    {visit.partnerId ? (
-                      <div className="flex items-center text-blue-600">
-                        <span className="inline-block h-5 w-5 rounded-full bg-blue-100 text-xs flex items-center justify-center mr-1.5">
-                          {getInitials(paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || '')}
-                        </span>
-                        <span className="text-sm font-medium" title={paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || ''}>
-                          {paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || 
-                            formatBadgeId(paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.id || 0)}
-                        </span>
-                      </div>
-                    ) : (
-                      <span className="text-sm text-gray-500">Pas de partenaire</span>
-                    )}
-                  </TableCell>
-                  
-                  {/* Visit Time */}
-                  <TableCell className="py-4 whitespace-nowrap">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                     <div className="flex items-center">
-                      <div className="h-2 w-2 rounded-full bg-green-500 mr-2"></div>
-                      <div className="text-sm font-medium">{formatTimeOnly(visit.checkInTime, language)}</div>
-                      <div className="text-sm text-gray-500 ml-2">{calculateDuration(visit.checkInTime)}</div>
+                      <Mail className="mr-1 h-4 w-4" />
+                      <span>{t("contact", { defaultValue: "Contact" })}</span>
                     </div>
-                  </TableCell>
+                  </th>
+                  
+                  {/* Municipality Column */}
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                    <div className="flex items-center">
+                      <MapPin className="mr-1 h-4 w-4" />
+                      <span>{t("municipality", { defaultValue: "Municipality" })}</span>
+                    </div>
+                  </th>
+                  
+                  {/* Badge ID Column */}
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center">
+                      <Tag className="mr-1 h-4 w-4" />
+                      <span>{t("badge", { defaultValue: "Badge" })}</span>
+                    </div>
+                  </th>
+                  
+                  {/* Visit Count Column */}
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell cursor-pointer"
+                    onClick={() => handleSortChange("visitCount")}
+                  >
+                    <div className="flex items-center">
+                      <Repeat className="mr-1 h-4 w-4" />
+                      <span>{t("visits", { defaultValue: "Visits" })}</span>
+                      {sortField === "visitCount" && (
+                        sortDirection === "asc" ? 
+                        <ChevronUp className="ml-1 h-4 w-4" /> : 
+                        <ChevronDown className="ml-1 h-4 w-4" />
+                      )}
+                    </div>
+                  </th>
+                  
+                  {/* Partner Column */}
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center">
+                      <Users className="mr-1 h-4 w-4" />
+                      <span>{t("partner", { defaultValue: "Partner" })}</span>
+                    </div>
+                  </th>
+                  
+                  {/* Visit Time Information */}
+                  <th 
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" 
+                    onClick={() => handleSortChange("checkIn")}
+                  >
+                    <div className="flex items-center">
+                      <Clock className="mr-1 h-4 w-4" />
+                      <span>{t("time", { defaultValue: "Time" })}</span>
+                      {sortField === "checkIn" && (
+                        sortDirection === "asc" ? 
+                        <ChevronUp className="ml-1 h-4 w-4" /> : 
+                        <ChevronDown className="ml-1 h-4 w-4" />
+                      )}
+                    </div>
+                  </th>
                   
                   {/* Actions */}
-                  <TableCell className="py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div className="flex space-x-2">
-                      <button 
-                        className="p-1 rounded-md text-gray-500 hover:bg-gray-100"
-                        onClick={() => handleOpenDetailModal(visitor, visit)}
-                        title={t("view", { defaultValue: "View" })}
-                      >
-                        <Eye size={16} className="text-gray-500" />
-                      </button>
-                      
-                      <button 
-                        className="p-1 rounded-md text-green-600 hover:bg-green-100"
-                        onClick={() => handleCheckOut(visit.id)}
-                        disabled={processingIds.has(visit.id)}
-                        title={t("checkOut", { defaultValue: "Check out" })}
-                      >
-                        {processingIds.has(visit.id) ? (
-                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-600 border-t-transparent" />
-                        ) : (
-                          <LogOut size={16} className="text-green-600" />
-                        )}
-                      </button>
-                      
-                      <button 
-                        className="p-1 rounded-md text-purple-600 hover:bg-purple-100"
-                        onClick={() => handlePartnerDialog(visitor, visit)}
-                        title={t("partner", { defaultValue: "Partner" })}
-                      >
-                        <UserPlus size={16} className="text-purple-600" />
-                      </button>
+                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center justify-end">
+                      <Settings className="mr-1 h-4 w-4" />
+                      <span>{t("actions", { defaultValue: "Actions" })}</span>
                     </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={10} className="text-center py-4 text-gray-500">
-                  {t("noVisitorsMatch")}
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {paginatedVisits.length > 0 ? (
+                  paginatedVisits.map(({ visitor, visit }) => (
+                    <tr key={visit.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Checkbox
+                          checked={selectedVisitors.includes(visitor.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedVisitors([...selectedVisitors, visitor.id]);
+                            } else {
+                              setSelectedVisitors(selectedVisitors.filter(id => id !== visitor.id));
+                            }
+                          }}
+                        />
+                      </td>
+                      
+                      {/* Visitor Information */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                            <span className="text-blue-600 font-medium text-sm">
+                              {getInitials(visitor.fullName)}
+                            </span>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">{visitor.fullName}</div>
+                            <div className="text-sm text-gray-500">
+                              {visitor.sex} {visitor.yearOfBirth} ({calculateAge(visitor.yearOfBirth)} ans)
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      
+                      {/* Contact Information */}
+                      <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">
+                        <div className="text-sm text-gray-500">
+                          {visitor.email ? (
+                            <div>{visitor.email}</div>
+                          ) : (
+                            <div className="italic">{t("noEmail", { defaultValue: "No email provided" })}</div>
+                          )}
+                          <div>{visitor.phoneNumber ? `+${visitor.phoneNumber.replace(/^0+|^\+/, '')}` : t("noPhone", { defaultValue: "No phone provided" })}</div>
+                        </div>
+                      </td>
+                      
+                      {/* Municipality */}
+                      <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">
+                        <div className="text-sm text-gray-500">
+                          {visitor.municipality || t("notSpecified", { defaultValue: "Not specified" })}
+                        </div>
+                      </td>
+                      
+                      {/* Badge ID */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-md bg-blue-100 text-blue-800">
+                          {formatBadgeId(visitor.id)}
+                        </span>
+                      </td>
+                      
+                      {/* Visit Count */}
+                      <td className="px-6 py-4 whitespace-nowrap hidden sm:table-cell">
+                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                          {visitor.visitCount || 1}
+                        </span>
+                      </td>
+                      
+                      {/* Partner */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {visit.partnerId ? (
+                          <div className="flex items-center text-blue-600">
+                            <span className="inline-block h-5 w-5 rounded-full bg-blue-100 text-xs flex items-center justify-center mr-1.5">
+                              {getInitials(paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || '')}
+                            </span>
+                            <span className="text-sm font-medium" title={paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || ''}>
+                              {paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || 
+                                formatBadgeId(paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.id || 0)}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-gray-500">{t("noPartner", { defaultValue: "No partner" })}</span>
+                        )}
+                      </td>
+                      
+                      {/* Visit Time */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="h-2 w-2 rounded-full bg-green-500 mr-2"></div>
+                          <div className="text-sm font-medium">{formatTimeOnly(visit.checkInTime, language)}</div>
+                          <div className="text-sm text-gray-500 ml-2">{calculateDuration(visit.checkInTime)}</div>
+                        </div>
+                      </td>
+                      
+                      {/* Actions */}
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
+                        <div className="flex space-x-2 justify-end">
+                          <button 
+                            className="p-1 rounded-md text-gray-500 hover:bg-gray-100"
+                            onClick={() => handleOpenDetailModal(visitor, visit)}
+                            title={t("view", { defaultValue: "View" })}
+                          >
+                            <Eye size={16} className="text-gray-500" />
+                          </button>
+                          
+                          <button 
+                            className="p-1 rounded-md text-green-600 hover:bg-green-100"
+                            onClick={() => handleCheckOut(visit.id)}
+                            disabled={processingIds.has(visit.id)}
+                            title={t("checkOut", { defaultValue: "Check out" })}
+                          >
+                            {processingIds.has(visit.id) ? (
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-600 border-t-transparent" />
+                            ) : (
+                              <LogOut size={16} className="text-green-600" />
+                            )}
+                          </button>
+                          
+                          <button 
+                            className="p-1 rounded-md text-purple-600 hover:bg-purple-100"
+                            onClick={() => handlePartnerDialog(visitor, visit)}
+                            title={t("partner", { defaultValue: "Partner" })}
+                          >
+                            <UserPlus size={16} className="text-purple-600" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={9} className="px-6 py-4 text-center text-gray-500">
+                      {isLoading 
+                        ? t("loading", { defaultValue: "Loading..." })
+                        : t("noVisitorsMatch", { defaultValue: "No visitors match your search criteria" })}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        {/* Add mobile swipe indicator */}
+        <div className="md:hidden text-xs text-center text-gray-500 pb-2 pt-1">
+          <span>{t("swipeToSeeMore", { defaultValue: "← Swipe to see more →" })}</span>
         </div>
       </div>
       
@@ -868,11 +708,11 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
               <SelectValue placeholder={`10 ${t("itemsPerPage")}`} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="10">10 {t("itemsPerPage")}</SelectItem>
-              <SelectItem value="20">20 {t("itemsPerPage")}</SelectItem>
-              <SelectItem value="30">30 {t("itemsPerPage")}</SelectItem>
-              <SelectItem value="50">50 {t("itemsPerPage")}</SelectItem>
-              <SelectItem value="100">100 {t("itemsPerPage")}</SelectItem>
+              <SelectItem value="10">10 {t("itemsPerPage", { defaultValue: "items per page" })}</SelectItem>
+              <SelectItem value="20">20 {t("itemsPerPage", { defaultValue: "items per page" })}</SelectItem>
+              <SelectItem value="30">30 {t("itemsPerPage", { defaultValue: "items per page" })}</SelectItem>
+              <SelectItem value="50">50 {t("itemsPerPage", { defaultValue: "items per page" })}</SelectItem>
+              <SelectItem value="100">100 {t("itemsPerPage", { defaultValue: "items per page" })}</SelectItem>
             </SelectContent>
           </Select>
           
@@ -887,7 +727,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
               &lt;
             </Button>
             <div className="border-y px-3 flex items-center text-sm">
-              <span className="text-gray-500">{t("page")} {page || 1} {t("of")} {Math.max(1, totalPages || 1)}</span>
+              <span className="text-gray-500">{t("page", { defaultValue: "Page" })} {page || 1} {t("of", { defaultValue: "of" })} {Math.max(1, totalPages || 1)}</span>
             </div>
             <Button
               variant="outline"
@@ -906,9 +746,9 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{t("editVisitor")}</DialogTitle>
+            <DialogTitle>{t("editVisitorInformation", { defaultValue: "Edit Visitor Information" })}</DialogTitle>
             <DialogDescription>
-              {t("editVisitorDescription")}
+              {t("updateVisitorDetails", { defaultValue: "Update the visitor's personal information and contact details." })}
             </DialogDescription>
           </DialogHeader>
           
@@ -919,7 +759,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 name="fullName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("fullName")}</FormLabel>
+                    <FormLabel>{t("fullName", { defaultValue: "Full Name" })}</FormLabel>
                     <FormControl>
                       <Input placeholder="John Smith" {...field} />
                     </FormControl>
@@ -933,7 +773,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 name="yearOfBirth"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("yearOfBirth")}</FormLabel>
+                    <FormLabel>{t("yearOfBirth", { defaultValue: "Year of Birth" })}</FormLabel>
                     <FormControl>
                       <Input 
                         type="number" 
@@ -952,19 +792,19 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 name="sex"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("sex")}</FormLabel>
+                    <FormLabel>{t("sex", { defaultValue: "Sex" })}</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       value={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder={t("selectSex")} />
+                          <SelectValue placeholder={t("selectSex", { defaultValue: "Select sex" })} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Masculin">{t("male")}</SelectItem>
-                        <SelectItem value="Feminin">{t("female")}</SelectItem>
+                        <SelectItem value="Masculin">{t("male", { defaultValue: "Male" })}</SelectItem>
+                        <SelectItem value="Feminin">{t("female", { defaultValue: "Female" })}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -977,7 +817,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 name="municipality"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("municipality")}</FormLabel>
+                    <FormLabel>{t("municipality", { defaultValue: "Municipality" })}</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       value={field.value || ""}
@@ -985,7 +825,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder={t("selectMunicipality")} />
+                          <SelectValue placeholder={t("selectMunicipality", { defaultValue: "Select municipality" })} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="max-h-[200px]">
@@ -1006,7 +846,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("emailAddressOptional")}</FormLabel>
+                    <FormLabel>{t("emailAddressOptional", { defaultValue: "Email Address (Optional)" })}</FormLabel>
                     <FormControl>
                       <Input 
                         placeholder="john@example.com" 
@@ -1025,201 +865,206 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 name="phoneNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("phoneNumber")}</FormLabel>
+                    <FormLabel>{t("phoneNumber", { defaultValue: "Phone Number" })}</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="0xxxxxxxx" 
-                        {...field} 
-                        onChange={(e) => {
-                          // Get value without any leading zero
-                          let value = e.target.value.replace(/^0+/, '');
-                          
-                          // If the value doesn't start with a + (international format)
-                          // and it's not empty, add a leading zero
-                          if (value && !value.startsWith('+')) {
-                            value = '0' + value;
-                          }
-                          
-                          field.onChange(value);
-                        }}
-                      />
+                      <Input placeholder="+1234567890" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               
-              <DialogFooter className="sm:justify-between">
-                <DialogClose asChild>
-                  <Button type="button" variant="outline">
-                    {t("cancel")}
-                  </Button>
-                </DialogClose>
-                <Button 
-                  type="submit" 
-                  disabled={editVisitorMutation.isPending}
-                  className="min-w-[100px]"
-                >
-                  {editVisitorMutation.isPending ? 
-                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent mx-auto" /> : 
-                    <>{t("saveChanges")}</>
-                  }
+              <div className="flex justify-end gap-2 mt-6">
+                <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                  {t("cancel", { defaultValue: "Cancel" })}
                 </Button>
-              </DialogFooter>
+                <Button type="submit">{t("saveChanges", { defaultValue: "Save Changes" })}</Button>
+              </div>
             </form>
           </Form>
         </DialogContent>
       </Dialog>
       
-      {/* Visitor Detail Modal */}
-      {selectedVisitDetails && (
-        <VisitorDetailModal
-          visitor={selectedVisitDetails.visitor}
-          visit={selectedVisitDetails.visit}
-          isOpen={isDetailModalOpen}
-          onClose={() => setIsDetailModalOpen(false)}
-          onEdit={() => {
-            setIsDetailModalOpen(false);
-            handleEditVisitor(selectedVisitDetails.visitor);
-          }}
-          onDelete={() => {
-            setIsDetailModalOpen(false);
-            handleDeleteVisitor(selectedVisitDetails.visitor.id, selectedVisitDetails.visitor.fullName);
-          }}
-          showDeleteButton={false} // Hide delete button for current visitors
-        />
-      )}
-      
       {/* Partner Selection Dialog */}
       <Dialog open={isPartnerDialogOpen} onOpenChange={setIsPartnerDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{t("selectPartner", { defaultValue: "Select Partner" })}</DialogTitle>
+            <DialogTitle>{t("selectPartner", { defaultValue: "Select a Partner" })}</DialogTitle>
             <DialogDescription>
-              {selectedVisitForPartner && 
-                t("selectPartnerDescription", { 
-                  firstName: selectedVisitForPartner.visitor.fullName.split(' ')[0],
-                  defaultValue: "Select the visitor you wish to associate with {firstName}. Don't hesitate to ask the visitor questions if you're not sure."
-                })
-              }
+              {t("partnerDescription", { defaultValue: "Link this visitor with another visitor who arrived together." })}
             </DialogDescription>
           </DialogHeader>
           
-          <div className="py-4">
-            {selectedVisitForPartner?.visit.partnerId ? (
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 p-3 border rounded-md bg-indigo-50">
-                  <Users className="h-5 w-5 text-indigo-600" />
-                  <div className="flex-1">
-                    <p className="font-medium">
-                      {t("currentlyPartneredWith", { defaultValue: "Currently partnered with" })}:
-                    </p>
-                    <div className="text-sm mt-1">
-                      {visits.find(item => item.visit.id === selectedVisitForPartner.visit.partnerId)?.visitor.fullName || 
-                        formatBadgeId(visits.find(item => item.visit.id === selectedVisitForPartner.visit.partnerId)?.visitor.id || 0)}
-                    </div>
-                  </div>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleRemovePartner()}
-                    className="ml-auto"
-                  >
-                    <UserMinus className="h-4 w-4 mr-1" />
-                    {t("removePartner", { defaultValue: "Remove" })}
-                  </Button>
+          <div className="space-y-4 py-4">
+            {/* Current partner info if any */}
+            {selectedVisitForPartner?.visit.partnerId && (
+              <div className="flex items-center p-4 bg-blue-50 rounded-md text-blue-700">
+                <Users className="h-5 w-5 mr-2 text-blue-600" />
+                <div className="text-sm">
+                  <span className="font-medium">{t("currentPartner", { defaultValue: "Current partner" })}: </span>
+                  {visits.find(item => item.visit.id === selectedVisitForPartner?.visit.partnerId)?.visitor.fullName || 
+                    formatBadgeId(visits.find(item => item.visit.id === selectedVisitForPartner?.visit.partnerId)?.visitor.id || 0)}
                 </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-                  <Input
-                    placeholder={t("searchForVisitor", { defaultValue: "Search for a visitor..." })}
-                    className="pl-9"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-                
-                <div className="border rounded-md overflow-hidden max-h-[300px] overflow-y-auto">
-                  {/* Use the full visits array instead of just paginated visits to show all possible partners */}
-                  {visits.filter(item => {
-                    // Exclude the current visitor and any already paired visitors
-                    const isNotCurrentAndNotPaired = 
-                      item.visit.id !== selectedVisitForPartner?.visit.id && 
-                      !item.visit.partnerId;
-                    
-                    // Apply search filter if there is a search term
-                    if (!searchTerm) return isNotCurrentAndNotPaired;
-                    
-                    const normalizedSearchTerm = normalizeText(searchTerm);
-                    return isNotCurrentAndNotPaired && (
-                      normalizeText(item.visitor.fullName).includes(normalizedSearchTerm) ||
-                      formatBadgeId(item.visitor.id).toLowerCase().includes(normalizedSearchTerm) ||
-                      (item.visitor.phoneNumber && normalizeText(item.visitor.phoneNumber).includes(normalizedSearchTerm))
-                    );
-                  }).map(({ visitor, visit }) => (
-                    <div 
-                      key={visit.id}
-                      className="flex items-center gap-3 p-3 border-b last:border-b-0 hover:bg-gray-50 cursor-pointer"
-                      onClick={() => handleSelectPartner(visit.id)}
-                    >
-                      <Avatar className="h-9 w-9 bg-primary/10">
-                        <AvatarFallback className="text-primary font-medium">
-                          {getInitials(visitor.fullName)}
-                        </AvatarFallback>
-                      </Avatar>
-                      
-                      <div className="flex-1">
-                        <div className="font-medium">{visitor.fullName}</div>
-                        <div className="text-sm text-gray-500">
-                          {t("badgeColon", { defaultValue: "Badge:" })} {formatBadgeId(visitor.id)} | {t("timeColon", { defaultValue: "Time:" })} {formatTimeOnly(visit.checkInTime, language)}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {visits.filter(item => {
-                    // Use the same filter logic as above for consistency
-                    const isNotCurrentAndNotPaired = 
-                      item.visit.id !== selectedVisitForPartner?.visit.id && 
-                      !item.visit.partnerId;
-                    
-                    // Apply search filter if there is a search term
-                    if (!searchTerm) return isNotCurrentAndNotPaired;
-                    
-                    const normalizedSearchTerm = normalizeText(searchTerm);
-                    return isNotCurrentAndNotPaired && (
-                      normalizeText(item.visitor.fullName).includes(normalizedSearchTerm) ||
-                      formatBadgeId(item.visitor.id).toLowerCase().includes(normalizedSearchTerm) ||
-                      (item.visitor.phoneNumber && normalizeText(item.visitor.phoneNumber).includes(normalizedSearchTerm))
-                    );
-                  }).length === 0 && (
-                    <div className="p-4 text-center text-gray-500">
-                      {searchTerm ? 
-                        t("noMatchingPartners", { defaultValue: "No matching partners found. Try a different search term." }) :
-                        t("noAvailablePartners", { defaultValue: "No available partners found. All visitors are already paired or no other visitors are checked in." })}
-                    </div>
-                  )}
-                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="ml-auto text-blue-600 hover:text-blue-800 hover:bg-blue-100 p-1 h-auto"
+                  onClick={() => handleAssignPartner(null)}
+                >
+                  {t("remove", { defaultValue: "Remove" })}
+                </Button>
               </div>
             )}
+            
+            <div className="space-y-4 max-h-[300px] overflow-y-auto">
+              {/* List of potential partners (all other current visitors) */}
+              {visits
+                .filter(({ visit }) => 
+                  visit.id !== selectedVisitForPartner?.visit.id && 
+                  visit.partnerId !== selectedVisitForPartner?.visit.id &&
+                  !visit.partnerId
+                )
+                .map(({ visitor, visit }) => (
+                  <div 
+                    key={visit.id}
+                    className="flex items-center p-2 rounded-md hover:bg-gray-50 cursor-pointer border"
+                    onClick={() => handleAssignPartner(visit.id)}
+                  >
+                    <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                      <span className="text-blue-600 font-medium text-sm">
+                        {getInitials(visitor.fullName)}
+                      </span>
+                    </div>
+                    <div className="ml-3">
+                      <div className="text-sm font-medium">{visitor.fullName}</div>
+                      <div className="text-xs text-gray-500">
+                        {formatBadgeId(visitor.id)} • {formatTimeOnly(visit.checkInTime, language)}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                {visits.filter(({ visit }) => 
+                  visit.id !== selectedVisitForPartner?.visit.id && 
+                  visit.partnerId !== selectedVisitForPartner?.visit.id &&
+                  !visit.partnerId
+                ).length === 0 && (
+                  <div className="text-center p-4 text-gray-500 italic">
+                    {t("noAvailablePartners", { defaultValue: "No available partners. All visitors are already paired or checked out." })}
+                  </div>
+                )}
+            </div>
           </div>
           
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsPartnerDialogOpen(false)}>
-              {t("close", { defaultValue: "Close" })}
-            </Button>
-          </DialogFooter>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setIsPartnerDialogOpen(false)}>{t("close", { defaultValue: "Close" })}</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Visitor Details Dialog */}
+      <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("visitorDetails", { defaultValue: "Visitor Details" })}</DialogTitle>
+          </DialogHeader>
+          
+          {selectedVisitDetails && (
+            <div className="space-y-4">
+              <div className="flex items-center">
+                <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+                  <span className="text-blue-600 font-medium text-lg">
+                    {getInitials(selectedVisitDetails.visitor.fullName)}
+                  </span>
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-medium">{selectedVisitDetails.visitor.fullName}</h3>
+                  <p className="text-sm text-gray-500">
+                    {selectedVisitDetails.visitor.sex} • {calculateAge(selectedVisitDetails.visitor.yearOfBirth)} {t("yearsOld", { defaultValue: "years old" })}
+                  </p>
+                </div>
+                <Badge className="ml-auto px-2 py-1" variant="outline">
+                  {formatBadgeId(selectedVisitDetails.visitor.id)}
+                </Badge>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 pt-4">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-500">{t("contact", { defaultValue: "Contact" })}</h4>
+                  <p className="text-sm mt-1">
+                    {selectedVisitDetails.visitor.email || t("noEmail", { defaultValue: "No email provided" })}
+                  </p>
+                  <p className="text-sm">{selectedVisitDetails.visitor.phoneNumber || t("noPhone", { defaultValue: "No phone provided" })}</p>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium text-gray-500">{t("location", { defaultValue: "Location" })}</h4>
+                  <p className="text-sm mt-1">{selectedVisitDetails.visitor.municipality || t("notSpecified", { defaultValue: "Not specified" })}</p>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium text-gray-500">{t("checkInTime", { defaultValue: "Check-in Time" })}</h4>
+                  <p className="text-sm mt-1">{formatDateTime(selectedVisitDetails.visit.checkInTime, language)}</p>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium text-gray-500">{t("visitPurpose", { defaultValue: "Visit Purpose" })}</h4>
+                  <p className="text-sm mt-1">{selectedVisitDetails.visit.purpose || t("notSpecified", { defaultValue: "Not specified" })}</p>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium text-gray-500">{t("totalVisits", { defaultValue: "Total Visits" })}</h4>
+                  <p className="text-sm mt-1">{selectedVisitDetails.visitor.visitCount || 1}</p>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium text-gray-500">{t("partner", { defaultValue: "Partner" })}</h4>
+                  <p className="text-sm mt-1">
+                    {selectedVisitDetails.visit.partnerId 
+                      ? visits.find(item => item.visit.id === selectedVisitDetails.visit.partnerId)?.visitor.fullName || formatBadgeId(visits.find(item => item.visit.id === selectedVisitDetails.visit.partnerId)?.visitor.id || 0)
+                      : t("noPartner", { defaultValue: "No partner" })}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex justify-between gap-2 pt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                  onClick={() => {
+                    setIsDetailDialogOpen(false);
+                    handleEditVisitor(selectedVisitDetails.visitor);
+                  }}
+                >
+                  {t("edit", { defaultValue: "Edit Visitor" })}
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-green-600 border-green-200 hover:bg-green-50"
+                  onClick={() => {
+                    if (window.confirm(t("confirmCheckOut", { defaultValue: "Are you sure you want to check out this visitor?" }))) {
+                      handleCheckOut(selectedVisitDetails.visit.id);
+                      setIsDetailDialogOpen(false);
+                    }
+                  }}
+                >
+                  <LogOut className="h-4 w-4 mr-1" />
+                  {t("checkOut", { defaultValue: "Check Out" })}
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
   );
 }
 
-// Export the component directly
+// Export
 export type { AdminVisitorsTableProps };
-export const AdminVisitorsTable = function(props: AdminVisitorsTableProps) {
+export function AdminVisitorsTable(props: AdminVisitorsTableProps) {
   return <AdminVisitorsTableComponent {...props} />;
-};
+}

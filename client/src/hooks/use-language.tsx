@@ -861,6 +861,34 @@ export const translations: TranslationMap = {
     en: 'No phone provided',
     fr: 'Pas de téléphone fourni'
   },
+  swipeToSeeMore: {
+    en: '← Swipe to see more →',
+    fr: '← Glissez pour voir plus →'
+  },
+  noPhone: {
+    en: 'No phone provided',
+    fr: 'Aucun téléphone fourni'
+  },
+  noEmail: {
+    en: 'No email provided',
+    fr: 'Aucun courriel fourni'
+  },
+  filters: {
+    en: 'Filters',
+    fr: 'Filtres'
+  },
+  editVisitorInformation: {
+    en: 'Edit Visitor Information',
+    fr: 'Modifier les informations du visiteur'
+  },
+  updateVisitorDetails: {
+    en: 'Update the visitor\'s personal information and contact details.',
+    fr: 'Mettre à jour les informations personnelles et les coordonnées du visiteur.'
+  },
+  close: {
+    en: 'Close',
+    fr: 'Fermer'
+  },
   historiqueDesVisites: {
     en: 'Visit History',
     fr: 'Historique des Visites'
