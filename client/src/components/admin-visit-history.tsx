@@ -502,7 +502,7 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
     setSortDirection(sortDirection === "asc" ? "desc" : "asc");
   };
 
-  const handleSortChange = (field: "name" | "checkIn" | "checkOut" | "duration" | "visitCount") => {
+  const handleSortChange = (field: "name" | "checkIn" | "checkOut" | "duration" | "visitCount" | "municipality" | "badge") => {
     if (field === sortField) {
       toggleSortDirection();
     } else {
