@@ -21,6 +21,10 @@ const translations: TranslationConfig = {
     en: "Remove",
     fr: "Supprimer"
   },
+  "success": {
+    en: "Success",
+    fr: "Succès"
+  },
   "partnerAssigned": {
     en: "Partner assigned successfully",
     fr: "Partenaire assigné avec succès"
@@ -28,6 +32,10 @@ const translations: TranslationConfig = {
   "currentPartner": {
     en: "Current partner",
     fr: "Partenaire actuel"
+  },
+  "partnerRemoved": {
+    en: "Partner removed successfully",
+    fr: "Partenaire supprimé avec succès"
   }
 };
 
