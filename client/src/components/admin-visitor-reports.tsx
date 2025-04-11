@@ -187,17 +187,32 @@ export function AdminVisitorReports() {
   });
 
   // Fetch all visitors for the dropdown
-  const { data: visitors = [] } = useQuery<Visitor[]>({
+  const { 
+    data: visitors = [],
+    isLoading: isLoadingVisitors,
+    isError: isVisitorsError,
+    error: visitorsError
+  } = useQuery<Visitor[]>({
     queryKey: ["/api/admin/visitors"],
+    retry: 3,
+    onError: (error) => {
+      console.error("Error fetching visitors:", error);
+    }
   });
 
   // Fetch all reports
   const { 
     data: reports = [], 
     isLoading: isLoadingReports,
+    isError: isReportsError,
+    error: reportsError,
     refetch: refetchReports
   } = useQuery<VisitorReport[]>({
     queryKey: ["/api/admin/visitor-reports"],
+    retry: 3,
+    onError: (error) => {
+      console.error("Error fetching visitor reports:", error);
+    }
   });
 
   // Fetch visitor-specific reports if a visitor is selected
@@ -329,6 +344,53 @@ export function AdminVisitorReports() {
     const date = dateString instanceof Date ? dateString : new Date(dateString);
     return date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
+
+  // Display errors if they occur
+  if (isVisitorsError || isReportsError) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("visitorReports")}</CardTitle>
+            <CardDescription>
+              {t("visitorReportsDescription")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
+              <h3 className="text-red-800 font-medium">Error loading reports</h3>
+              {isVisitorsError && (
+                <p className="text-red-700 text-sm mt-1">
+                  Failed to load visitors: {visitorsError instanceof Error ? visitorsError.message : "Unknown error"}
+                </p>
+              )}
+              {isReportsError && (
+                <p className="text-red-700 text-sm mt-1">
+                  Failed to load reports: {reportsError instanceof Error ? reportsError.message : "Unknown error"}
+                </p>
+              )}
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="mt-2"
+                onClick={() => {
+                  queryClient.invalidateQueries({ queryKey: ["/api/admin/visitors"] });
+                  queryClient.invalidateQueries({ queryKey: ["/api/admin/visitor-reports"] });
+                }}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Retry
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Add debugging information
+  console.log("Visitors data:", visitors);
+  console.log("Reports data:", reports);
 
   return (
     <div className="space-y-6">
