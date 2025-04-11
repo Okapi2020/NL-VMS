@@ -150,40 +150,53 @@ const MOCK_ADMIN: Admin = {
   preferredLanguage: "fr"
 };
 
+// Mock login data for type safety
+const MOCK_LOGIN_DATA: LoginData = {
+  username: "admin",
+  password: "password"
+};
+
 const createMockAuth = (): AuthContextType => {
+  // Create a minimal mock that satisfies the TypeScript requirements
   return {
     user: MOCK_ADMIN,
     isLoading: false,
     error: null,
     loginMutation: {
       mutate: () => console.log("Mock login"),
+      mutateAsync: async () => MOCK_ADMIN,
       isPending: false,
       isError: false,
       isSuccess: true,
-      reset: () => {},
-      variables: undefined,
-      context: undefined,
+      isIdle: false,
+      isPaused: false,
       status: "success",
       error: null,
       data: MOCK_ADMIN,
       failureCount: 0,
       failureReason: null,
-      mutateAsync: async () => MOCK_ADMIN
+      reset: () => {},
+      variables: MOCK_LOGIN_DATA,
+      context: undefined,
+      submittedAt: Date.now()
     },
     logoutMutation: {
       mutate: () => console.log("Mock logout"),
+      mutateAsync: async () => {},
       isPending: false,
       isError: false,
       isSuccess: true,
-      reset: () => {},
-      variables: undefined,
-      context: undefined,
+      isIdle: false,
+      isPaused: false,
       status: "success",
       error: null,
       data: undefined,
       failureCount: 0,
       failureReason: null,
-      mutateAsync: async () => {}
+      reset: () => {},
+      variables: undefined,
+      context: undefined,
+      submittedAt: Date.now()
     }
   };
 };

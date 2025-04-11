@@ -144,7 +144,7 @@ export function setupAuth(app: Express) {
     console.log("GET /api/admin/user - isAuthenticated:", req.isAuthenticated());
     console.log("Session ID:", req.sessionID);
     
-    const isDevelopment = process.env.NODE_ENV !== 'production';
+    const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === undefined;
     
     if (req.isAuthenticated()) {
       console.log("Authenticated user:", req.user);

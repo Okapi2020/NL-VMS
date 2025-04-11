@@ -40,20 +40,37 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export default function AdminDashboard() {
-  // Safely handle auth context
-  let user = null;
+  // Check if we're in development mode
+  const isDevelopment = import.meta.env.DEV === true;
+  
+  // Mock user for development mode if needed
+  let user = isDevelopment ? {
+    id: 1,
+    username: "admin",
+    password: "********", // Password is hidden
+    preferredLanguage: "fr"
+  } : null;
+  
+  // Mock logout mutation for development mode
   let logoutMutation = {
-    mutate: () => { console.error("Logout not available"); },
+    mutate: () => { 
+      console.log(isDevelopment ? "Mock logout in development mode" : "Logout not available"); 
+    },
     isPending: false
   };
   
+  // Try using the real auth if available
   try {
     const auth = useAuth();
-    user = auth.user;
+    user = auth.user || user; // Fall back to the mock user if needed
     logoutMutation = auth.logoutMutation;
   } catch (error) {
-    console.error("Error accessing auth context:", error);
-    // Auth error will be handled by the protected route wrapper
+    if (!isDevelopment) {
+      console.error("Error accessing auth context:", error);
+    } else {
+      console.log("Using mock authentication in development mode");
+    }
+    // Auth error will be handled by mock data or protected route wrapper
   }
   
   const { toast } = useToast();
