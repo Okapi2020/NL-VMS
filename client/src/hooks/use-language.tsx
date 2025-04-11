@@ -817,6 +817,38 @@ export const translations: TranslationMap = {
     en: 'Partner relationship removed',
     fr: 'Relation partenaire supprimée'
   },
+  partner: {
+    en: 'Partner',
+    fr: 'Partenaire'
+  },
+  noPartner: {
+    en: 'No partner',
+    fr: 'Pas de partenaire'
+  },
+  selectPartner: {
+    en: 'Select Partner',
+    fr: 'Sélectionner un partenaire'
+  },
+  selectPartnerDescription: {
+    en: 'Select a partner for ${fullName} who arrived together.',
+    fr: 'Sélectionnez un partenaire pour ${fullName} qui est arrivé ensemble.'
+  },
+  currentlyPartneredWith: {
+    en: 'Currently partnered with',
+    fr: 'Actuellement associé avec'
+  },
+  removePartner: {
+    en: 'Remove',
+    fr: 'Supprimer'
+  },
+  searchForVisitor: {
+    en: 'Search for a visitor...',
+    fr: 'Rechercher un visiteur...'
+  },
+  noAvailablePartners: {
+    en: 'No available partners found. All visitors are already paired or no other visitors are checked in.',
+    fr: 'Aucun partenaire disponible trouvé. Tous les visiteurs sont déjà associés ou aucun autre visiteur n\'est enregistré.'
+  },
   viewDetails: {
     en: 'View details',
     fr: 'Voir les détails'

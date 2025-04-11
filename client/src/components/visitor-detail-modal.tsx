@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Visit, Visitor } from "@shared/schema";
 import {
   Dialog,
@@ -7,10 +7,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { formatDate, formatTimeOnly, formatDateShort, formatDuration, formatBadgeId, formatYearWithAge } from "@/lib/utils";
 import { useLanguage } from "@/hooks/use-language";
-import { X, Pencil, Trash2, ShieldCheck } from "lucide-react";
+import { X, Pencil, Trash2, ShieldCheck, Users, Link2 } from "lucide-react";
 import { PhoneNumberLink } from "@/components/phone-number-link";
+import { useQuery } from "@tanstack/react-query";
 
 type VisitorDetailModalProps = {
   visitor?: Visitor;
@@ -32,6 +34,28 @@ export function VisitorDetailModal({
   showDeleteButton = true, // Default to showing the delete button
 }: VisitorDetailModalProps) {
   const { t, language } = useLanguage();
+  const [partnerInfo, setPartnerInfo] = useState<{visitor: Visitor, visit: Visit} | null>(null);
+  
+  // Fetch partner information if this visit has a partner
+  const { data: visitsData } = useQuery({
+    queryKey: ['/api/admin/visit-history'],
+    enabled: isOpen && !!visit && !!visit.partnerId,
+    staleTime: 30000 // 30 seconds
+  });
+  
+  // Update partner info when visitsData changes or partnerId changes
+  useEffect(() => {
+    if (visit?.partnerId && visitsData && Array.isArray(visitsData)) {
+      const partnerVisit = visitsData.find(item => item.visit.id === visit.partnerId);
+      if (partnerVisit) {
+        setPartnerInfo(partnerVisit);
+      } else {
+        setPartnerInfo(null);
+      }
+    } else {
+      setPartnerInfo(null);
+    }
+  }, [visit?.partnerId, visitsData]);
 
   if (!visitor || !visit) {
     return null;
@@ -180,6 +204,24 @@ export function VisitorDetailModal({
                       formatDuration(visit.checkInTime, visit.checkOutTime, language) : 
                       getCurrentDuration()}
                   </div>
+                </div>
+                
+                {/* Partner Information */}
+                <div>
+                  <div className="text-sm text-gray-500">{t("partner")}</div>
+                  {visit.partnerId && partnerInfo ? (
+                    <div>
+                      <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 flex items-center gap-1 pl-1.5 pr-3 py-1">
+                        <Link2 className="h-3.5 w-3.5 mr-1" />
+                        <span className="font-medium">{partnerInfo.visitor.fullName}</span>
+                      </Badge>
+                      <div className="text-xs text-gray-500 mt-1 ml-1">
+                        {t("badgeColon", { defaultValue: "Badge:" })} {formatBadgeId(partnerInfo.visitor.id)}
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="text-gray-500 italic">{t("noPartner")}</span>
+                  )}
                 </div>
               </div>
             </div>
