@@ -78,6 +78,10 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "completed">("all");
+  const [filterMunicipality, setFilterMunicipality] = useState("all");
+  const [minAge, setMinAge] = useState<number | null>(null);
+  const [maxAge, setMaxAge] = useState<number | null>(null);
+  const [filterVisitorType, setFilterVisitorType] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [showDeletedVisitors, setShowDeletedVisitors] = useState(false);
   
@@ -236,7 +240,7 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
     return <div className="py-4 text-center">{t("noVisitHistoryAvailable", { defaultValue: "No visit history available." })}</div>;
   }
   
-  // Filter visits based on search, status, and date range
+  // Filter visits based on search, status, municipalities, age range, visitor type, and date range
   const filteredVisits = visitHistory.filter(item => {
     if (!item || !item.visitor || !item.visit) return false;
     
@@ -257,6 +261,39 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
       filterStatus === "all" ||
       (filterStatus === "active" && visit.active) ||
       (filterStatus === "completed" && !visit.active);
+    
+    // Check municipality filter
+    const matchesMunicipality = 
+      filterMunicipality === "all" || 
+      (visitor.municipality && visitor.municipality === filterMunicipality);
+    
+    // Check age range filter
+    let matchesAgeRange = true;
+    const currentYear = new Date().getFullYear();
+    const age = currentYear - visitor.yearOfBirth;
+    
+    if (minAge !== null) {
+      matchesAgeRange = matchesAgeRange && age >= minAge;
+    }
+    
+    if (maxAge !== null) {
+      matchesAgeRange = matchesAgeRange && age <= maxAge;
+    }
+    
+    // Check visitor type filter
+    let matchesVisitorType = true;
+    if (filterVisitorType !== "all") {
+      if (filterVisitorType === "regular") {
+        // Visitor with more than 5 visits is considered regular
+        matchesVisitorType = (visitor.visitCount || 0) > 5;
+      } else if (filterVisitorType === "first-time") {
+        // Visitor with only 1 visit
+        matchesVisitorType = (visitor.visitCount || 0) === 1;
+      } else if (filterVisitorType === "verified") {
+        // Verified visitors
+        matchesVisitorType = visitor.verified === true;
+      }
+    }
     
     // Check if visit date is within selected date range
     let matchesDateRange = true;
@@ -280,7 +317,8 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
     // Check deleted status
     const matchesDeletedStatus = showDeletedVisitors ? visitor.deleted : !visitor.deleted;
     
-    return matchesSearch && matchesStatus && matchesDateRange && matchesDeletedStatus;
+    return matchesSearch && matchesStatus && matchesDateRange && matchesDeletedStatus && 
+           matchesMunicipality && matchesAgeRange && matchesVisitorType;
   });
 
   // Sort the filtered visits
@@ -321,7 +359,7 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
   useEffect(() => {
     setPage(1);
     setSelectedVisitors([]);
-  }, [searchTerm, filterStatus, dateRange, showDeletedVisitors]);
+  }, [searchTerm, filterStatus, dateRange, showDeletedVisitors, filterMunicipality, filterVisitorType, minAge, maxAge]);
   
   // Calculate paginated data
   const totalPages = Math.ceil(sortedVisits.length / itemsPerPage);
@@ -432,14 +470,14 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
         {/* Filter panel */}
         {showFilters && (
           <div className="mt-3 p-4 border rounded-md shadow-sm">
-            <div className="flex flex-wrap gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-1">
                 <label className="text-sm font-medium block">{t("status", { defaultValue: "Status" })}</label>
                 <Select 
                   value={filterStatus} 
                   onValueChange={(value: "all" | "active" | "completed") => setFilterStatus(value)}
                 >
-                  <SelectTrigger className="w-36">
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -451,22 +489,82 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
               </div>
               
               <div className="space-y-1">
+                <label className="text-sm font-medium block">{t("municipality", { defaultValue: "Municipality" })}</label>
+                <Select 
+                  value={filterMunicipality} 
+                  onValueChange={setFilterMunicipality}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={t("allMunicipalities", { defaultValue: "All municipalities" })} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("allMunicipalities", { defaultValue: "All municipalities" })}</SelectItem>
+                    {KINSHASA_MUNICIPALITIES.map(municipality => (
+                      <SelectItem key={municipality} value={municipality}>{municipality}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-1">
+                <label className="text-sm font-medium block">{t("ageRange", { defaultValue: "Age Range" })}</label>
+                <div className="flex gap-2 items-center">
+                  <Input 
+                    type="number" 
+                    placeholder={t("min", { defaultValue: "Min" })}
+                    value={minAge === null ? "" : minAge}
+                    onChange={(e) => setMinAge(e.target.value ? parseInt(e.target.value) : null)} 
+                    className="w-20"
+                  />
+                  <span>-</span>
+                  <Input 
+                    type="number" 
+                    placeholder={t("max", { defaultValue: "Max" })}
+                    value={maxAge === null ? "" : maxAge}
+                    onChange={(e) => setMaxAge(e.target.value ? parseInt(e.target.value) : null)} 
+                    className="w-20"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-1">
+                <label className="text-sm font-medium block">{t("visitorType", { defaultValue: "Visitor Type" })}</label>
+                <Select 
+                  value={filterVisitorType} 
+                  onValueChange={setFilterVisitorType}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={t("allVisitors", { defaultValue: "All visitors" })} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("allVisitors", { defaultValue: "All visitors" })}</SelectItem>
+                    <SelectItem value="regular">{t("regularVisitors", { defaultValue: "Regular visitors" })}</SelectItem>
+                    <SelectItem value="first-time">{t("firstTimeVisitors", { defaultValue: "First-time visitors" })}</SelectItem>
+                    <SelectItem value="verified">{t("verifiedVisitors", { defaultValue: "Verified visitors" })}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-1">
                 <label className="text-sm font-medium block">{t("dateRange", { defaultValue: "Date Range" })}</label>
                 <DateRangePicker value={dateRange} onChange={setDateRange} />
               </div>
               
-              {dateRange && (
-                <div className="flex items-end">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => setDateRange(undefined)}
-                    className="h-10"
-                  >
-                    {t("clearDates", { defaultValue: "Clear dates" })}
-                  </Button>
-                </div>
-              )}
+              <div className="flex items-end">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setDateRange(undefined);
+                    setFilterMunicipality("all");
+                    setFilterVisitorType("all");
+                    setMinAge(null);
+                    setMaxAge(null);
+                  }}
+                  className="h-10"
+                >
+                  {t("clearFilters", { defaultValue: "Clear all filters" })}
+                </Button>
+              </div>
             </div>
           </div>
         )}
