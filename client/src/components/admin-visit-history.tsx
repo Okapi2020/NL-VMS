@@ -37,7 +37,8 @@ import {
   Pencil,
   Trash2,
   ArchiveRestore,
-  Eye
+  Eye,
+  UserPlus
 } from "lucide-react";
 
 import {
@@ -95,6 +96,11 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
   const [selectedVisitor, setSelectedVisitor] = useState<Visitor | null>(null);
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [showDeletedVisitors, setShowDeletedVisitors] = useState(false);
+  
+  // Partner dialog state
+  const [isPartnerDialogOpen, setIsPartnerDialogOpen] = useState(false);
+  const [selectedVisitForPartner, setSelectedVisitForPartner] = useState<{ visit: Visit; visitor: Visitor } | null>(null);
+  const [partnerSearchTerm, setPartnerSearchTerm] = useState("");
   
   // Pagination
   const [page, setPage] = useState(1);

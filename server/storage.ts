@@ -382,37 +382,34 @@ export class DatabaseStorage implements IStorage {
     try {
       const { visitId, partnerId } = updateData;
       
-      // Start a transaction to ensure both partners are updated
-      return await db.transaction(async (tx) => {
-        // Update the current visit with the partner ID
-        await tx
+      // Update the current visit with the partner ID (without transaction)
+      await db
+        .update(visits)
+        .set({ partnerId: partnerId })
+        .where(eq(visits.id, visitId));
+      
+      if (partnerId) {
+        // Update the partner visit to point back to this visit (bidirectional)
+        await db
           .update(visits)
-          .set({ partnerId: partnerId })
-          .where(eq(visits.id, visitId));
+          .set({ partnerId: visitId })
+          .where(eq(visits.id, partnerId));
+      } else {
+        // If removing partner, find any visits that had this as a partner and clear them
+        const [visit] = await db
+          .select()
+          .from(visits)
+          .where(eq(visits.partnerId, visitId));
         
-        if (partnerId) {
-          // Update the partner visit to point back to this visit (bidirectional)
-          await tx
+        if (visit) {
+          await db
             .update(visits)
-            .set({ partnerId: visitId })
-            .where(eq(visits.id, partnerId));
-        } else {
-          // If removing partner, find any visits that had this as a partner and clear them
-          const [visit] = await tx
-            .select()
-            .from(visits)
-            .where(eq(visits.partnerId, visitId));
-          
-          if (visit) {
-            await tx
-              .update(visits)
-              .set({ partnerId: null })
-              .where(eq(visits.id, visit.id));
-          }
+            .set({ partnerId: null })
+            .where(eq(visits.id, visit.id));
         }
-        
-        return true;
-      });
+      }
+      
+      return true;
     } catch (error) {
       console.error(`Error updating partner for visit ID ${updateData.visitId}:`, error);
       return false;

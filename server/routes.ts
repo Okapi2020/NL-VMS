@@ -876,21 +876,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Update the partner relationship
-      const success = await storage.updateVisitPartner(partnerData);
-      
-      if (!success) {
-        return res.status(500).json({ message: "Failed to update visit partner" });
+      try {
+        // Update the partner relationship
+        const success = await storage.updateVisitPartner(partnerData);
+        
+        if (!success) {
+          return res.status(500).json({ message: "Failed to update visit partner" });
+        }
+        
+        // Create system log
+        const adminId = req.user?.id;
+        await storage.createSystemLog({
+          action: partnerData.partnerId ? "VISIT_PARTNER_ADDED" : "VISIT_PARTNER_REMOVED",
+          details: partnerData.partnerId 
+            ? `Visit ID ${partnerData.visitId} partnered with Visit ID ${partnerData.partnerId}`
+            : `Partner association removed for Visit ID ${partnerData.visitId}`,
+          userId: adminId,
+          affectedRecords: 2, // Both visits are affected when adding/removing a partner
+        });
+      } catch (error) {
+        console.error("Error in set-visit-partner route:", error);
+        return res.status(500).json({ 
+          message: "Failed to update visit partner", 
+          error: error instanceof Error ? error.message : String(error)
+        });
       }
-      
-      // Create system log
-      const adminId = req.user?.id;
-      await storage.createSystemLog({
-        action: "VISIT_PARTNER_ADDED",
-        details: `Visit ID ${partnerData.visitId} partnered with Visit ID ${partnerData.partnerId}`,
-        userId: adminId,
-        affectedRecords: 2, // Both visits are affected when adding a partner
-      });
       
       // Send real-time notification for partner update
       if (global.broadcastPartnerUpdate && partnerData.partnerId !== null) {
