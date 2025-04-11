@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import VisitorPortal from "@/pages/visitor-portal";
 import AdminDashboard from "@/pages/admin-dashboard";
-import DevAdminDashboard from "@/pages/dev-admin-dashboard"; // Import the dev dashboard
+import SimpleAdminDashboard from "@/pages/simple-admin-dashboard"; // Import the simple dashboard
 import AuthPage from "@/pages/auth-page";
 import WelcomePage from "@/pages/welcome-page";
 import ThankYouPage from "@/pages/thank-you-page";
@@ -21,10 +21,10 @@ function Router() {
       <Route path="/thank-you" component={ThankYouPage} />
       <Route path="/admin">
         {() => {
-          // In development mode, render the simplified DevAdminDashboard
+          // In development mode, render the simplified admin dashboard
           if (isDevelopment) {
             console.log("Development mode: Using simplified admin dashboard without auth");
-            return <DevAdminDashboard />;
+            return <SimpleAdminDashboard />;
           }
           // In production, use the ProtectedRoute wrapper
           return <ProtectedRoute path="/admin" component={AdminDashboard} />;
