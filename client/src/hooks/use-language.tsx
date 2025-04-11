@@ -213,7 +213,7 @@ export const translations: TranslationMap = {
     en: 'Female (Feminin)',
     fr: 'Feminin'
   },
-  phoneNumber: {
+  phoneNumberField: {
     en: 'Phone Number',
     fr: 'Numéro de téléphone'
   },
@@ -989,7 +989,7 @@ export const translations: TranslationMap = {
     en: 'Select municipality',
     fr: 'Sélectionner la municipalité'
   },
-  emailAddressOptional: {
+  emailOptional: {
     en: 'Email Address (Optional)',
     fr: 'Adresse e-mail (Facultatif)'
   },
