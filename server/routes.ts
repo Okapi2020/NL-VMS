@@ -18,9 +18,32 @@ import { WebSocketServer, WebSocket } from 'ws';
 
 // Middleware to ensure user is authenticated
 const ensureAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+  // In development mode, auto-authenticate
+  const isDevelopment = process.env.NODE_ENV !== 'production';
+  
+  if (isDevelopment) {
+    console.log("Development mode: Bypassing authentication check in middleware");
+    // Auto-set a mock admin user on the request in development
+    if (!req.user) {
+      req.user = {
+        id: 1,
+        username: 'admin',
+        password: '[PROTECTED]',
+        preferredLanguage: 'fr'
+      };
+      // This helps emulate the behavior of req.isAuthenticated()
+      if (!req.isAuthenticated) {
+        req.isAuthenticated = () => true;
+      }
+    }
+    return next();
+  }
+  
+  // Standard authentication check for production
   if (req.isAuthenticated()) {
     return next();
   }
+  
   res.status(401).json({ message: "Unauthorized" });
 };
 
