@@ -809,6 +809,18 @@ export const translations: TranslationMap = {
     en: 'Checked in',
     fr: 'Enregistré'
   },
+  partnerLinked: {
+    en: 'Partnered with',
+    fr: 'Associé avec'
+  },
+  partnerUnlinked: {
+    en: 'Partner relationship removed',
+    fr: 'Relation partenaire supprimée'
+  },
+  purpose: {
+    en: 'Purpose',
+    fr: 'Raison'
+  },
   viewDetails: {
     en: 'View details',
     fr: 'Voir les détails'
