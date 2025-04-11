@@ -237,7 +237,7 @@ export const translations: TranslationMap = {
     en: 'Check Out',
     fr: 'Départ'
   },
-  visitor: {
+  visitorTab: {
     en: 'Visitor',
     fr: 'Visiteur'
   },
@@ -373,7 +373,7 @@ export const translations: TranslationMap = {
     en: 'Page',
     fr: 'Page'
   },
-  of: {
+  ofCount: {
     en: 'of',
     fr: 'sur'
   },
@@ -445,7 +445,7 @@ export const translations: TranslationMap = {
     en: 'Verified Badge',
     fr: 'Badge vérifié'
   },
-  duration: {
+  durationColumn: {
     en: 'Duration',
     fr: 'Durée'
   },
@@ -897,7 +897,7 @@ export const translations: TranslationMap = {
     en: 'Select all',
     fr: 'Tout sélectionner'
   },
-  visitor: {
+  visitorColumn: {
     en: 'Visitor',
     fr: 'Visiteur'
   },
@@ -1009,7 +1009,7 @@ export const translations: TranslationMap = {
     en: 'All municipalities',
     fr: 'Toutes les municipalités'
   },
-  duration: {
+  durationFilter: {
     en: 'Duration',
     fr: 'Durée'
   },
