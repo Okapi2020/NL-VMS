@@ -476,12 +476,10 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
         </div>
         
         <div className="px-4 mt-2 text-sm text-gray-500">
-          {t("showingResults", { 
-            start: paginatedVisits.length > 0 ? (page - 1) * itemsPerPage + 1 : 0, 
-            end: Math.min(page * itemsPerPage, sortedVisits.length), 
-            total: sortedVisits.length,
-            defaultValue: "Showing ${start} - ${end} of ${total}"
-          })}
+          {language === 'en' 
+            ? `Showing ${paginatedVisits.length > 0 ? (page - 1) * itemsPerPage + 1 : 0} - ${Math.min(page * itemsPerPage, sortedVisits.length)} of ${sortedVisits.length}`
+            : `Affichage de ${paginatedVisits.length > 0 ? (page - 1) * itemsPerPage + 1 : 0} à ${Math.min(page * itemsPerPage, sortedVisits.length)} sur ${sortedVisits.length}`
+          }
           {showDeletedVisitors ? " " + t("trashBinLabel", { defaultValue: "(Trash Bin)" }) : ""}
           {selectedVisitors?.length > 0 ? ` • ${selectedVisitors.length} ${t("selected", { defaultValue: "selected" })}` : ""}
         </div>
