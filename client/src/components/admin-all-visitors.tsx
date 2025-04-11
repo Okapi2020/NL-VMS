@@ -145,7 +145,7 @@ function VisitorDetailsDialog({ visitor, visitCount, lastVisit, isOpen, onClose 
               </div>
               <div className="grid grid-cols-[24px_1fr] gap-2 items-center">
                 <Tag className="h-4 w-4 text-gray-500" />
-                <p className="text-sm">{formatBadgeId(visitor.badgeId)}</p>
+                <p className="text-sm">{formatBadgeId(visitor.id)}</p>
               </div>
             </div>
           </div>
@@ -242,7 +242,7 @@ function AllVisitors({ isLoading = false }: AllVisitorsProps) {
       normalizeText(visitor.fullName.toLowerCase()).includes(normalizedSearchTerm) ||
       (visitor.email && normalizeText(visitor.email.toLowerCase()).includes(normalizedSearchTerm)) ||
       (visitor.phoneNumber && visitor.phoneNumber.includes(searchTerm)) ||
-      (visitor.badgeId && formatBadgeId(visitor.badgeId).toLowerCase().includes(normalizedSearchTerm));
+      formatBadgeId(visitor.id).toLowerCase().includes(normalizedSearchTerm);
       
     if (!matchesSearch) return false;
     
@@ -305,7 +305,7 @@ function AllVisitors({ isLoading = false }: AllVisitorsProps) {
     let comparison = 0;
     
     if (sortField === "name") {
-      comparison = a.visitor.name.localeCompare(b.visitor.name);
+      comparison = a.visitor.fullName.localeCompare(b.visitor.fullName);
     } else if (sortField === "createdAt") {
       comparison = new Date(a.visitor.createdAt).getTime() - new Date(b.visitor.createdAt).getTime();
     } else if (sortField === "municipality") {
