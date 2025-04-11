@@ -187,8 +187,8 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: "Failed to update visitor: " + error.message,
+        title: t("error", { defaultValue: "Error" }),
+        description: t("failedToUpdateVisitor", { defaultValue: "Failed to update visitor" }) + ": " + error.message,
         variant: "destructive",
       });
     }
@@ -211,8 +211,8 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: "Failed to delete visitor: " + error.message,
+        title: t("error", { defaultValue: "Error" }),
+        description: t("failedToDeleteVisitor", { defaultValue: "Failed to delete visitor" }) + ": " + error.message,
         variant: "destructive",
       });
     }
@@ -298,8 +298,8 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: "Failed to restore visitor: " + error.message,
+        title: t("error", { defaultValue: "Error" }),
+        description: t("failedToRestoreVisitor", { defaultValue: "Failed to restore visitor" }) + ": " + error.message,
         variant: "destructive",
       });
     }
@@ -342,8 +342,8 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: "Failed to update verification status: " + error.message,
+        title: t("error", { defaultValue: "Error" }),
+        description: t("failedToUpdateVerification", { defaultValue: "Failed to update verification status" }) + ": " + error.message,
         variant: "destructive",
       });
     },
@@ -364,11 +364,11 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
   };
 
   if (isLoading) {
-    return <div className="py-4 text-center">Loading visit history...</div>;
+    return <div className="py-4 text-center">{t("loadingVisitHistory", { defaultValue: "Loading visit history..." })}</div>;
   }
 
   if (visitHistory.length === 0) {
-    return <div className="py-4 text-center">No visit history available.</div>;
+    return <div className="py-4 text-center">{t("noVisitHistoryAvailable", { defaultValue: "No visit history available." })}</div>;
   }
 
   // Filter visits based on search term, status, and date range
@@ -544,8 +544,8 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                 
                 if (deletedVisitors.length === 0) {
                   toast({
-                    title: "Information",
-                    description: "The trash bin is empty.",
+                    title: t("information", { defaultValue: "Information" }),
+                    description: t("trashBinEmpty", { defaultValue: "The trash bin is empty." }),
                   });
                   // Don't show trash bin if empty
                   setShowDeletedVisitors(false);
@@ -554,8 +554,8 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                 }
               } catch (error) {
                 toast({
-                  title: "Error",
-                  description: "Failed to check trash bin status",
+                  title: t("error", { defaultValue: "Error" }),
+                  description: t("failedToCheckTrashBin", { defaultValue: "Failed to check trash bin status" }),
                   variant: "destructive",
                 });
                 // Make sure we don't show trash bin on error
@@ -779,8 +779,8 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
               <TableRow>
                 <TableCell colSpan={9} className="text-center py-4 text-gray-500">
                   {showDeletedVisitors 
-                    ? "Trash bin is empty" 
-                    : "No visits match your search or filters"}
+                    ? t("trashBinEmpty", { defaultValue: "Trash bin is empty" })
+                    : t("noVisitsMatchFilters", { defaultValue: "No visits match your search or filters" })}
                 </TableCell>
               </TableRow>
             ) : (
@@ -987,7 +987,7 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                             }}
                           >
                             <ArchiveRestore className="h-4 w-4 mr-1" />
-                            Restore
+                            {t("restore", { defaultValue: "Restore" })}
                           </Button>
                         )}
                       </div>
@@ -1055,9 +1055,9 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Edit Visitor Information</DialogTitle>
+            <DialogTitle>{t("editVisitorInformation", { defaultValue: "Edit Visitor Information" })}</DialogTitle>
             <DialogDescription>
-              Update visitor details. Click save when you're done.
+              {t("updateVisitorDetails", { defaultValue: "Update visitor details. Click save when you're done." })}
             </DialogDescription>
           </DialogHeader>
           
