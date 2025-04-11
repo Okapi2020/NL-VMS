@@ -377,6 +377,69 @@ export class DatabaseStorage implements IStorage {
     return updatedVisit;
   }
   
+  // Partner Tracking feature: update the partner association of a visit
+  async updateVisitPartner(updateData: UpdateVisitPartner): Promise<boolean> {
+    try {
+      const { visitId, partnerId } = updateData;
+      
+      // Start a transaction to ensure both partners are updated
+      return await db.transaction(async (tx) => {
+        // Update the current visit with the partner ID
+        await tx
+          .update(visits)
+          .set({ partnerId: partnerId })
+          .where(eq(visits.id, visitId));
+        
+        if (partnerId) {
+          // Update the partner visit to point back to this visit (bidirectional)
+          await tx
+            .update(visits)
+            .set({ partnerId: visitId })
+            .where(eq(visits.id, partnerId));
+        } else {
+          // If removing partner, find any visits that had this as a partner and clear them
+          const [visit] = await tx
+            .select()
+            .from(visits)
+            .where(eq(visits.partnerId, visitId));
+          
+          if (visit) {
+            await tx
+              .update(visits)
+              .set({ partnerId: null })
+              .where(eq(visits.id, visit.id));
+          }
+        }
+        
+        return true;
+      });
+    } catch (error) {
+      console.error(`Error updating partner for visit ID ${updateData.visitId}:`, error);
+      return false;
+    }
+  }
+  
+  // Partner Tracking feature: get the partner visit and visitor details
+  async getVisitPartner(visitId: number): Promise<{ visit: Visit; visitor: Visitor } | undefined> {
+    try {
+      // First, get the visit to find partnerId
+      const [visit] = await db
+        .select()
+        .from(visits)
+        .where(eq(visits.id, visitId));
+      
+      if (!visit || !visit.partnerId) {
+        return undefined;
+      }
+      
+      // Get the partner visit with visitor
+      return await this.getVisitWithVisitor(visit.partnerId);
+    } catch (error) {
+      console.error(`Error fetching partner for visit ID ${visitId}:`, error);
+      return undefined;
+    }
+  }
+  
   async checkOutAllActiveVisits(): Promise<number> {
     try {
       // Get the current date/time for checkout

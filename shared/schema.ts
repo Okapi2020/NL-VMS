@@ -181,9 +181,18 @@ export const updateVisitSchema = z.object({
   checkOutTime: z.date().optional(),
   active: z.boolean().optional(),
   purpose: z.string().optional(),
+  partnerId: z.number().nullable().optional(),
 });
 
 export type UpdateVisit = z.infer<typeof updateVisitSchema>;
+
+// Schema for setting/updating partner for a visit
+export const updateVisitPartnerSchema = z.object({
+  visitId: z.number(),
+  partnerId: z.number().nullable(),
+});
+
+export type UpdateVisitPartner = z.infer<typeof updateVisitPartnerSchema>;
 
 // Schema for updating visitor verification status
 export const updateVisitorVerificationSchema = z.object({
