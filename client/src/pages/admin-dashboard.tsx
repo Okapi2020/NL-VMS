@@ -24,6 +24,7 @@ import {
   UsersRound,
   UserRound,
   Clock,
+  Database,
   ClipboardList,
   LayoutDashboard,
   Settings as SettingsIcon,
@@ -517,7 +518,7 @@ export default function AdminDashboard() {
             {activeView === "dashboard" && (
               <>
                 {/* Stats Cards */}
-                <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                   {/* Total visitors today */}
                   <Card>
                     <CardContent className="px-4 py-5 sm:p-6">
@@ -553,6 +554,27 @@ export default function AdminDashboard() {
                           <dd className="flex items-baseline">
                             <div className="text-2xl font-semibold text-gray-900">
                               {isLoadingStats ? "..." : stats.currentlyCheckedIn}
+                            </div>
+                          </dd>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Total registered visitors */}
+                  <Card>
+                    <CardContent className="px-4 py-5 sm:p-6">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 bg-purple-100 rounded-md p-3">
+                          <Database className="h-6 w-6 text-purple-600" />
+                        </div>
+                        <div className="ml-5 w-0 flex-1">
+                          <dt className="text-sm font-medium text-gray-500 truncate">
+                            {t("totalRegisteredVisitors")}
+                          </dt>
+                          <dd className="flex items-baseline">
+                            <div className="text-2xl font-semibold text-gray-900">
+                              {isLoadingStats ? "..." : stats.totalRegisteredVisitors}
                             </div>
                           </dd>
                         </div>
