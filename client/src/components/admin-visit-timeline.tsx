@@ -903,7 +903,7 @@ function AdminVisitTimelineComponent({ visitHistory, isLoading }: AdminVisitTime
                           }}
                         >
                           <Eye className="h-4 w-4 mr-1" />
-                          <span>{t("view")}</span>
+                          <span>{t("viewButton")}</span>
                         </Button>
                         
                         {showDeletedVisitors && (

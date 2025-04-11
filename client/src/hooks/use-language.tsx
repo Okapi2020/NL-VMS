@@ -1149,7 +1149,7 @@ export const translations: TranslationMap = {
     en: 'Restore',
     fr: 'Restaurer'
   },
-  view: {
+  viewButton: {
     en: 'View',
     fr: 'Voir'
   },

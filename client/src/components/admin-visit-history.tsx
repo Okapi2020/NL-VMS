@@ -998,7 +998,7 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                           }}
                         >
                           <Eye className="h-4 w-4 mr-1" />
-                          <span>{t("view", { defaultValue: "View" })}</span>
+                          <span>{t("viewButton", { defaultValue: "View" })}</span>
                         </Button>
                         
                         {/* Partner button no longer needed as it's in the Edit modal */}

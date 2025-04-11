@@ -818,7 +818,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                           <button 
                             className="p-1 rounded-md text-gray-500 hover:bg-gray-100"
                             onClick={() => handleOpenDetailModal(visitor, visit)}
-                            title={t("view", { defaultValue: "View" })}
+                            title={t("viewButton", { defaultValue: "View" })}
                           >
                             <Eye size={16} className="text-gray-500" />
                           </button>
