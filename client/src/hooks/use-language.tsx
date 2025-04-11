@@ -1178,8 +1178,8 @@ export const translations: TranslationMap = {
     fr: 'Aucun historique de visite disponible.'
   },
   showingResults: {
-    en: 'Showing results',
-    fr: 'Affichage des résultats'
+    en: 'Showing ${start} - ${end} of ${total}',
+    fr: 'Affichage de ${start} à ${end} sur ${total}'
   },
   ageRange: {
     en: 'Age Range',
@@ -1383,7 +1383,9 @@ export function LanguageProvider({
     // Replace parameters if provided
     if (params) {
       Object.keys(params).forEach(param => {
+        // Handle both formats: {param} and ${param}
         translated = translated.replace(`{${param}}`, params[param]);
+        translated = translated.replace(`\${${param}}`, params[param]);
       });
     }
     
