@@ -1,6 +1,6 @@
 import React from 'react';
 import { Bell } from 'lucide-react';
-import { useNotifications } from '@/hooks/use-notifications';
+import { useNotifications, Notification } from '@/hooks/use-notifications';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDistanceToNow } from 'date-fns';
 import { enUS, fr } from 'date-fns/locale';
@@ -22,7 +22,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 /**
  * Notification dropdown component for the admin panel
- * Displays recent check-in notifications with an unread counter
+ * Displays recent notifications (check-ins and partner updates) with an unread counter
  */
 export function NotificationDropdown() {
   const { 
@@ -118,13 +118,28 @@ export function NotificationDropdown() {
                     </span>
                   </div>
                   
-                  <div className="text-sm text-muted-foreground">
-                    {t('checkedIn')}
-                  </div>
-                  
-                  <div className="text-xs mt-1 text-muted-foreground">
-                    {t('purpose')}: {notification.purpose}
-                  </div>
+                  {/* Different content based on notification type */}
+                  {notification.type === 'check-in' ? (
+                    <>
+                      <div className="text-sm text-muted-foreground">
+                        {t('checkedIn')}
+                      </div>
+                      
+                      <div className="text-xs mt-1 text-muted-foreground">
+                        {t('purpose')}: {(notification as any).purpose}
+                      </div>
+                    </>
+                  ) : notification.type === 'partner-update' ? (
+                    <div className="text-sm text-muted-foreground">
+                      {(notification as any).action === 'linked' ? (
+                        <>
+                          {t('partnerLinked')}: <span className="font-medium">{(notification as any).partnerName}</span>
+                        </>
+                      ) : (
+                        t('partnerUnlinked')
+                      )}
+                    </div>
+                  ) : null}
                   
                   {!notification.read && (
                     <div className="w-2 h-2 rounded-full bg-primary absolute right-2 top-3" />

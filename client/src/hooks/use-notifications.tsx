@@ -57,7 +57,7 @@ interface NotificationProviderProps {
 
 export const NotificationProvider = ({ children }: NotificationProviderProps) => {
   // State for notifications
-  const [notifications, setNotifications] = useState<CheckInNotification[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const { toast } = useToast();
 
   // Connect to WebSocket, using relative URL to handle various deployment scenarios
@@ -66,11 +66,15 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
 
   // Process WebSocket messages
   useEffect(() => {
-    if (lastMessage && lastMessage.type === 'check-in') {
+    if (!lastMessage) return;
+    
+    // Handle check-in notifications
+    if (lastMessage.type === 'check-in') {
       const { visitor, purpose, timestamp } = lastMessage;
       
       const newNotification: CheckInNotification = {
         id: `${Date.now()}-${visitor.id}`,
+        type: 'check-in',
         visitorId: visitor.id,
         visitorName: visitor.fullName,
         phoneNumber: visitor.phoneNumber,
@@ -86,6 +90,38 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
       toast({
         title: 'New Visitor Check-in',
         description: `${visitor.fullName} has checked in.`,
+        duration: 5000,
+      });
+    }
+    
+    // Handle partner update notifications
+    if (lastMessage.type === 'partner-update') {
+      const { action, visitor, partner, timestamp } = lastMessage;
+      
+      const newNotification: PartnerUpdateNotification = {
+        id: `${Date.now()}-partner-${visitor.id}`,
+        type: 'partner-update',
+        action: action,
+        visitorId: visitor.id,
+        visitorName: visitor.fullName,
+        partnerId: partner?.id || null,
+        partnerName: partner?.fullName || null,
+        timestamp: timestamp,
+        read: false,
+      };
+      
+      // Add to notifications
+      setNotifications(prev => [newNotification, ...prev]);
+      
+      // Show toast notification with appropriate message
+      const toastTitle = action === 'linked' ? 'Visitors Partnered' : 'Partner Relationship Removed';
+      const toastDescription = action === 'linked' 
+        ? `${visitor.fullName} partnered with ${partner?.fullName}.`
+        : `Partner relationship removed for ${visitor.fullName}.`;
+      
+      toast({
+        title: toastTitle,
+        description: toastDescription,
         duration: 5000,
       });
     }
