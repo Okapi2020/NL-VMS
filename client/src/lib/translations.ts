@@ -12,6 +12,18 @@ const translations: TranslationConfig = {
   "autoCheckoutNotice": {
     en: "For security purposes, all visitors will be automatically checked out at midnight. If you need to stay longer, please check in again the next day.",
     fr: "Pour des raisons de sécurité, tous les visiteurs seront automatiquement déconnectés à minuit. Si vous avez besoin de rester plus longtemps, veuillez vous enregistrer à nouveau le lendemain."
+  },
+  "searchByNameOrBadge": {
+    en: "Search by name or badge ID...",
+    fr: "Rechercher par nom ou numéro de badge..."
+  },
+  "remove": {
+    en: "Remove",
+    fr: "Supprimer"
+  },
+  "partnerAssigned": {
+    en: "Partner assigned successfully",
+    fr: "Partenaire assigné avec succès"
   }
 };
 

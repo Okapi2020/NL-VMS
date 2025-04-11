@@ -1131,7 +1131,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
               <Input
-                placeholder={t("searchByNameOrBadge", { defaultValue: "Search by name or badge ID..." })}
+                placeholder={t("searchByNameOrBadge")}
                 className="pl-9"
                 value={partnerSearchTerm}
                 onChange={(e) => setPartnerSearchTerm(e.target.value)}
@@ -1150,10 +1150,10 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="ml-auto text-blue-600 hover:text-blue-800 hover:bg-blue-100 p-1 h-auto"
+                  className="ml-auto text-red-600 hover:text-red-800 hover:bg-red-100 p-1 h-auto"
                   onClick={() => handleAssignPartner(null)}
                 >
-                  {t("remove", { defaultValue: "Remove" })}
+                  {t("remove")}
                 </Button>
               </div>
             )}
