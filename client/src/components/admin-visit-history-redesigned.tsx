@@ -500,7 +500,7 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">{t("all", { defaultValue: "All" })}</SelectItem>
+                    <SelectItem value="all">{t("allStatuses", { defaultValue: "All status" })}</SelectItem>
                     <SelectItem value="active">{t("active", { defaultValue: "Active" })}</SelectItem>
                     <SelectItem value="completed">{t("completed", { defaultValue: "Completed" })}</SelectItem>
                   </SelectContent>
@@ -883,7 +883,7 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10 {t("items", { defaultValue: "items" })}</SelectItem>
+                <SelectItem value="10">10 {t("itemsPerPage", { defaultValue: "items per page" })}</SelectItem>
                 <SelectItem value="25">25</SelectItem>
                 <SelectItem value="50">50</SelectItem>
                 <SelectItem value="100">100</SelectItem>
@@ -893,7 +893,7 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
           
           <div className="flex items-center">
             <span className="px-3 text-sm text-gray-700">
-              {t("pageXofY", { x: page, y: totalPages || 1, defaultValue: "Page {{x}} of {{y}}" })}
+              {t("pageXofY", { current: page, total: totalPages || 1, defaultValue: "Page ${current} of ${total}" })}
             </span>
             
             <button 
