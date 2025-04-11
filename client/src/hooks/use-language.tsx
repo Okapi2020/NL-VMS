@@ -853,7 +853,7 @@ export const translations: TranslationMap = {
     en: 'Are you sure you want to delete ${name}?',
     fr: 'Êtes-vous sûr de vouloir supprimer ${name}?'
   },
-  confirmDeleteSelected: {
+  confirmDeleteSelectedVisitors: {
     en: 'Are you sure you want to delete ${count} selected visitors?',
     fr: 'Êtes-vous sûr de vouloir supprimer ${count} visiteurs sélectionnés?'
   },
@@ -892,6 +892,10 @@ export const translations: TranslationMap = {
   searchVisitors: {
     en: 'Search visitors...',
     fr: 'Rechercher des visiteurs...'
+  },
+  searchVisitHistory: {
+    en: 'Search visit history...',
+    fr: 'Rechercher dans l\'historique des visites...'
   },
   selectAll: {
     en: 'Select all',
