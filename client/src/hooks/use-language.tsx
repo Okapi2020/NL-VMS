@@ -825,6 +825,10 @@ export const translations: TranslationMap = {
     en: 'No partner',
     fr: 'Pas de partenaire'
   },
+  noPartnerAssigned: {
+    en: 'No partner assigned',
+    fr: 'Aucun partenaire assigné'
+  },
   selectPartner: {
     en: 'Select Partner',
     fr: 'Sélectionner un partenaire'
@@ -1185,6 +1189,14 @@ export const translations: TranslationMap = {
     en: 'Age Range',
     fr: 'Tranche d\'âge'
   },
+  min: {
+    en: 'Min',
+    fr: 'Min'
+  },
+  max: {
+    en: 'Max',
+    fr: 'Max'
+  },
   clearFilters: {
     en: 'Clear Filters',
     fr: 'Effacer les filtres'
@@ -1244,6 +1256,14 @@ export const translations: TranslationMap = {
   sex: {
     en: 'Sex',
     fr: 'Sexe'
+  },
+  male: {
+    en: 'Male',
+    fr: 'Masculin'
+  },
+  female: {
+    en: 'Female',
+    fr: 'Féminin'
   },
   optional: {
     en: 'Optional',
@@ -1383,9 +1403,10 @@ export function LanguageProvider({
     // Replace parameters if provided
     if (params) {
       Object.keys(params).forEach(param => {
-        // Handle both formats: {param} and ${param}
-        translated = translated.replace(`{${param}}`, params[param]);
-        translated = translated.replace(`\${${param}}`, params[param]);
+        // Replace both formats: {param} and ${param}
+        // Using regex to properly handle the dollar sign which is a special character in replacement strings
+        translated = translated.replace(new RegExp(`{${param}}`, 'g'), params[param]);
+        translated = translated.replace(new RegExp(`\\$\\{${param}\\}`, 'g'), params[param]);
       });
     }
     
