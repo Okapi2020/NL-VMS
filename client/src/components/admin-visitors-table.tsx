@@ -655,7 +655,10 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
               
               {/* Actions */}
               <TableHead className="text-right">
-                <span className="uppercase text-xs font-medium text-gray-500">{t("actions")}</span>
+                <div className="flex items-center justify-end">
+                  <Settings className="mr-1 h-4 w-4" />
+                  <span className="uppercase text-xs font-medium text-gray-500">{t("actions")}</span>
+                </div>
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -781,39 +784,38 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   <TableCell>
                     <div className="flex justify-end space-x-2 items-center">
                       <Button
-                        variant="outline"
-                        size="sm"
-                        className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-md border border-blue-200 flex items-center h-8"
+                        variant="ghost"
+                        size="icon"
+                        className="text-blue-600 hover:bg-blue-50 rounded-full h-8 w-8 p-0"
                         onClick={() => handleOpenDetailModal(visitor, visit)}
-                        title={t("viewVisitor")}
+                        title={t("view", { defaultValue: "View" })}
                       >
-                        <Eye className="h-4 w-4 mr-1" />
-                        <span>{t("view")}</span>
+                        <Eye className="h-4 w-4" />
                       </Button>
                       
                       <Button
-                        variant="outline"
-                        size="sm"
+                        variant="ghost"
+                        size="icon"
                         onClick={() => handleCheckOut(visit.id)}
                         disabled={processingIds.has(visit.id)}
-                        className="h-8 px-3 text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200"
+                        className="text-green-600 hover:bg-green-50 rounded-full h-8 w-8 p-0"
+                        title={t("checkOut", { defaultValue: "Check out" })}
                       >
                         {processingIds.has(visit.id) ? (
-                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-600 border-t-transparent mr-1" />
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-600 border-t-transparent" />
                         ) : (
-                          <LogOut className="h-4 w-4 mr-1" />
+                          <LogOut className="h-4 w-4" />
                         )}
-                        <span>{processingIds.has(visit.id) ? t("processing") : t("checkOut")}</span>
                       </Button>
                       
                       <Button
-                        variant="outline"
-                        size="sm"
+                        variant="ghost"
+                        size="icon"
                         onClick={() => handlePartnerDialog(visitor, visit)}
-                        className="h-8 px-3 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 border-indigo-200"
+                        className="text-indigo-600 hover:bg-indigo-50 rounded-full h-8 w-8 p-0"
+                        title={t("partner", { defaultValue: "Partner" })}
                       >
-                        <UserPlus className="h-4 w-4 mr-1" />
-                        <span>{t("partner", { defaultValue: "Partner" })}</span>
+                        <UserPlus className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>
@@ -1122,7 +1124,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
               {selectedVisitForPartner && 
                 t("selectPartnerDescription", { 
                   firstName: selectedVisitForPartner.visitor.fullName.split(' ')[0],
-                  defaultValue: `Select the visitor you wish to associate with "${selectedVisitForPartner.visitor.fullName.split(' ')[0]}". Don't hesitate to ask the visitor questions if you're not sure.`
+                  defaultValue: "Select the visitor you wish to associate with {firstName}. Don't hesitate to ask the visitor questions if you're not sure."
                 })
               }
             </DialogDescription>
