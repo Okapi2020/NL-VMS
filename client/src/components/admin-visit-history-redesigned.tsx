@@ -480,7 +480,7 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
             start: paginatedVisits.length > 0 ? (page - 1) * itemsPerPage + 1 : 0, 
             end: Math.min(page * itemsPerPage, sortedVisits.length), 
             total: sortedVisits.length,
-            defaultValue: "Showing {{start}} - {{end}} of {{total}}"
+            defaultValue: "Showing ${start} - ${end} of ${total}"
           })}
           {showDeletedVisitors ? " " + t("trashBinLabel", { defaultValue: "(Trash Bin)" }) : ""}
           {selectedVisitors?.length > 0 ? ` • ${selectedVisitors.length} ${t("selected", { defaultValue: "selected" })}` : ""}
