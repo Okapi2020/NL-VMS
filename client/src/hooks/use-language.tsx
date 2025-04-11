@@ -849,6 +849,38 @@ export const translations: TranslationMap = {
     en: 'No available partners found. All visitors are already paired or no other visitors are checked in.',
     fr: 'Aucun partenaire disponible trouvé. Tous les visiteurs sont déjà associés ou aucun autre visiteur n\'est enregistré.'
   },
+  confirmDeleteVisitor: {
+    en: 'Are you sure you want to delete ${name}?',
+    fr: 'Êtes-vous sûr de vouloir supprimer ${name}?'
+  },
+  confirmDeleteSelected: {
+    en: 'Are you sure you want to delete ${count} selected visitors?',
+    fr: 'Êtes-vous sûr de vouloir supprimer ${count} visiteurs sélectionnés?'
+  },
+  noEmail: {
+    en: 'No email',
+    fr: 'Pas d\'email'
+  },
+  noPhoneProvided: {
+    en: 'No phone provided',
+    fr: 'Pas de téléphone fourni'
+  },
+  historiqueDesVisites: {
+    en: 'Visit History',
+    fr: 'Historique des Visites'
+  },
+  loadMoreVisits: {
+    en: 'Load ${count} more visits',
+    fr: 'Charger ${count} visites supplémentaires'
+  },
+  loadingMoreVisits: {
+    en: 'Loading more visits',
+    fr: 'Chargement des visites supplémentaires'
+  },
+  additionalVisitsLoaded: {
+    en: 'Additional visits have been loaded for this visitor.',
+    fr: 'Des visites supplémentaires ont été chargées pour ce visiteur.'
+  },
   noMatchingPartners: {
     en: 'No matching partners found. Try a different search term.',
     fr: 'Aucun partenaire correspondant trouvé. Essayez un autre terme de recherche.'
@@ -884,6 +916,66 @@ export const translations: TranslationMap = {
   timeColon: {
     en: 'Time:',
     fr: 'Heure:'
+  },
+  visitorPerPage: {
+    en: 'visitors per page',
+    fr: 'visiteurs par page'
+  },
+  previousPage: {
+    en: 'Previous page',
+    fr: 'Page précédente'
+  },
+  nextPage: {
+    en: 'Next page',
+    fr: 'Page suivante'
+  },
+  page: {
+    en: 'Page',
+    fr: 'Page'
+  },
+  of: {
+    en: 'of',
+    fr: 'sur'
+  },
+  stillActive: {
+    en: 'Still active',
+    fr: 'Toujours actif'
+  },
+  details: {
+    en: 'Details',
+    fr: 'Détails'
+  },
+  restore: {
+    en: 'Restore',
+    fr: 'Restaurer'
+  },
+  view: {
+    en: 'View',
+    fr: 'Voir'
+  },
+  municipality: {
+    en: 'Municipality',
+    fr: 'Municipalité'
+  },
+  notSpecified: {
+    en: 'Not specified',
+    fr: 'Non spécifié'
+  },
+  verified: {
+    en: 'Verified',
+    fr: 'Vérifié'
+  },
+  verifiedVisitor: {
+    en: 'Verified Visitor',
+    fr: 'Visiteur Vérifié'
+  },
+  loadingVisitHistory: {
+    en: 'Loading visit history...',
+    fr: 'Chargement de l\'historique des visites...'
+  },
+  noVisitHistoryAvailable: {
+    en: 'No visit history available.',
+    fr: 'Aucun historique de visite disponible.'
   }
 };
 

@@ -100,7 +100,7 @@ const getVisitTypeColor = (type: 'Ordinary' | 'Cancelled' | 'Short' | 'Extended'
 // Map visit types to translation keys
 const visitTypeTranslations = {
   'Ordinary': {
-    en: 'Ordinary Visit',
+    en: 'Regular Visit',
     fr: 'Visite Ordinaire'
   },
   'Cancelled': {
@@ -108,12 +108,32 @@ const visitTypeTranslations = {
     fr: 'Visite Annulée'
   },
   'Short': {
-    en: 'Short Visit',
+    en: 'Brief Visit',
     fr: 'Visite Courte'
   },
   'Extended': {
     en: 'Extended Visit',
     fr: 'Visite Prolongée'
+  }
+};
+
+// Ensure translations are consistent with the visitor detail modal
+const visitTypeDescriptions = {
+  'Ordinary': {
+    en: 'Standard visit duration',
+    fr: 'Durée de visite standard'
+  },
+  'Cancelled': {
+    en: 'Visitor checked out immediately',
+    fr: 'Visiteur parti immédiatement'
+  },
+  'Short': {
+    en: 'Visitor stayed less than 15 minutes',
+    fr: 'Visiteur resté moins de 15 minutes'
+  },
+  'Extended': {
+    en: 'Visit longer than 2 hours',
+    fr: 'Visite de plus de 2 heures'
   }
 };
 
