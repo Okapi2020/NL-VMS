@@ -55,6 +55,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { KINSHASA_MUNICIPALITIES } from "@/lib/constants";
 import { formatTimeOnly, formatDateOnly, formatDateTime } from "@/lib/date-utils";
+import { PhoneNumberLink } from "@/components/phone-number-link";
 
 // Types for the data
 type Visit = {
@@ -708,7 +709,16 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                           ) : (
                             <div className="italic">{t("noEmail", { defaultValue: "No email provided" })}</div>
                           )}
-                          <div>{visitor.phoneNumber ? `+${visitor.phoneNumber.replace(/^0+|^\+/, '')}` : t("noPhone", { defaultValue: "No phone provided" })}</div>
+                          {visitor.phoneNumber ? (
+                            <div>
+                              <PhoneNumberLink 
+                                phoneNumber={visitor.phoneNumber} 
+                                showWhatsAppIcon={true}
+                              />
+                            </div>
+                          ) : (
+                            <div className="italic">{t("noPhone", { defaultValue: "No phone provided" })}</div>
+                          )}
                         </div>
                       </td>
                       
@@ -1161,7 +1171,17 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   <p className="text-sm mt-1">
                     {selectedVisitDetails.visitor.email || t("noEmail", { defaultValue: "No email provided" })}
                   </p>
-                  <p className="text-sm">{selectedVisitDetails.visitor.phoneNumber || t("noPhone", { defaultValue: "No phone provided" })}</p>
+                  <p className="text-sm">
+                    {selectedVisitDetails.visitor.phoneNumber ? (
+                      <PhoneNumberLink 
+                        phoneNumber={selectedVisitDetails.visitor.phoneNumber} 
+                        countryCode="243"
+                        showWhatsAppIcon={true}
+                      />
+                    ) : (
+                      t("noPhone", { defaultValue: "No phone provided" })
+                    )}
+                  </p>
                 </div>
                 
                 <div>
