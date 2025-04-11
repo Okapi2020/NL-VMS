@@ -1336,8 +1336,8 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
             <DialogTitle>{t("selectPartner", { defaultValue: "Select Partner" })}</DialogTitle>
             <DialogDescription>
               {selectedVisitForPartner && t("selectPartnerDescription", {
-                fullName: selectedVisitForPartner.visitor.fullName,
-                defaultValue: `Select a partner for ${selectedVisitForPartner.visitor.fullName} who arrived together.`
+                firstName: selectedVisitForPartner.visitor.fullName.split(' ')[0],
+                defaultValue: `Select the visitor you wish to associate with "${selectedVisitForPartner.visitor.fullName.split(' ')[0]}". Don't hesitate to ask the visitor questions if you're not sure.`
               })}
             </DialogDescription>
           </DialogHeader>
