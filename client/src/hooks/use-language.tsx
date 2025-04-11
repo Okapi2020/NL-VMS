@@ -205,11 +205,11 @@ export const translations: TranslationMap = {
     en: 'Select sex',
     fr: 'Sélectionner le sexe'
   },
-  male: {
+  maleOption: {
     en: 'Male (Masculin)',
     fr: 'Masculin'
   },
-  female: {
+  femaleOption: {
     en: 'Female (Feminin)',
     fr: 'Feminin'
   },
@@ -953,11 +953,11 @@ export const translations: TranslationMap = {
     en: 'Edit Visitor',
     fr: 'Modifier le visiteur'
   },
-  saveChanges: {
+  saveChangesButton: {
     en: 'Save Changes',
     fr: 'Enregistrer les modifications'
   },
-  cancel: {
+  cancelButton: {
     en: 'Cancel',
     fr: 'Annuler'
   },
@@ -977,15 +977,15 @@ export const translations: TranslationMap = {
     en: 'Select sex',
     fr: 'Sélectionner le sexe'
   },
-  male: {
+  maleValue: {
     en: 'Male',
     fr: 'Masculin'
   },
-  female: {
+  femaleValue: {
     en: 'Female',
     fr: 'Féminin'
   },
-  selectMunicipality: {
+  selectMunicipalityDropdown: {
     en: 'Select municipality',
     fr: 'Sélectionner la municipalité'
   },
