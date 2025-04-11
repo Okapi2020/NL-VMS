@@ -897,6 +897,10 @@ export const translations: TranslationMap = {
     en: 'Search visit history...',
     fr: 'Rechercher dans l\'historique des visites...'
   },
+  searchVisitHistoryPlaceholder: {
+    en: 'Search visit history...',
+    fr: 'Rechercher dans l\'historique des visites...'
+  },
   selectAll: {
     en: 'Select all',
     fr: 'Tout sélectionner'
@@ -1172,6 +1176,74 @@ export const translations: TranslationMap = {
   noVisitHistoryAvailable: {
     en: 'No visit history available.',
     fr: 'Aucun historique de visite disponible.'
+  },
+  showingResults: {
+    en: 'Showing results',
+    fr: 'Affichage des résultats'
+  },
+  ageRange: {
+    en: 'Age Range',
+    fr: 'Tranche d\'âge'
+  },
+  clearFilters: {
+    en: 'Clear Filters',
+    fr: 'Effacer les filtres'
+  },
+  selectDateRange: {
+    en: 'Select date range',
+    fr: 'Sélectionner une période'
+  },
+  dateRange: {
+    en: 'Date Range',
+    fr: 'Période'
+  },
+  showTrashBin: {
+    en: 'Show Trash Bin',
+    fr: 'Afficher la corbeille'
+  },
+  contactInformation: {
+    en: 'Contact Information',
+    fr: 'Informations de contact'
+  },
+  partnerInformation: {
+    en: 'Partner Information',
+    fr: 'Informations du partenaire'
+  },
+  visitorDetailsDescription: {
+    en: 'View complete visitor information and visit history',
+    fr: 'Voir les informations complètes du visiteur et l\'historique des visites'
+  },
+  visitCount: {
+    en: 'Visit Count',
+    fr: 'Nombre de visites'
+  },
+  createdDate: {
+    en: 'Created Date',
+    fr: 'Date de création'
+  },
+  visitDuration: {
+    en: 'Visit Duration',
+    fr: 'Durée de la visite'
+  },
+  checkOutTime: {
+    en: 'Check-out Time',
+    fr: 'Heure de départ'
+  },
+  deleteVisitor: {
+    en: 'Delete Visitor',
+    fr: 'Supprimer le visiteur'
+  },
+  phoneNumber: {
+    en: 'Phone Number',
+    fr: 'Numéro de téléphone'
+  },
+  yearOfBirth: {
+    en: 'Year of Birth',
+    fr: 'Année de naissance'
+  },
+  sex: {
+    en: 'Sex',
+    fr: 'Sexe'
   }
 };
 
