@@ -73,7 +73,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import EditVisitorForm from "@/components/edit-visitor-form";
+import EditVisitorForm from "./edit-visitor-form";
 
 type VisitorWithDetails = {
   visitor: Visitor;
@@ -118,10 +118,10 @@ function VisitorDetailsDialog({ visitor, visitCount, lastVisit, isOpen, onClose 
           <div className="space-y-4">
             <div className="flex items-center space-x-4">
               <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center text-primary text-2xl font-bold">
-                {getInitials(visitor.name)}
+                {getInitials(visitor.fullName)}
               </div>
               <div>
-                <h3 className="text-xl font-bold">{visitor.name}</h3>
+                <h3 className="text-xl font-bold">{visitor.fullName}</h3>
                 <p className="text-sm text-gray-500">
                   {visitor.yearOfBirth ? formatYearWithAge(visitor.yearOfBirth) : t("ageNotProvided", { defaultValue: "Age not provided" })}
                 </p>
@@ -239,7 +239,7 @@ function AllVisitors({ isLoading = false }: AllVisitorsProps) {
     // Search filter
     const normalizedSearchTerm = normalizeText(searchTerm.toLowerCase());
     const matchesSearch = normalizedSearchTerm === "" || 
-      normalizeText(visitor.name.toLowerCase()).includes(normalizedSearchTerm) ||
+      normalizeText(visitor.fullName.toLowerCase()).includes(normalizedSearchTerm) ||
       (visitor.email && normalizeText(visitor.email.toLowerCase()).includes(normalizedSearchTerm)) ||
       (visitor.phoneNumber && visitor.phoneNumber.includes(searchTerm)) ||
       (visitor.badgeId && formatBadgeId(visitor.badgeId).toLowerCase().includes(normalizedSearchTerm));
