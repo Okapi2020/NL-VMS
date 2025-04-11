@@ -1165,11 +1165,23 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 </div>
                 
                 <div className="border rounded-md overflow-hidden max-h-[300px] overflow-y-auto">
-                  {paginatedVisits.filter(item => 
+                  {/* Use the full visits array instead of just paginated visits to show all possible partners */}
+                  {visits.filter(item => {
                     // Exclude the current visitor and any already paired visitors
-                    item.visit.id !== selectedVisitForPartner?.visit.id && 
-                    !item.visit.partnerId
-                  ).map(({ visitor, visit }) => (
+                    const isNotCurrentAndNotPaired = 
+                      item.visit.id !== selectedVisitForPartner?.visit.id && 
+                      !item.visit.partnerId;
+                    
+                    // Apply search filter if there is a search term
+                    if (!searchTerm) return isNotCurrentAndNotPaired;
+                    
+                    const normalizedSearchTerm = normalizeText(searchTerm);
+                    return isNotCurrentAndNotPaired && (
+                      normalizeText(item.visitor.fullName).includes(normalizedSearchTerm) ||
+                      formatBadgeId(item.visitor.id).toLowerCase().includes(normalizedSearchTerm) ||
+                      (item.visitor.phoneNumber && normalizeText(item.visitor.phoneNumber).includes(normalizedSearchTerm))
+                    );
+                  }).map(({ visitor, visit }) => (
                     <div 
                       key={visit.id}
                       className="flex items-center gap-3 p-3 border-b last:border-b-0 hover:bg-gray-50 cursor-pointer"
@@ -1190,12 +1202,26 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                     </div>
                   ))}
                   
-                  {paginatedVisits.filter(item => 
-                    item.visit.id !== selectedVisitForPartner?.visit.id && 
-                    !item.visit.partnerId
-                  ).length === 0 && (
+                  {visits.filter(item => {
+                    // Use the same filter logic as above for consistency
+                    const isNotCurrentAndNotPaired = 
+                      item.visit.id !== selectedVisitForPartner?.visit.id && 
+                      !item.visit.partnerId;
+                    
+                    // Apply search filter if there is a search term
+                    if (!searchTerm) return isNotCurrentAndNotPaired;
+                    
+                    const normalizedSearchTerm = normalizeText(searchTerm);
+                    return isNotCurrentAndNotPaired && (
+                      normalizeText(item.visitor.fullName).includes(normalizedSearchTerm) ||
+                      formatBadgeId(item.visitor.id).toLowerCase().includes(normalizedSearchTerm) ||
+                      (item.visitor.phoneNumber && normalizeText(item.visitor.phoneNumber).includes(normalizedSearchTerm))
+                    );
+                  }).length === 0 && (
                     <div className="p-4 text-center text-gray-500">
-                      {t("noAvailablePartners", { defaultValue: "No available partners found. All visitors are already paired or no other visitors are checked in." })}
+                      {searchTerm ? 
+                        t("noMatchingPartners", { defaultValue: "No matching partners found. Try a different search term." }) :
+                        t("noAvailablePartners", { defaultValue: "No available partners found. All visitors are already paired or no other visitors are checked in." })}
                     </div>
                   )}
                 </div>

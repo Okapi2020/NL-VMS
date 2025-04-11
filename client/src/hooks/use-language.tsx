@@ -849,6 +849,10 @@ export const translations: TranslationMap = {
     en: 'No available partners found. All visitors are already paired or no other visitors are checked in.',
     fr: 'Aucun partenaire disponible trouvé. Tous les visiteurs sont déjà associés ou aucun autre visiteur n\'est enregistré.'
   },
+  noMatchingPartners: {
+    en: 'No matching partners found. Try a different search term.',
+    fr: 'Aucun partenaire correspondant trouvé. Essayez un autre terme de recherche.'
+  },
   viewDetails: {
     en: 'View details',
     fr: 'Voir les détails'
