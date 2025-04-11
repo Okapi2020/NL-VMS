@@ -193,15 +193,15 @@ export const translations: TranslationMap = {
     en: 'Year of Birth',
     fr: 'Année de naissance'
   },
-  gender: {
+  genderLabel: {
     en: 'Sex',
     fr: 'Sexe'
   },
-  sex: {
+  sexLabel: {
     en: 'Sex',
     fr: 'Sexe'
   },
-  selectSex: {
+  selectSexDropdown: {
     en: 'Select sex',
     fr: 'Sélectionner le sexe'
   },
@@ -973,7 +973,7 @@ export const translations: TranslationMap = {
     en: 'Sex',
     fr: 'Sexe'
   },
-  selectSex: {
+  selectSexOption: {
     en: 'Select sex',
     fr: 'Sélectionner le sexe'
   },
@@ -997,11 +997,11 @@ export const translations: TranslationMap = {
     en: 'Phone Number',
     fr: 'Numéro de téléphone'
   },
-  itemsPerPage: {
+  itemsPerPageLabel: {
     en: 'items per page',
     fr: 'éléments par page'
   },
-  page: {
+  pageNumber: {
     en: 'Page',
     fr: 'Page'
   },
