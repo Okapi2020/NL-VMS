@@ -925,10 +925,6 @@ export const translations: TranslationMap = {
     en: 'Next page',
     fr: 'Page suivante'
   },
-  page: {
-    en: 'Page',
-    fr: 'Page'
-  },
   of: {
     en: 'of',
     fr: 'sur'
@@ -956,10 +952,6 @@ export const translations: TranslationMap = {
   notSpecified: {
     en: 'Not specified',
     fr: 'Non spécifié'
-  },
-  verified: {
-    en: 'Verified',
-    fr: 'Vérifié'
   },
   loadingVisitHistory: {
     en: 'Loading visit history...',
