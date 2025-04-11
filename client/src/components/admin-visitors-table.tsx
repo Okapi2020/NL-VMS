@@ -564,7 +564,8 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
         <div className="absolute -bottom-7 right-2 text-xs text-gray-500 md:hidden">
           <span>{t("swipeToSeeMore", { defaultValue: "← Swipe to see more →" })}</span>
         </div>
-        <Table className="w-full whitespace-nowrap min-w-[900px] lg:min-w-[1100px]">
+        <div className="w-full min-w-[900px] lg:min-w-[1100px]">
+          <Table className="w-full whitespace-nowrap">
           <TableHeader>
             <TableRow>
               <TableHead className="w-[40px]">
@@ -756,15 +757,17 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   
                   {/* Partner */}
                   <TableCell>
-                    <div className="flex items-center">
+                    <div className="flex items-center whitespace-nowrap">
                       {visit.partnerId ? (
-                        <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 flex items-center gap-1">
-                          <Link2 className="h-3.5 w-3.5 mr-1 flex-shrink-0" />
+                        <div className="flex items-center text-indigo-600">
+                          <span className="inline-block h-5 w-5 rounded-full bg-indigo-100 text-xs flex items-center justify-center mr-1.5">
+                            {getInitials(paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || '')}
+                          </span>
                           <span className="font-medium" title={paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || ''}>
                             {paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || 
                               formatBadgeId(paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.id || 0)}
                           </span>
-                        </Badge>
+                        </div>
                       ) : (
                         <span className="text-sm text-gray-500">{t("noPartner", { defaultValue: "No partner" })}</span>
                       )}
@@ -786,41 +789,35 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   
                   {/* Actions */}
                   <TableCell>
-                    <div className="flex justify-end space-x-2 items-center">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-blue-600 hover:bg-blue-50 rounded-full h-8 w-8 p-0"
+                    <div className="flex space-x-2 items-center">
+                      <button 
+                        className="p-1 rounded-md text-gray-500 hover:bg-gray-100"
                         onClick={() => handleOpenDetailModal(visitor, visit)}
                         title={t("view", { defaultValue: "View" })}
                       >
-                        <Eye className="h-4 w-4" />
-                      </Button>
+                        <Eye size={16} className="text-gray-500" />
+                      </button>
                       
-                      <Button
-                        variant="ghost"
-                        size="icon"
+                      <button 
+                        className="p-1 rounded-md text-green-600 hover:bg-green-100"
                         onClick={() => handleCheckOut(visit.id)}
                         disabled={processingIds.has(visit.id)}
-                        className="text-green-600 hover:bg-green-50 rounded-full h-8 w-8 p-0"
                         title={t("checkOut", { defaultValue: "Check out" })}
                       >
                         {processingIds.has(visit.id) ? (
                           <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-600 border-t-transparent" />
                         ) : (
-                          <LogOut className="h-4 w-4" />
+                          <LogOut size={16} className="text-green-600" />
                         )}
-                      </Button>
+                      </button>
                       
-                      <Button
-                        variant="ghost"
-                        size="icon"
+                      <button 
+                        className="p-1 rounded-md text-purple-600 hover:bg-purple-100"
                         onClick={() => handlePartnerDialog(visitor, visit)}
-                        className="text-indigo-600 hover:bg-indigo-50 rounded-full h-8 w-8 p-0"
                         title={t("partner", { defaultValue: "Partner" })}
                       >
-                        <UserPlus className="h-4 w-4" />
-                      </Button>
+                        <UserPlus size={16} className="text-purple-600" />
+                      </button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -834,6 +831,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
             )}
           </TableBody>
         </Table>
+        </div>
       </div>
       
       {/* Bulk actions and pagination controls */}
@@ -1249,6 +1247,6 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
 
 // Export the component directly
 export type { AdminVisitorsTableProps };
-export function AdminVisitorsTable(props: AdminVisitorsTableProps) {
+export const AdminVisitorsTable = function(props: AdminVisitorsTableProps) {
   return <AdminVisitorsTableComponent {...props} />;
-}
+};
