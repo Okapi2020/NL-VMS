@@ -176,8 +176,8 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
     },
     onSuccess: () => {
       toast({
-        title: "Success",
-        description: "Visitor information updated successfully",
+        title: t("success", { defaultValue: "Success" }),
+        description: t("visitorUpdated", { defaultValue: "Visitor information updated successfully" }),
       });
       // Close the dialog
       setIsEditDialogOpen(false);
