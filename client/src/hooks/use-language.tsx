@@ -849,7 +849,7 @@ export const translations: TranslationMap = {
     en: 'No available partners found. All visitors are already paired or no other visitors are checked in.',
     fr: 'Aucun partenaire disponible trouvé. Tous les visiteurs sont déjà associés ou aucun autre visiteur n\'est enregistré.'
   },
-  confirmDeleteVisitor: {
+  confirmDeleteVisitorDialog: {
     en: 'Are you sure you want to delete ${name}?',
     fr: 'Êtes-vous sûr de vouloir supprimer ${name}?'
   },
@@ -1244,6 +1244,50 @@ export const translations: TranslationMap = {
   sex: {
     en: 'Sex',
     fr: 'Sexe'
+  },
+  optional: {
+    en: 'Optional',
+    fr: 'Facultatif'
+  },
+  allMunicipalities: {
+    en: 'All municipalities',
+    fr: 'Toutes les municipalités'
+  },
+  status: {
+    en: 'Status',
+    fr: 'Statut'
+  },
+  allStatus: {
+    en: 'All status',
+    fr: 'Tous les statuts'
+  },
+  allStatuses: {
+    en: 'All status',
+    fr: 'Tous les statuts'
+  },
+  active: {
+    en: 'Active',
+    fr: 'Actif'
+  },
+  completed: {
+    en: 'Completed',
+    fr: 'Terminé'
+  },
+  showingTrashBin: {
+    en: 'Showing Trash Bin',
+    fr: 'Affichage de la corbeille'
+  },
+  trashBinEmpty: {
+    en: 'Trash bin is empty',
+    fr: 'La corbeille est vide'
+  },
+  itemsPerPageFilter: {
+    en: 'items per page',
+    fr: 'éléments par page'
+  },
+  pageXofY: {
+    en: 'Page ${current} of ${total}',
+    fr: 'Page ${current} sur ${total}'
   }
 };
 
