@@ -830,8 +830,8 @@ export const translations: TranslationMap = {
     fr: 'Sélectionner un partenaire'
   },
   selectPartnerDescription: {
-    en: 'Select a partner for ${fullName} who arrived together.',
-    fr: 'Sélectionnez un partenaire pour ${fullName} qui est arrivé ensemble.'
+    en: 'Select the visitor you wish to associate with "${firstName}". Don\'t hesitate to ask the visitor questions if you\'re not sure.',
+    fr: 'Sélectionnez le visiteur associer à "${firstName}". N\'hésitez pas à demander au visiteur si vous n\'êtes pas sûr.'
   },
   currentlyPartneredWith: {
     en: 'Currently partnered with',
