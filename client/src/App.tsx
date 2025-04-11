@@ -48,9 +48,10 @@ function Router() {
 
 function App() {
   return (
-    <>
+    <LanguageProvider>
       <Router />
-    </>
+      <Toaster />
+    </LanguageProvider>
   );
 }
 
