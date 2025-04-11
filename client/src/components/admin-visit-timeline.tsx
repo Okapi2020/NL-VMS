@@ -820,13 +820,13 @@ function AdminVisitTimelineComponent({ visitHistory, isLoading }: AdminVisitTime
                             </a>
                           )}
                           {!visitor.email && (
-                            <span className="text-gray-400 italic">{t("noEmail", { defaultValue: "No email" })}</span>
+                            <span className="text-gray-400 italic">{t("noEmailProvided")}</span>
                           )}
                           {visitor.phoneNumber && (
                             <PhoneNumberLink phoneNumber={visitor.phoneNumber} />
                           )}
                           {!visitor.phoneNumber && (
-                            <span className="text-gray-400 italic">{t("noPhoneProvided", { defaultValue: "No phone provided" })}</span>
+                            <span className="text-gray-400 italic">{t("noPhoneProvided")}</span>
                           )}
                         </div>
                       </div>
@@ -838,7 +838,7 @@ function AdminVisitTimelineComponent({ visitHistory, isLoading }: AdminVisitTime
                           {formatBadgeId(visitor.id)}
                         </span>
                         {visitor.verified && (
-                          <span title={t("verifiedVisitor")} className="relative top-px">
+                          <span title={t("verifiedVisitor", { defaultValue: "Verified Visitor" })} className="relative top-px">
                             <Badge variant="outline" className="bg-blue-50 text-blue-800 border-blue-200 flex items-center gap-1 px-2 py-0.5">
                               <span className="text-xs font-medium">{t("verified")}</span>
                               <CheckCircle className="h-3.5 w-3.5 text-blue-600" />

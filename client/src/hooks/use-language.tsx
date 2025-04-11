@@ -857,10 +857,6 @@ export const translations: TranslationMap = {
     en: 'Are you sure you want to delete ${count} selected visitors?',
     fr: 'Êtes-vous sûr de vouloir supprimer ${count} visiteurs sélectionnés?'
   },
-  noEmail: {
-    en: 'No email',
-    fr: 'Pas d\'email'
-  },
   noPhoneProvided: {
     en: 'No phone provided',
     fr: 'Pas de téléphone fourni'
@@ -964,10 +960,6 @@ export const translations: TranslationMap = {
   verified: {
     en: 'Verified',
     fr: 'Vérifié'
-  },
-  verifiedVisitor: {
-    en: 'Verified Visitor',
-    fr: 'Visiteur Vérifié'
   },
   loadingVisitHistory: {
     en: 'Loading visit history...',
