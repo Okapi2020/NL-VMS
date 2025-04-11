@@ -892,6 +892,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         affectedRecords: 2, // Both visits are affected when adding a partner
       });
       
+      // Send real-time notification for partner update
+      if (global.broadcastPartnerUpdate && partnerData.partnerId !== null) {
+        // Get the current active visits with visitors for notification data
+        const activeVisits = await storage.getActiveVisitsWithVisitors();
+        global.broadcastPartnerUpdate('linked', partnerData.visitId, partnerData.partnerId, activeVisits);
+      }
+      
       // Return success response
       res.status(200).json({ 
         success: true, 
@@ -931,6 +938,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: adminId,
         affectedRecords: 1
       });
+      
+      // Send real-time notification for partner removal
+      if (global.broadcastPartnerUpdate) {
+        // Get the current active visits with visitors for notification data
+        const activeVisits = await storage.getActiveVisitsWithVisitors();
+        global.broadcastPartnerUpdate('unlinked', partnerData.visitId, null, activeVisits);
+      }
       
       // Return success response
       res.status(200).json({ 
@@ -1656,6 +1670,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
             verified: visitor.verified
           },
           purpose: purpose || 'Not specified',
+          timestamp: new Date().toISOString()
+        }));
+      }
+    });
+  };
+  
+  // Add a function to the global scope to broadcast partner update notifications
+  // This will be called when partners are linked or unlinked
+  global.broadcastPartnerUpdate = (
+    action: 'linked' | 'unlinked',
+    visitId: number,
+    partnerId: number | null,
+    visitors: { visitor: Visitor, visit: Visit }[]
+  ) => {
+    // Find the visitors involved
+    const mainVisitorData = visitors.find(v => v.visit.id === visitId);
+    const partnerVisitorData = partnerId ? visitors.find(v => v.visit.id === partnerId) : null;
+    
+    if (!mainVisitorData) return; // Guard clause if no visitor found
+    
+    clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({
+          type: 'partner-update',
+          action,
+          visitor: {
+            id: mainVisitorData.visitor.id,
+            fullName: mainVisitorData.visitor.fullName,
+            badgeId: mainVisitorData.visitor.id,
+          },
+          partner: partnerVisitorData ? {
+            id: partnerVisitorData.visitor.id,
+            fullName: partnerVisitorData.visitor.fullName,
+            badgeId: partnerVisitorData.visitor.id,
+          } : null,
           timestamp: new Date().toISOString()
         }));
       }
