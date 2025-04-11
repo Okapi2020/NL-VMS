@@ -34,12 +34,12 @@ export const translations: TranslationMap = {
     fr: 'jours'
   },
   
-  visits: {
+  visitsHeader: {
     en: 'VISITS',
     fr: 'VISITES'
   },
   
-  time: {
+  timeHeader: {
     en: 'TIME',
     fr: 'HEURE'
   },
@@ -857,7 +857,7 @@ export const translations: TranslationMap = {
     en: 'Are you sure you want to delete ${count} selected visitors?',
     fr: 'Êtes-vous sûr de vouloir supprimer ${count} visiteurs sélectionnés?'
   },
-  noPhoneProvided: {
+  noPhoneProvidedMessage: {
     en: 'No phone provided',
     fr: 'Pas de téléphone fourni'
   },
