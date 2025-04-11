@@ -868,6 +868,26 @@ export const translations: TranslationMap = {
   newVisitorNotification: {
     en: 'New visitor check-in',
     fr: 'Nouvel enregistrement de visiteur'
+  },
+  success: {
+    en: 'Success',
+    fr: 'Succès'
+  },
+  partnersLinked: {
+    en: 'Partners linked',
+    fr: 'Partenaires associés'
+  },
+  partnerRemoved: {
+    en: 'Partner removed',
+    fr: 'Partenaire supprimé'
+  },
+  badgeColon: {
+    en: 'Badge:',
+    fr: 'Badge:'
+  },
+  timeColon: {
+    en: 'Time:',
+    fr: 'Heure:'
   }
 };
 
