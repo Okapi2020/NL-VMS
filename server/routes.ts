@@ -59,7 +59,122 @@ const handleZodError = (error: unknown, res: Response) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Set up authentication
+  // Create HTTP server first (to be used by WebSocket server)
+  const httpServer = createServer(app);
+  
+  // Set up WebSocket server for real-time notifications FIRST
+  // This ensures the broadcastCheckIn function is available before routes are registered
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  // Track connected clients
+  const clients = new Set<WebSocket>();
+  
+  wss.on('connection', (ws) => {
+    console.log('WebSocket client connected');
+    clients.add(ws);
+    
+    // Send initial connection confirmation
+    ws.send(JSON.stringify({ 
+      type: 'connection', 
+      message: 'Connected to visitor management system notifications' 
+    }));
+    
+    // Handle client disconnect
+    ws.on('close', () => {
+      console.log('WebSocket client disconnected');
+      clients.delete(ws);
+    });
+    
+    // Handle client messages
+    ws.on('message', (message) => {
+      console.log('Received message from client:', message.toString());
+    });
+  });
+  
+  // Define global WebSocket notification functions BEFORE route setup
+  global.broadcastCheckIn = (visitor: Visitor, purpose?: string) => {
+    console.log('Broadcasting check-in notification for visitor:', visitor.fullName);
+    console.log('Number of connected WebSocket clients:', clients.size);
+    
+    let sentCount = 0;
+    clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        const message = JSON.stringify({
+          type: 'check-in',
+          visitor: {
+            id: visitor.id,
+            fullName: visitor.fullName,
+            phoneNumber: visitor.phoneNumber,
+            verified: visitor.verified
+          },
+          purpose: purpose || 'Not specified',
+          timestamp: new Date().toISOString()
+        });
+        
+        client.send(message);
+        sentCount++;
+        console.log('Sent notification to client');
+      }
+    });
+    
+    console.log(`Successfully sent check-in notification to ${sentCount} clients`);
+    
+    // If no clients, log a warning
+    if (sentCount === 0) {
+      console.warn('No active WebSocket clients to receive the notification!');
+    }
+  };
+  
+  // Define global partner update notification function
+  global.broadcastPartnerUpdate = (
+    action: 'linked' | 'unlinked',
+    visitId: number,
+    partnerId: number | null,
+    visitors: { visitor: Visitor, visit: Visit }[]
+  ) => {
+    // Find the visitors involved
+    const mainVisitorData = visitors.find(v => v.visit.id === visitId);
+    const partnerVisitorData = partnerId ? visitors.find(v => v.visit.id === partnerId) : null;
+    
+    if (!mainVisitorData) return; // Guard clause if no visitor found
+    
+    console.log(`Broadcasting partner ${action} notification for visitor:`, mainVisitorData.visitor.fullName);
+    console.log('Number of connected WebSocket clients:', clients.size);
+    
+    let sentCount = 0;
+    clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        const message = JSON.stringify({
+          type: 'partner-update',
+          action,
+          visitor: {
+            id: mainVisitorData.visitor.id,
+            fullName: mainVisitorData.visitor.fullName,
+            badgeId: mainVisitorData.visitor.id,
+          },
+          partner: partnerVisitorData ? {
+            id: partnerVisitorData.visitor.id,
+            fullName: partnerVisitorData.visitor.fullName,
+            badgeId: partnerVisitorData.visitor.id,
+          } : null,
+          timestamp: new Date().toISOString()
+        });
+        
+        client.send(message);
+        sentCount++;
+        console.log('Sent partner notification to client');
+      }
+    });
+    
+    console.log(`Successfully sent partner ${action} notification to ${sentCount} clients`);
+    
+    // If no clients, log a warning
+    if (sentCount === 0) {
+      console.warn('No active WebSocket clients to receive the partner notification!');
+    }
+  };
+  
+  // Now set up authentication
   setupAuth(app);
   
   // Settings endpoints
@@ -1671,105 +1786,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  const httpServer = createServer(app);
-  
-  // Set up WebSocket server for real-time notifications
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
-  
-  // Track connected clients
-  const clients = new Set<WebSocket>();
-  
-  wss.on('connection', (ws) => {
-    console.log('WebSocket client connected');
-    clients.add(ws);
-    
-    // Send initial connection confirmation
-    ws.send(JSON.stringify({ 
-      type: 'connection', 
-      message: 'Connected to visitor management system notifications' 
-    }));
-    
-    // Handle client disconnect
-    ws.on('close', () => {
-      console.log('WebSocket client disconnected');
-      clients.delete(ws);
-    });
-    
-    // Handle client messages
-    ws.on('message', (message) => {
-      console.log('Received message from client:', message.toString());
-    });
-  });
-  
-  // Add a function to the global scope to broadcast check-in notifications
-  // This will be called from the visitor check-in endpoint
-  global.broadcastCheckIn = (visitor: Visitor, purpose?: string) => {
-    console.log('Broadcasting check-in notification for visitor:', visitor.fullName);
-    console.log('Number of connected WebSocket clients:', clients.size);
-    
-    let sentCount = 0;
-    clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        const message = JSON.stringify({
-          type: 'check-in',
-          visitor: {
-            id: visitor.id,
-            fullName: visitor.fullName,
-            phoneNumber: visitor.phoneNumber,
-            verified: visitor.verified
-          },
-          purpose: purpose || 'Not specified',
-          timestamp: new Date().toISOString()
-        });
-        
-        client.send(message);
-        sentCount++;
-        console.log('Sent notification to client');
-      }
-    });
-    
-    console.log(`Successfully sent check-in notification to ${sentCount} clients`);
-    
-    // If no clients, log a warning
-    if (sentCount === 0) {
-      console.warn('No active WebSocket clients to receive the notification!');
-    }
-  };
-  
-  // Add a function to the global scope to broadcast partner update notifications
-  // This will be called when partners are linked or unlinked
-  global.broadcastPartnerUpdate = (
-    action: 'linked' | 'unlinked',
-    visitId: number,
-    partnerId: number | null,
-    visitors: { visitor: Visitor, visit: Visit }[]
-  ) => {
-    // Find the visitors involved
-    const mainVisitorData = visitors.find(v => v.visit.id === visitId);
-    const partnerVisitorData = partnerId ? visitors.find(v => v.visit.id === partnerId) : null;
-    
-    if (!mainVisitorData) return; // Guard clause if no visitor found
-    
-    clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify({
-          type: 'partner-update',
-          action,
-          visitor: {
-            id: mainVisitorData.visitor.id,
-            fullName: mainVisitorData.visitor.fullName,
-            badgeId: mainVisitorData.visitor.id,
-          },
-          partner: partnerVisitorData ? {
-            id: partnerVisitorData.visitor.id,
-            fullName: partnerVisitorData.visitor.fullName,
-            badgeId: partnerVisitorData.visitor.id,
-          } : null,
-          timestamp: new Date().toISOString()
-        }));
-      }
-    });
-  };
-
+  // Return the existing httpServer that was initialized at the beginning of the function
   return httpServer;
 }
