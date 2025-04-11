@@ -521,7 +521,7 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
             onClick={() => setShowFilters(!showFilters)}
           >
             <SlidersHorizontal className="mr-2 h-4 w-4" />
-            Filters
+            {t("filters", { defaultValue: "Filters" })}
           </Button>
           
           <Button
@@ -565,7 +565,7 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
             className={showDeletedVisitors ? "bg-amber-600 hover:bg-amber-700" : ""}
           >
             <ArchiveRestore className="mr-2 h-4 w-4" />
-            {showDeletedVisitors ? "Showing Trash Bin" : "Show Trash Bin"}
+            {showDeletedVisitors ? t("showingTrashBin", { defaultValue: "Showing Trash Bin" }) : t("showTrashBin", { defaultValue: "Show Trash Bin" })}
           </Button>
         </div>
 
@@ -573,7 +573,7 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
           <div className="grid gap-4 p-4 border rounded-md shadow-sm">
             <div className="flex flex-wrap gap-4">
               <div className="space-y-1">
-                <label className="text-sm font-medium block">Status</label>
+                <label className="text-sm font-medium block">{t("status", { defaultValue: "Status" })}</label>
                 <Select value={filterStatus} onValueChange={(value: "all" | "active" | "completed") => setFilterStatus(value)}>
                   <SelectTrigger className="w-36">
                     <SelectValue placeholder="Status" />
@@ -587,7 +587,7 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
               </div>
               
               <div className="space-y-1">
-                <label className="text-sm font-medium block">Date Range</label>
+                <label className="text-sm font-medium block">{t("dateRange", { defaultValue: "Date Range" })}</label>
                 <DateRangePicker value={dateRange} onChange={setDateRange} />
               </div>
               
@@ -600,7 +600,7 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                     className="h-10"
                   >
                     <XCircle className="mr-2 h-4 w-4" />
-                    Clear dates
+                    {t("clearDates", { defaultValue: "Clear dates" })}
                   </Button>
                 </div>
               )}
@@ -838,7 +838,7 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                             {visitor.email}
                           </a>
                         ) : (
-                          <span className="text-gray-400 italic">No email</span>
+                          <span className="text-gray-400 italic">{t("noEmail", { defaultValue: "No email" })}</span>
                         )}
                         {visitor.phoneNumber ? (
                           <PhoneNumberLink phoneNumber={visitor.phoneNumber} />
@@ -972,7 +972,7 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                           }}
                         >
                           <Eye className="h-4 w-4 mr-1" />
-                          <span>View</span>
+                          <span>{t("view", { defaultValue: "View" })}</span>
                         </Button>
                         
                         {/* Partner button no longer needed as it's in the Edit modal */}
@@ -1167,7 +1167,7 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                         onChange={(e) => field.onChange(e.target.value || null)}
                       />
                     </FormControl>
-                    <FormDescription>Optional</FormDescription>
+                    <FormDescription>{t("optional", { defaultValue: "Optional" })}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -1270,7 +1270,7 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
               <DialogFooter className="gap-2 sm:gap-0">
                 <DialogClose asChild>
                   <Button type="button" variant="outline" className="mt-4">
-                    Cancel
+                    {t("cancel", { defaultValue: "Cancel" })}
                   </Button>
                 </DialogClose>
                 <Button 
@@ -1295,7 +1295,7 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                           />
                         </svg>
                       </div>
-                      Saving...
+                      {t("saving", { defaultValue: "Saving..." })}
                     </span>
                   ) : (
                     "Save Changes"
