@@ -204,6 +204,16 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
         return sortDirection === "asc"
           ? a.visitor.fullName.localeCompare(b.visitor.fullName)
           : b.visitor.fullName.localeCompare(a.visitor.fullName);
+      } else if (sortField === "municipality") {
+        const municipalityA = a.visitor.municipality || "";
+        const municipalityB = b.visitor.municipality || "";
+        return sortDirection === "asc"
+          ? municipalityA.localeCompare(municipalityB)
+          : municipalityB.localeCompare(municipalityA);
+      } else if (sortField === "badge") {
+        return sortDirection === "asc"
+          ? a.visitor.id - b.visitor.id
+          : b.visitor.id - a.visitor.id;
       } else if (sortField === "visitCount") {
         const countA = a.visitor.visitCount || 0;
         const countB = b.visitor.visitCount || 0;
@@ -572,18 +582,36 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   </th>
                   
                   {/* Municipality Column */}
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                  <th 
+                    scope="col" 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell cursor-pointer"
+                    onClick={() => handleSortChange("municipality")}
+                  >
                     <div className="flex items-center">
                       <MapPin className="mr-1 h-4 w-4" />
                       <span>{t("municipality", { defaultValue: "Municipality" })}</span>
+                      {sortField === "municipality" && (
+                        sortDirection === "asc" ? 
+                        <ChevronUp className="ml-1 h-4 w-4" /> : 
+                        <ChevronDown className="ml-1 h-4 w-4" />
+                      )}
                     </div>
                   </th>
                   
                   {/* Badge ID Column */}
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th 
+                    scope="col" 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                    onClick={() => handleSortChange("badge")}
+                  >
                     <div className="flex items-center">
                       <Tag className="mr-1 h-4 w-4" />
                       <span>{t("badge", { defaultValue: "Badge" })}</span>
+                      {sortField === "badge" && (
+                        sortDirection === "asc" ? 
+                        <ChevronUp className="ml-1 h-4 w-4" /> : 
+                        <ChevronDown className="ml-1 h-4 w-4" />
+                      )}
                     </div>
                   </th>
                   
@@ -709,8 +737,8 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                       <td className="px-6 py-4 whitespace-nowrap">
                         {visit.partnerId ? (
                           <div className="flex items-center text-blue-600">
-                            <span className="inline-block h-5 w-5 rounded-full bg-blue-100 text-xs flex items-center justify-center mr-1.5">
-                              {getInitials(paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || '')}
+                            <span className="inline-block h-5 w-5 mr-1.5">
+                              <User size={18} className="text-blue-600" />
                             </span>
                             <span className="text-sm font-medium" title={paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || ''}>
                               {paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || 
