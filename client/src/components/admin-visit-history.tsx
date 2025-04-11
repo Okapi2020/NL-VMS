@@ -28,6 +28,7 @@ import {
   Calendar,
   UserRound,
   Clock,
+  Users,
   XCircle,
   Tag,
   Phone,
@@ -708,7 +709,7 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
           <TableBody>
             {paginatedVisits.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-4 text-gray-500">
+                <TableCell colSpan={9} className="text-center py-4 text-gray-500">
                   {showDeletedVisitors 
                     ? "Trash bin is empty" 
                     : "No visits match your search or filters"}
@@ -821,6 +822,23 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                           </div>
                         ) : (
                           <span className="text-gray-400">-</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    
+                    {/* Partner */}
+                    <TableCell className="py-4">
+                      <div className="flex items-center">
+                        {visit.partnerId ? (
+                          <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 flex items-center gap-1">
+                            <Users className="h-3.5 w-3.5 mr-1" />
+                            <span className="font-medium">
+                              {paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || 
+                                formatBadgeId(paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.id || 0)}
+                            </span>
+                          </Badge>
+                        ) : (
+                          <span className="text-gray-400 italic">{t("noPartner", { defaultValue: "No partner" })}</span>
                         )}
                       </div>
                     </TableCell>
