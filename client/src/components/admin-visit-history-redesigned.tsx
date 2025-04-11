@@ -20,7 +20,9 @@ import {
   Users,
   Mail,
   User,
-  Tag
+  Tag,
+  Clock,
+  LogOut
 } from "lucide-react";
 import {
   Dialog,
@@ -726,6 +728,27 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
                   <span>{t("partner", { defaultValue: "Partner" })}</span>
                 </div>
               </th>
+              <th 
+                scope="col" 
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                onClick={() => handleSortChange("checkIn")}
+              >
+                <div className="flex items-center">
+                  <Clock className="h-4 w-4 mr-1" />
+                  <span>{t("checkInTime", { defaultValue: "Check-in" })}</span>
+                  {sortField === "checkIn" && (
+                    sortDirection === "asc" ? 
+                    <ChevronUp className="ml-1 h-4 w-4" /> : 
+                    <ChevronDown className="ml-1 h-4 w-4" />
+                  )}
+                </div>
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <div className="flex items-center">
+                  <LogOut className="h-4 w-4 mr-1" />
+                  <span>{t("checkOutTime", { defaultValue: "Check-out" })}</span>
+                </div>
+              </th>
               <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 {t("actions", { defaultValue: "Actions" })}
               </th>
@@ -734,7 +757,7 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
           <tbody className="bg-white divide-y divide-gray-200">
             {paginatedVisits.length === 0 ? (
               <tr>
-                <td colSpan={8} className="py-6 text-center text-gray-500">
+                <td colSpan={10} className="py-6 text-center text-gray-500">
                   {showDeletedVisitors 
                     ? t("trashBinEmpty", { defaultValue: "Trash bin is empty" })
                     : t("noVisitsMatchFilters", { defaultValue: "No visits match your search or filters" })}
@@ -826,6 +849,28 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
                         <span className="text-gray-500 italic text-sm">{t("noPartner", { defaultValue: "No partner" })}</span>
                       )}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="h-2 w-2 rounded-full bg-green-500 mr-2"></div>
+                        <div>
+                          <div className="text-sm font-medium">{formatTimeOnly(visit.checkInTime, language)}</div>
+                          <div className="text-xs text-gray-500">{formatDate(visit.checkInTime, language)}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {visit.checkOutTime ? (
+                        <div className="flex items-center">
+                          <div className="h-2 w-2 rounded-full bg-red-500 mr-2"></div>
+                          <div>
+                            <div className="text-sm font-medium">{formatTimeOnly(visit.checkOutTime, language)}</div>
+                            <div className="text-xs text-gray-500">{formatDate(visit.checkOutTime, language)}</div>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-blue-600 text-sm font-medium">{t("stillCheckedIn", { defaultValue: "Still checked in" })}</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end space-x-3">
                         <button onClick={() => {
@@ -842,25 +887,6 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
                         }} className="text-blue-600 hover:text-blue-900">
                           <Pencil className="h-4 w-4" />
                         </button>
-                        {showDeletedVisitors ? (
-                          <button 
-                            onClick={() => restoreVisitorMutation.mutate(visitor.id)}
-                            className="text-amber-600 hover:text-amber-900"
-                          >
-                            <ArchiveRestore className="h-4 w-4" />
-                          </button>
-                        ) : (
-                          <button 
-                            onClick={() => {
-                              if (window.confirm(t("confirmDeleteVisitor", { defaultValue: "Are you sure you want to delete this visitor?" }))) {
-                                deleteVisitorMutation.mutate(visitor.id);
-                              }
-                            }}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        )}
                       </div>
                     </td>
                   </tr>
@@ -1087,20 +1113,37 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
               {t("close", { defaultValue: "Close" })}
             </Button>
             
-            <Button
-              onClick={() => {
-                setDetailsDialogOpen(false);
-                // Use setTimeout to ensure the first modal is properly closed
-                setTimeout(() => {
-                  if (selectedVisitor && selectedVisit) {
-                    setEditDialogOpen(true);
-                  }
-                }, 100);
-              }}
-            >
-              <Pencil className="h-4 w-4 mr-2" />
-              {t("editVisitor", { defaultValue: "Edit Visitor" })}
-            </Button>
+            <div className="flex space-x-2">
+              {!showDeletedVisitors && selectedVisitor && (
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    if (window.confirm(t("confirmDeleteVisitor", { defaultValue: "Are you sure you want to delete this visitor?" }))) {
+                      deleteVisitorMutation.mutate(selectedVisitor.id);
+                      setDetailsDialogOpen(false);
+                    }
+                  }}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  {t("deleteVisitor", { defaultValue: "Delete" })}
+                </Button>
+              )}
+              
+              <Button
+                onClick={() => {
+                  setDetailsDialogOpen(false);
+                  // Use setTimeout to ensure the first modal is properly closed
+                  setTimeout(() => {
+                    if (selectedVisitor && selectedVisit) {
+                      setEditDialogOpen(true);
+                    }
+                  }, 100);
+                }}
+              >
+                <Pencil className="h-4 w-4 mr-2" />
+                {t("editVisitor", { defaultValue: "Edit Visitor" })}
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
