@@ -262,8 +262,8 @@ function AdminVisitTimelineComponent({ visitHistory, isLoading }: AdminVisitTime
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: "Failed to delete visitor: " + error.message,
+        title: t("error", { defaultValue: "Error" }),
+        description: t("failedToDeleteVisitor", { defaultValue: "Failed to delete visitor" }) + ": " + error.message,
         variant: "destructive",
       });
     }
@@ -309,8 +309,8 @@ function AdminVisitTimelineComponent({ visitHistory, isLoading }: AdminVisitTime
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: "Failed to restore visitor: " + error.message,
+        title: t("error", { defaultValue: "Error" }),
+        description: t("failedToRestoreVisitor", { defaultValue: "Failed to restore visitor" }) + ": " + error.message,
         variant: "destructive",
       });
     }
@@ -341,8 +341,8 @@ function AdminVisitTimelineComponent({ visitHistory, isLoading }: AdminVisitTime
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: "Failed to update verification status: " + error.message,
+        title: t("error", { defaultValue: "Error" }),
+        description: t("failedToUpdateVerification", { defaultValue: "Failed to update verification status" }) + ": " + error.message,
         variant: "destructive",
       });
     },
@@ -390,11 +390,11 @@ function AdminVisitTimelineComponent({ visitHistory, isLoading }: AdminVisitTime
   };
 
   if (isLoading) {
-    return <div className="py-4 text-center">Loading visit history...</div>;
+    return <div className="py-4 text-center">{t("loadingVisitHistory", { defaultValue: "Loading visit history..." })}</div>;
   }
 
   if (visitHistory.length === 0) {
-    return <div className="py-4 text-center">No visit history available.</div>;
+    return <div className="py-4 text-center">{t("noVisitHistoryAvailable", { defaultValue: "No visit history available." })}</div>;
   }
 
   // Group visits by visitor
@@ -565,8 +565,8 @@ function AdminVisitTimelineComponent({ visitHistory, isLoading }: AdminVisitTime
                 }
               } catch (error) {
                 toast({
-                  title: "Error",
-                  description: "Failed to check trash bin status",
+                  title: t("error", { defaultValue: "Error" }),
+                  description: t("failedToCheckTrashBin", { defaultValue: "Failed to check trash bin status" }),
                   variant: "destructive",
                 });
                 // Make sure we don't show trash bin on error
@@ -654,8 +654,8 @@ function AdminVisitTimelineComponent({ visitHistory, isLoading }: AdminVisitTime
                     })
                     .catch(error => {
                       toast({
-                        title: t("error"),
-                        description: `Failed to delete visitors: ${error.message}`,
+                        title: t("error", { defaultValue: "Error" }),
+                        description: t("failedToDeleteVisitors", { defaultValue: "Failed to delete visitors" }) + `: ${error.message}`,
                         variant: "destructive",
                       });
                     })
