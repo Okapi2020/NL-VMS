@@ -675,6 +675,10 @@ export const translations: TranslationMap = {
     en: 'Total Visitors',
     fr: 'Total des visiteurs'
   },
+  totalRegisteredVisitors: {
+    en: 'Total Registered Visitors',
+    fr: 'Total des visiteurs enregistrés'
+  },
   activeVisits: {
     en: 'Active Visits',
     fr: 'Visites actives'
@@ -682,6 +686,10 @@ export const translations: TranslationMap = {
   avgDuration: {
     en: 'Avg. Duration',
     fr: 'Durée moyenne'
+  },
+  resetAvgDurationTooltip: {
+    en: 'Reset the average visit duration counter',
+    fr: 'Réinitialiser le compteur de durée moyenne de visite'
   },
   autoCheckoutNotice: {
     en: 'For security purposes, all visitors will be automatically checked out at midnight. If you need to stay longer, please check in again the next day.',
@@ -913,6 +921,10 @@ export const translations: TranslationMap = {
     en: 'Visitor',
     fr: 'Visiteur'
   },
+  visitor: {
+    en: 'Visitor',
+    fr: 'Visiteur'
+  },
   contact: {
     en: 'Contact',
     fr: 'Contact'
@@ -925,7 +937,15 @@ export const translations: TranslationMap = {
     en: 'Visits',
     fr: 'Visites'
   },
+  visits: {
+    en: 'Visits',
+    fr: 'Visites'
+  },
   timeColumn: {
+    en: 'Time',
+    fr: 'Heure'
+  },
+  time: {
     en: 'Time',
     fr: 'Heure'
   },
