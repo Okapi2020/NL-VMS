@@ -560,7 +560,10 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto border rounded-md shadow-sm">
+      <div className="overflow-x-auto border rounded-md shadow-sm relative">
+        <div className="absolute -bottom-7 right-2 text-xs text-gray-500 md:hidden">
+          <span>{t("swipeToSeeMore", { defaultValue: "← Swipe to see more →" })}</span>
+        </div>
         <Table className="w-full min-w-[800px] lg:min-w-[1000px]">
           <TableHeader>
             <TableRow>
@@ -756,8 +759,8 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                     <div className="flex items-center">
                       {visit.partnerId ? (
                         <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 flex items-center gap-1">
-                          <Link2 className="h-3.5 w-3.5 mr-1" />
-                          <span className="font-medium">
+                          <Link2 className="h-3.5 w-3.5 mr-1 flex-shrink-0" />
+                          <span className="font-medium truncate max-w-[100px] sm:max-w-[150px]" title={paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || ''}>
                             {paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || 
                               formatBadgeId(paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.id || 0)}
                           </span>
@@ -770,12 +773,12 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   
                   {/* Visit Time */}
                   <TableCell>
-                    <div className="flex items-center">
+                    <div className="flex flex-col sm:flex-row sm:items-center">
                       <span className="inline-flex items-center">
                         <span className="h-2 w-2 rounded-full bg-green-500 mr-2"></span>
                         <span className="font-medium">{formatTimeOnly(visit.checkInTime, language)}</span>
                       </span>
-                      <div className="ml-3 text-sm text-gray-500 font-medium">
+                      <div className="sm:ml-3 text-sm text-gray-500 font-medium">
                         {calculateDuration(visit.checkInTime)}
                       </div>
                     </div>
