@@ -31,6 +31,7 @@ export interface IStorage {
   getAdminByUsername(username: string): Promise<Admin | undefined>;
   createAdmin(admin: InsertAdmin): Promise<Admin>;
   updateAdminLanguage(update: UpdateAdminLanguage): Promise<Admin | undefined>;
+  resetAverageVisitDuration(): Promise<boolean>;
   
   // Visitor methods
   getVisitor(id: number): Promise<Visitor | undefined>;
@@ -127,6 +128,27 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error updating admin language preference:", error);
       return undefined;
+    }
+  }
+  
+  async resetAverageVisitDuration(): Promise<boolean> {
+    try {
+      // Add a special flag visit that will mark when to start calculating the average
+      // We'll add a visit with a specific purpose that can be identified later
+      const dummyVisit = {
+        visitorId: 1, // Admin user ID
+        purpose: "__DURATION_RESET_MARKER__",
+        active: false,
+        checkInTime: new Date(),
+        checkOutTime: new Date()
+      };
+      
+      await db.insert(visits).values(dummyVisit);
+      console.log("Average visit duration reset marker added successfully");
+      return true;
+    } catch (error) {
+      console.error("Error resetting average visit duration:", error);
+      return false;
     }
   }
   

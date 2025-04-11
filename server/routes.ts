@@ -1160,14 +1160,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
       
       // Calculate average visit duration for completed visits
+      // Find the most recent reset marker if any
+      const resetMarker = visitHistory.find(visit => visit.purpose === "__DURATION_RESET_MARKER__");
+      const resetTime = resetMarker ? new Date(resetMarker.checkInTime) : null;
+      
       let totalDuration = 0;
       let visitsWithDuration = 0;
       
       visitHistory.forEach(visit => {
-        if (visit.checkOutTime) {
-          const duration = new Date(visit.checkOutTime).getTime() - new Date(visit.checkInTime).getTime();
-          totalDuration += duration;
-          visitsWithDuration++;
+        if (visit.checkOutTime && visit.purpose !== "__DURATION_RESET_MARKER__") {
+          // Only include visits after the reset marker if one exists
+          if (!resetTime || new Date(visit.checkInTime) > resetTime) {
+            const duration = new Date(visit.checkOutTime).getTime() - new Date(visit.checkInTime).getTime();
+            totalDuration += duration;
+            visitsWithDuration++;
+          }
         }
       });
       
@@ -1236,6 +1243,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Analytics and reporting endpoints
+  
+  // Reset average visit duration counter
+  app.post("/api/admin/reset-avg-duration", ensureAuthenticated, async (req, res) => {
+    try {
+      const success = await storage.resetAverageVisitDuration();
+      
+      if (success) {
+        // Create system log for the reset
+        const adminId = req.user?.id;
+        await storage.createSystemLog({
+          action: "STATISTICS_RESET",
+          details: "Average visit duration counter was reset",
+          userId: adminId,
+          affectedRecords: 1,
+        });
+        
+        // Return success response
+        res.status(200).json({ 
+          success: true, 
+          message: "Average visit duration reset successfully" 
+        });
+      } else {
+        res.status(500).json({ message: "Failed to reset average visit duration" });
+      }
+    } catch (error) {
+      console.error("Reset average visit duration error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
   
   // Advanced analytics endpoints
   app.get("/api/analytics/data", ensureAuthenticated, async (req, res) => {
