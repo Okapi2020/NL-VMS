@@ -34,7 +34,7 @@ export function NotificationDropdown() {
   } = useNotifications();
   
   const { theme } = useTheme();
-  const { t, locale } = useLanguage();
+  const { t, language } = useLanguage();
   
   // Format notification time based on current language
   const formatTime = (timestamp: string) => {
@@ -42,11 +42,11 @@ export function NotificationDropdown() {
     try {
       return formatDistanceToNow(date, { 
         addSuffix: true,
-        locale: locale === 'fr' ? fr : enUS
+        locale: language === 'fr' ? fr : enUS
       });
     } catch (err) {
       return new Date(timestamp).toLocaleTimeString(
-        locale === 'fr' ? 'fr-FR' : 'en-US'
+        language === 'fr' ? 'fr-FR' : 'en-US'
       );
     }
   };

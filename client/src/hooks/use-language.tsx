@@ -787,6 +787,36 @@ export const translations: TranslationMap = {
     en: 'Error updating language preference',
     fr: 'Erreur lors de la mise à jour de la préférence de langue'
   },
+  
+  // Notification system
+  notifications: {
+    en: 'Notifications',
+    fr: 'Notifications'
+  },
+  markAllRead: {
+    en: 'Mark all as read',
+    fr: 'Tout marquer comme lu'
+  },
+  clear: {
+    en: 'Clear',
+    fr: 'Effacer'
+  },
+  noNotifications: {
+    en: 'No notifications',
+    fr: 'Aucune notification'
+  },
+  checkedIn: {
+    en: 'Checked in',
+    fr: 'Enregistré'
+  },
+  viewDetails: {
+    en: 'View details',
+    fr: 'Voir les détails'
+  },
+  newVisitorNotification: {
+    en: 'New visitor check-in',
+    fr: 'Nouvel enregistrement de visiteur'
+  }
 };
 
 interface LanguageContextType {
