@@ -1116,6 +1116,17 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
           </DialogHeader>
           
           <div className="space-y-4 py-4">
+            {/* Search input for filtering partners */}
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+              <Input
+                placeholder={t("searchByNameOrBadge", { defaultValue: "Search by name or badge ID..." })}
+                className="pl-9"
+                value={partnerSearchTerm}
+                onChange={(e) => setPartnerSearchTerm(e.target.value)}
+              />
+            </div>
+            
             {/* Current partner info if any */}
             {selectedVisitForPartner?.visit.partnerId && (
               <div className="flex items-center p-4 bg-blue-50 rounded-md text-blue-700">
@@ -1139,11 +1150,24 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
             <div className="space-y-4 max-h-[300px] overflow-y-auto">
               {/* List of potential partners (all other current visitors) */}
               {visits
-                .filter(({ visit }) => 
-                  visit.id !== selectedVisitForPartner?.visit.id && 
-                  visit.partnerId !== selectedVisitForPartner?.visit.id &&
-                  !visit.partnerId
-                )
+                .filter(({ visit, visitor }) => {
+                  // Don't show the current visitor
+                  if (visit.id === selectedVisitForPartner?.visit.id) return false;
+                  
+                  // Don't show visitors who are already partnered with another visitor
+                  if (visit.partnerId && visit.partnerId !== selectedVisitForPartner?.visit.id) return false;
+                  
+                  // Apply search filter if any
+                  if (partnerSearchTerm) {
+                    const badgeId = formatBadgeId(visitor.id).toLowerCase();
+                    const searchLower = partnerSearchTerm.toLowerCase();
+                    return visitor.fullName.toLowerCase().includes(searchLower) || 
+                           badgeId.includes(searchLower) ||
+                           String(visitor.id).includes(searchLower);
+                  }
+                  
+                  return true;
+                })
                 .map(({ visitor, visit }) => (
                   <div 
                     key={visit.id}
@@ -1164,13 +1188,24 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   </div>
                 ))}
                 
-                {visits.filter(({ visit }) => 
-                  visit.id !== selectedVisitForPartner?.visit.id && 
-                  visit.partnerId !== selectedVisitForPartner?.visit.id &&
-                  !visit.partnerId
-                ).length === 0 && (
+                {visits.filter(({ visit, visitor }) => {
+                  if (visit.id === selectedVisitForPartner?.visit.id) return false;
+                  if (visit.partnerId && visit.partnerId !== selectedVisitForPartner?.visit.id) return false;
+                  
+                  if (partnerSearchTerm) {
+                    const badgeId = formatBadgeId(visitor.id).toLowerCase();
+                    const searchLower = partnerSearchTerm.toLowerCase();
+                    return visitor.fullName.toLowerCase().includes(searchLower) || 
+                           badgeId.includes(searchLower) ||
+                           String(visitor.id).includes(searchLower);
+                  }
+                  
+                  return true;
+                }).length === 0 && (
                   <div className="text-center p-4 text-gray-500 italic">
-                    {t("noAvailablePartners", { defaultValue: "No available partners. All visitors are already paired or checked out." })}
+                    {partnerSearchTerm 
+                      ? t("noMatchingPartners", { defaultValue: "No partners found matching your search. Try a different name or badge ID." })
+                      : t("noAvailablePartners", { defaultValue: "No available partners. All visitors are already paired or checked out." })}
                   </div>
                 )}
             </div>
