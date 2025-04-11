@@ -85,7 +85,7 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
   const [processingVerificationIds, setProcessingVerificationIds] = useState<Set<number>>(new Set());
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
-  const [sortField, setSortField] = useState<"name" | "checkIn" | "checkOut" | "duration">("checkIn");
+  const [sortField, setSortField] = useState<"name" | "checkIn" | "checkOut" | "duration" | "visitCount">("checkIn");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "completed">("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
@@ -381,6 +381,12 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
           else if (!b.visit.checkOutTime) comparison = -1;
           else comparison = new Date(a.visit.checkOutTime).getTime() - new Date(b.visit.checkOutTime).getTime();
           break;
+        case "visitCount":
+          // Compare visitor counts - default to 0 if undefined
+          const aCount = a.visitor.visitCount || 0;
+          const bCount = b.visitor.visitCount || 0;
+          comparison = aCount - bCount;
+          break;
         case "duration":
           // Calculate durations for comparison
           const aDuration = a.visit.checkOutTime 
@@ -417,7 +423,7 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
     setSortDirection(sortDirection === "asc" ? "desc" : "asc");
   };
 
-  const handleSortChange = (field: "name" | "checkIn" | "checkOut" | "duration") => {
+  const handleSortChange = (field: "name" | "checkIn" | "checkOut" | "duration" | "visitCount") => {
     if (field === sortField) {
       toggleSortDirection();
     } else {
@@ -654,6 +660,21 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                 </div>
               </TableHead>
               
+              {/* Visits Column */}
+              <TableHead 
+                className="cursor-pointer" 
+                onClick={() => handleSortChange("visitCount")}
+              >
+                <div className="flex items-center">
+                  <span className="uppercase text-xs font-medium text-gray-500">{t("visits")}</span>
+                  {sortField === "visitCount" && (
+                    sortDirection === "asc" ? 
+                    <ChevronUp className="ml-1 h-4 w-4" /> : 
+                    <ChevronDown className="ml-1 h-4 w-4" />
+                  )}
+                </div>
+              </TableHead>
+              
               {/* Visit Time Information */}
               <TableHead 
                 className="cursor-pointer" 
@@ -679,7 +700,7 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
           <TableBody>
             {paginatedVisits.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-4 text-gray-500">
+                <TableCell colSpan={8} className="text-center py-4 text-gray-500">
                   {showDeletedVisitors 
                     ? "Trash bin is empty" 
                     : "No visits match your search or filters"}
@@ -770,6 +791,26 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                               <CheckCircle className="h-3.5 w-3.5 text-blue-600" />
                             </Badge>
                           </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    
+                    {/* Visit Count */}
+                    <TableCell className="py-4">
+                      <div className="flex items-center justify-center">
+                        {visitor.visitCount !== undefined ? (
+                          <div className="flex items-center">
+                            <span className={`text-sm font-medium ${visitor.visitCount > 10 ? 'text-green-600' : 'text-gray-600'}`}>
+                              {visitor.visitCount}
+                            </span>
+                            {visitor.visitCount > 10 && (
+                              <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                {language === 'fr' ? 'Régulier' : 'Regular'}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">-</span>
                         )}
                       </div>
                     </TableCell>
