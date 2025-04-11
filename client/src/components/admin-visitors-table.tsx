@@ -45,7 +45,8 @@ import {
   UserPlus,
   Link,
   Link2,
-  UserMinus
+  UserMinus,
+  Settings
 } from "lucide-react";
 
 import {
@@ -560,7 +561,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
 
       {/* Table */}
       <div className="overflow-x-auto border rounded-md shadow-sm">
-        <Table className="w-full min-w-[1000px]">
+        <Table className="w-full min-w-[800px] lg:min-w-[1000px]">
           <TableHeader>
             <TableRow>
               <TableHead className="w-[40px]">
