@@ -1123,8 +1123,23 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
             <DialogTitle>{t("selectPartner", { defaultValue: "Select a Partner" })}</DialogTitle>
             <DialogDescription>
               {language === 'fr' 
-                ? `Associer un autre visiteur actif qui est arrivé ensemble avec ${selectedVisitForPartner?.visitor.fullName || 'ce visiteur'}`
-                : `Link ${selectedVisitForPartner?.visitor.fullName || 'this visitor'} with another visitor who arrived together.`
+                ? (
+                    <span>
+                      Associer un autre visiteur actif qui est arrivé ensemble avec{' '}
+                      <span className="font-bold text-purple-600">
+                        {selectedVisitForPartner?.visitor.fullName || 'ce visiteur'}
+                      </span>
+                    </span>
+                  )
+                : (
+                    <span>
+                      Link{' '}
+                      <span className="font-bold text-purple-600">
+                        {selectedVisitForPartner?.visitor.fullName || 'this visitor'}
+                      </span>
+                      {' '}with another visitor who arrived together.
+                    </span>
+                  )
               }
             </DialogDescription>
           </DialogHeader>
