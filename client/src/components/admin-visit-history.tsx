@@ -800,12 +800,14 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                       <div className="flex items-center justify-center">
                         {visitor.visitCount !== undefined ? (
                           <div className="flex items-center">
-                            <span className={`text-sm font-medium ${visitor.visitCount > 10 ? 'text-green-600' : 'text-gray-600'}`}>
-                              {visitor.visitCount}
-                            </span>
+                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                              <span className="font-medium">{visitor.visitCount}</span>
+                            </Badge>
                             {visitor.visitCount > 10 && (
-                              <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                {language === 'fr' ? 'Régulier' : 'Regular'}
+                              <span className="ml-1.5">
+                                <Badge className="px-1.5 py-0 bg-green-100 hover:bg-green-200 text-green-700 border-green-200">
+                                  <span className="text-xs font-medium">{language === 'fr' ? 'Régulier' : 'Regular'}</span>
+                                </Badge>
                               </span>
                             )}
                           </div>
