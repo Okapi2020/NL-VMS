@@ -1153,7 +1153,7 @@ export const translations: TranslationMap = {
     en: 'View',
     fr: 'Voir'
   },
-  municipality: {
+  municipalityLabel: {
     en: 'Municipality',
     fr: 'Municipalité'
   },

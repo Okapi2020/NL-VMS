@@ -1228,7 +1228,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 
                 <div>
                   <h4 className="text-sm font-medium text-gray-500">{t("location", { defaultValue: "Location" })}</h4>
-                  <p className="text-sm mt-1">{selectedVisitDetails.visitor.municipality || t("notSpecified", { defaultValue: "Not specified" })}</p>
+                  <p className="text-sm mt-1">{selectedVisitDetails.visitor.municipality || t("valueNotSpecified", { defaultValue: "Not specified" })}</p>
                 </div>
                 
                 <div>
@@ -1238,7 +1238,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 
                 <div>
                   <h4 className="text-sm font-medium text-gray-500">{t("visitPurpose", { defaultValue: "Visit Purpose" })}</h4>
-                  <p className="text-sm mt-1">{selectedVisitDetails.visit.purpose || t("notSpecified", { defaultValue: "Not specified" })}</p>
+                  <p className="text-sm mt-1">{selectedVisitDetails.visit.purpose || t("valueNotSpecified", { defaultValue: "Not specified" })}</p>
                 </div>
                 
                 <div>

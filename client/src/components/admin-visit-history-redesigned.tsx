@@ -794,7 +794,7 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {visitor.municipality || t("notSpecified", { defaultValue: "Not specified" })}
+                      {visitor.municipality || t("valueNotSpecified", { defaultValue: "Not specified" })}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-md bg-blue-100 text-blue-800">
@@ -960,7 +960,7 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">{t("municipality", { defaultValue: "Municipality" })}</p>
-                    <p className="font-medium">{selectedVisitor.municipality || t("notSpecified", { defaultValue: "Not specified" })}</p>
+                    <p className="font-medium">{selectedVisitor.municipality || t("valueNotSpecified", { defaultValue: "Not specified" })}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">{t("createdDate", { defaultValue: "First Visit" })}</p>
@@ -1000,7 +1000,7 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="col-span-2">
                     <p className="text-sm text-gray-500">{t("visitPurpose", { defaultValue: "Purpose of Visit" })}</p>
-                    <p className="font-medium">{selectedVisit.purpose || t("notSpecified", { defaultValue: "Not specified" })}</p>
+                    <p className="font-medium">{selectedVisit.purpose || t("valueNotSpecified", { defaultValue: "Not specified" })}</p>
                   </div>
                   
                   <div>
