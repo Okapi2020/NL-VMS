@@ -1,0 +1,435 @@
+import React, { useState } from 'react';
+import { Bell, Search, ChevronDown, Eye, LogOut, UserPlus, ChevronRight, ChevronLeft, Settings, Users, FileText, Home, Trash2, Sun, Filter, List } from 'lucide-react';
+
+const VisitorManagementDashboard = () => {
+  const [activeTab, setActiveTab] = useState('current');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Mock data based on images
+  const visitors = [
+    {
+      id: 'JW',
+      name: 'Jonathan Wami',
+      gender: 'Masculin',
+      birthYear: 2003,
+      age: 22,
+      email: null,
+      phone: "+24385448182",
+      commune: 'Bandalungwa',
+      badge: 'VIS-00379',
+      visits: 1,
+      partner: { id: 'GK', name: 'Gracia Kalekwa' },
+      time: '13:54',
+      duration: '8 min'
+    },
+    {
+      id: 'GK',
+      name: 'Gracia Kalekwa',
+      gender: 'Feminin',
+      birthYear: 2005,
+      age: 20,
+      email: null,
+      phone: "+24382145090",
+      commune: 'Ngaliema',
+      badge: 'VIS-00378',
+      visits: 1,
+      partner: { id: 'JW', name: 'Jonathan Wami' },
+      time: '13:53',
+      duration: '9 min'
+    },
+    {
+      id: 'EN',
+      name: 'Etienne Ngombwa',
+      gender: 'Masculin',
+      birthYear: 1991,
+      age: 34,
+      email: "eti.ngombwa@gmail.com",
+      phone: "+24398765432",
+      commune: 'Gombe',
+      badge: 'VIS-00253',
+      visits: 4,
+      partner: { id: 'CB', name: 'Celine Bulemba' },
+      time: '13:24',
+      duration: '38 min'
+    },
+    {
+      id: 'CB',
+      name: 'Celine Bulemba',
+      gender: 'Feminin',
+      birthYear: 1995,
+      age: 30,
+      email: "celine.bulemba@gmail.com",
+      phone: "+24396396396",
+      commune: 'Bandalungwa',
+      badge: 'VIS-00377',
+      visits: 1,
+      partner: { id: 'EN', name: 'Etienne Ngombwa' },
+      time: '13:24',
+      duration: '38 min'
+    },
+    {
+      id: 'SL',
+      name: 'Sam Leatitia Sola',
+      gender: 'Feminin',
+      birthYear: 2007,
+      age: 18,
+      email: null,
+      phone: "+24398965082",
+      commune: 'Kasa-Vubu',
+      badge: 'VIS-00376',
+      visits: 1,
+      partner: null,
+      time: '12:30',
+      duration: '92 min'
+    },
+    {
+      id: 'RN',
+      name: 'Radjam Nsingi Lukeba',
+      gender: 'Masculin',
+      birthYear: 2005,
+      age: 20,
+      email: null,
+      phone: "+24383773257",
+      commune: 'Kasa-Vubu',
+      badge: 'VIS-00375',
+      visits: 1,
+      partner: null,
+      time: '12:26',
+      duration: '97 min'
+    }
+  ];
+
+  return (
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar */}
+      <div className={`bg-white shadow-lg transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-64'}`}>
+        <div className="p-4 flex items-center gap-3">
+          <div className={`flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 text-red-500`}>
+            <span className="font-bold text-xs">!</span>
+          </div>
+          {!sidebarCollapsed && (
+            <div>
+              <div className="font-bold text-gray-800">Next Level</div>
+              <div className="text-sm text-gray-600">Admin</div>
+            </div>
+          )}
+          <button 
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)} 
+            className="ml-auto text-gray-500 hover:text-gray-700"
+          >
+            <ChevronDown size={18} />
+          </button>
+        </div>
+        
+        <div className="mt-2 text-gray-500">
+          {!sidebarCollapsed && <div className="px-4 py-2 text-xs text-gray-400">Welcome, admin</div>}
+          
+          <div className={`flex items-center px-4 py-3 text-blue-600 bg-blue-50 border-l-4 border-blue-600 ${sidebarCollapsed ? 'justify-center' : ''}`}>
+            <Home size={18} />
+            {!sidebarCollapsed && <span className="ml-3">Tableau de bord</span>}
+          </div>
+          
+          <div className={`flex items-center px-4 py-3 hover:bg-gray-100 ${sidebarCollapsed ? 'justify-center' : ''}`}>
+            <Users size={18} />
+            {!sidebarCollapsed && <span className="ml-3">Visiteurs</span>}
+          </div>
+          
+          <div className={`flex items-center px-4 py-3 hover:bg-gray-100 ${sidebarCollapsed ? 'justify-center' : ''}`}>
+            <FileText size={18} />
+            {!sidebarCollapsed && <span className="ml-3">Rapports</span>}
+          </div>
+          
+          <div className={`flex items-center px-4 py-3 hover:bg-gray-100 ${sidebarCollapsed ? 'justify-center' : ''}`}>
+            <Settings size={18} />
+            {!sidebarCollapsed && <span className="ml-3">Paramètres</span>}
+          </div>
+          
+          <div className={`flex items-center px-4 py-3 hover:bg-gray-100 ${sidebarCollapsed ? 'justify-center' : ''}`}>
+            <Eye size={18} />
+            {!sidebarCollapsed && <span className="ml-3">Portail des visites</span>}
+          </div>
+          
+          <div className={`flex items-center px-4 py-3 hover:bg-gray-100 ${sidebarCollapsed ? 'justify-center' : ''}`}>
+            <Trash2 size={18} />
+            {!sidebarCollapsed && <span className="ml-3">Corbeille</span>}
+          </div>
+          
+          <div className={`flex items-center px-4 py-3 hover:bg-gray-100 ${sidebarCollapsed ? 'justify-center' : ''}`}>
+            <LogOut size={18} />
+            {!sidebarCollapsed && <span className="ml-3">Déconnexion</span>}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto">
+        {/* Header */}
+        <div className="bg-white p-4 flex items-center justify-between shadow-sm">
+          <h1 className="text-xl font-bold text-gray-800">Tableau de bord</h1>
+          <div className="flex items-center gap-4">
+            <button className="relative p-2 text-gray-400 hover:text-gray-600">
+              <Bell size={20} />
+              <span className="absolute top-1 right-1 w-4 h-4 bg-blue-600 text-white rounded-full text-xs flex items-center justify-center">2</span>
+            </button>
+            <button className="p-2 text-gray-400 hover:text-gray-600">
+              <Settings size={20} />
+            </button>
+            <button className="p-2 text-gray-400 hover:text-gray-600">
+              <Sun size={20} />
+            </button>
+            <button className="flex items-center text-gray-600 hover:text-gray-800 px-2 gap-1">
+              <Eye size={18} />
+              <span className="text-sm">Portail des visites</span>
+            </button>
+            <button className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 gap-1">
+              <LogOut size={16} />
+              <span className="text-sm">Exporter les données</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Dashboard Content */}
+        <div className="p-4">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="bg-white rounded-lg shadow-sm p-6 flex items-center">
+              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mr-4">
+                <Users size={24} className="text-gray-600" />
+              </div>
+              <div>
+                <div className="text-sm text-gray-500">Total des visiteurs aujourd'hui</div>
+                <div className="text-2xl font-bold">10</div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-sm p-6 flex items-center">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                <Users size={24} className="text-green-600" />
+              </div>
+              <div>
+                <div className="text-sm text-gray-500">Actuellement enregistrés</div>
+                <div className="text-2xl font-bold">6</div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-sm p-6 flex items-center">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                <span className="material-icons text-blue-600">
+                  <Settings size={24} className="text-blue-600" />
+                </span>
+              </div>
+              <div>
+                <div className="text-sm text-gray-500">Durée moyenne de visite</div>
+                <div className="text-2xl font-bold">475 minutes</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Analytics Overview */}
+          <div className="bg-white rounded-lg shadow-sm mb-6 overflow-hidden">
+            <div className="p-4 border-b flex justify-between items-center">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-800">Aperçu analytique</h2>
+                <p className="text-sm text-gray-500">Tendances de trafic des visiteurs et heures de pointe</p>
+              </div>
+              <button className="text-gray-400 hover:text-gray-600">
+                <ChevronDown size={20} />
+              </button>
+            </div>
+            <div className="p-4 h-40 flex items-center justify-center">
+              <div className="text-gray-400 text-sm">Graphique analytique apparaîtrait ici</div>
+            </div>
+          </div>
+
+          {/* Visitors Tab Section */}
+          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="border-b">
+              <div className="flex">
+                <button 
+                  className={`px-4 py-3 ${activeTab === 'current' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}`}
+                  onClick={() => setActiveTab('current')}
+                >
+                  Visiteurs actuels
+                </button>
+                <button 
+                  className={`px-4 py-3 ${activeTab === 'history' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}`}
+                  onClick={() => setActiveTab('history')}
+                >
+                  Historique des visites
+                </button>
+              </div>
+            </div>
+
+            {/* Search and Actions */}
+            <div className="p-4 flex flex-col md:flex-row gap-2 justify-between">
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search size={16} className="text-gray-400" />
+                </div>
+                <input 
+                  type="text" 
+                  className="pl-10 pr-4 py-2 w-full border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Rechercher par nom, badge, téléphone ou courriel"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button className="flex items-center bg-white border rounded-md px-3 py-2 text-gray-600 hover:bg-gray-50">
+                  <Filter size={16} />
+                  <span className="ml-2 text-sm">Filtres</span>
+                </button>
+                <button className="flex items-center bg-white border rounded-md px-3 py-2 text-gray-600 hover:bg-gray-50">
+                  <Trash2 size={16} />
+                  <span className="ml-2 text-sm">Corbeille</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="px-4 text-sm text-gray-500">
+              affichage de 6 sur 6 visiteurs actifs
+            </div>
+
+            {/* Visitors Table */}
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <input type="checkbox" className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Visiteur
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Contact
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Commune
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Badge
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Visites
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Partenaire
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <div className="flex items-center">
+                        Heure
+                        <ChevronDown size={14} className="ml-1" />
+                      </div>
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {visitors.map((visitor) => (
+                    <tr key={visitor.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <input type="checkbox" className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-800">
+                            {visitor.id}
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">{visitor.name}</div>
+                            <div className="text-sm text-gray-500">
+                              {visitor.gender} {visitor.birthYear} ({visitor.age} ans)
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-500">
+                          {visitor.email ? (
+                            <div>{visitor.email}</div>
+                          ) : (
+                            <div className="italic">Aucun courriel fourni</div>
+                          )}
+                          <div>{visitor.phone}</div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {visitor.commune}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-md bg-blue-100 text-blue-800">
+                          {visitor.badge}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                          {visitor.visits}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {visitor.partner ? (
+                          <div className="flex items-center text-blue-600">
+                            <span className="inline-block h-4 w-4 rounded-full bg-blue-100 text-xs text-center mr-1">{visitor.partner.id}</span>
+                            {visitor.partner.name}
+                          </div>
+                        ) : (
+                          <span className="text-gray-500">Pas de partenaire</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="h-2 w-2 rounded-full bg-green-500 mr-2"></div>
+                          <div className="text-sm">{visitor.time}</div>
+                          <div className="text-sm text-gray-500 ml-2">{visitor.duration}</div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div className="flex space-x-2">
+                          <button className="p-1 rounded-md text-gray-500 hover:bg-gray-100">
+                            <Eye size={16} className="text-gray-500" />
+                          </button>
+                          <button className="p-1 rounded-md text-green-600 hover:bg-green-100">
+                            <LogOut size={16} className="text-green-600" />
+                          </button>
+                          <button className="p-1 rounded-md text-purple-600 hover:bg-purple-100">
+                            <UserPlus size={16} className="text-purple-600" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            <div className="px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+              <div className="flex items-center text-sm text-gray-500">
+                <span className="mr-2">10</span>
+                <List size={16} />
+                <span className="ml-2">items per page</span>
+              </div>
+              <div className="flex items-center text-sm text-gray-500">
+                <button className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50">
+                  <ChevronLeft size={16} />
+                </button>
+                <span className="mx-2">Page 1 sur 1</span>
+                <button className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50">
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-auto p-4 text-center text-xs text-gray-500 border-t">
+          © 2025 Système de Gestion des Visiteurs (SGV) · Développé par NL · Tous droits réservés
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default VisitorManagementDashboard;

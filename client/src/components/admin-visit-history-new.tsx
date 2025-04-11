@@ -700,11 +700,11 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto border rounded-md shadow-sm">
-        <Table className="w-full min-w-[1000px]">
-          <TableHeader>
+      <div className="overflow-x-auto">
+        <Table className="min-w-full divide-y divide-gray-200">
+          <TableHeader className="bg-gray-50">
             <TableRow>
-              <TableHead className="w-[40px]">
+              <TableHead className="w-[40px] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 <Checkbox
                   checked={(paginatedVisits?.length || 0) > 0 && (selectedVisitors?.length || 0) === (paginatedVisits?.length || 0)}
                   onCheckedChange={(checked: boolean) => {
@@ -727,11 +727,12 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
 
               {/* Visitor Information */}
               <TableHead 
-                className="cursor-pointer" 
+                className="cursor-pointer px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" 
                 onClick={() => handleSortChange("name")}
               >
                 <div className="flex items-center">
-                  <span className="uppercase text-xs font-medium text-gray-500">{t("visitor", { defaultValue: "Visitor" })}</span>
+                  <UserRound className="h-4 w-4 mr-1" />
+                  <span>{t("visitor", { defaultValue: "Visitor" })}</span>
                   {sortField === "name" && (
                     sortDirection === "asc" ? 
                     <ChevronUp className="ml-1 h-4 w-4" /> : 
@@ -741,19 +742,20 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
               </TableHead>
 
               {/* Contact Information */}
-              <TableHead>
+              <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 <div className="flex items-center">
-                  <span className="uppercase text-xs font-medium text-gray-500">{t("contact", { defaultValue: "Contact" })}</span>
+                  <Mail className="h-4 w-4 mr-1" />
+                  <span>{t("contact", { defaultValue: "Contact" })}</span>
                 </div>
               </TableHead>
               
               {/* Municipality Column */}
               <TableHead 
-                className="cursor-pointer"
+                className="cursor-pointer px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 onClick={() => handleSortChange("municipality")}
               >
                 <div className="flex items-center">
-                  <span className="uppercase text-xs font-medium text-gray-500">{t("municipality")}</span>
+                  <span>{t("municipality")}</span>
                   {sortField === "municipality" && (
                     sortDirection === "asc" ? 
                     <ChevronUp className="ml-1 h-4 w-4" /> : 
@@ -764,12 +766,12 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
               
               {/* Badge ID Column */}
               <TableHead
-                className="cursor-pointer"
+                className="cursor-pointer px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 onClick={() => handleSortChange("badge")}
               >
                 <div className="flex items-center">
                   <Tag className="mr-1 h-4 w-4" />
-                  <span className="uppercase text-xs font-medium text-gray-500">{t("badge", { defaultValue: "Badge" })}</span>
+                  <span>{t("badge", { defaultValue: "Badge" })}</span>
                   {sortField === "badge" && (
                     sortDirection === "asc" ? 
                     <ChevronUp className="ml-1 h-4 w-4" /> : 
@@ -780,11 +782,11 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
               
               {/* Visits Column */}
               <TableHead 
-                className="cursor-pointer" 
+                className="cursor-pointer px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" 
                 onClick={() => handleSortChange("visitCount")}
               >
                 <div className="flex items-center">
-                  <span className="uppercase text-xs font-medium text-gray-500">{t("visits", { defaultValue: "Visits" })}</span>
+                  <span>{t("visits", { defaultValue: "Visits" })}</span>
                   {sortField === "visitCount" && (
                     sortDirection === "asc" ? 
                     <ChevronUp className="ml-1 h-4 w-4" /> : 
@@ -794,21 +796,21 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
               </TableHead>
               
               {/* Partner Column */}
-              <TableHead>
+              <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 <div className="flex items-center">
                   <Users className="mr-1 h-4 w-4" />
-                  <span className="uppercase text-xs font-medium text-gray-500">{t("partner", { defaultValue: "Partner" })}</span>
+                  <span>{t("partner", { defaultValue: "Partner" })}</span>
                 </div>
               </TableHead>
               
               {/* Visit Time Information */}
               <TableHead 
-                className="cursor-pointer" 
+                className="cursor-pointer px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" 
                 onClick={() => handleSortChange("checkIn")}
               >
                 <div className="flex items-center">
                   <Clock className="mr-1 h-4 w-4" />
-                  <span className="uppercase text-xs font-medium text-gray-500">{t("time", { defaultValue: "Time" })}</span>
+                  <span>{t("time", { defaultValue: "Time" })}</span>
                   {(sortField === "checkIn" || sortField === "checkOut") && (
                     sortDirection === "asc" ? 
                     <ChevronUp className="ml-1 h-4 w-4" /> : 
@@ -818,12 +820,12 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
               </TableHead>
               
               {/* Actions */}
-              <TableHead className="text-right">
-                <span className="uppercase text-xs font-medium text-gray-500">{t("actions", { defaultValue: "Actions" })}</span>
+              <TableHead className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <span>{t("actions", { defaultValue: "Actions" })}</span>
               </TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
+          <TableBody className="bg-white divide-y divide-gray-200">
             {paginatedVisits.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={9} className="text-center py-4 text-gray-500">
@@ -840,9 +842,9 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                 }
                 
                 return (
-                  <TableRow key={`${visitor.id}-${visit.id}`}>
+                  <TableRow key={`${visitor.id}-${visit.id}`} className="hover:bg-gray-50">
                     {/* Checkbox */}
-                    <TableCell className="py-4">
+                    <TableCell className="px-6 py-4 whitespace-nowrap">
                       <Checkbox
                         checked={selectedVisitors?.includes(visitor.id)}
                         onCheckedChange={(checked) => {
@@ -862,157 +864,105 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                     </TableCell>
                     
                     {/* Visitor Information */}
-                    <TableCell className="py-4">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-9 w-9 bg-primary/10">
-                          <AvatarFallback className="text-primary font-medium">
+                    <TableCell className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="h-10 w-10 flex-shrink-0 mr-3">
+                          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
                             {getInitials(visitor.fullName)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col">
-                          <div className="font-medium text-gray-900">{visitor.fullName}</div>
-                          <div className="flex space-x-4 text-sm text-gray-500">
-                            <span>{visitor.sex}</span>
-                            <span>{formatYearWithAge(visitor.yearOfBirth, language)}</span>
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">{visitor.fullName}</div>
+                          <div className="text-sm text-gray-500">
+                            {visitor.sex} {formatYearWithAge(visitor.yearOfBirth, language)}
                           </div>
                         </div>
                       </div>
                     </TableCell>
                     
                     {/* Contact Information */}
-                    <TableCell className="py-4">
-                      <div className="flex flex-col text-sm">
+                    <TableCell className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm">
                         {visitor.email ? (
-                          <a href={`mailto:${visitor.email}`} className="text-blue-600 hover:underline truncate max-w-xs">
+                          <div className="text-blue-600 hover:underline truncate max-w-xs">
                             {visitor.email}
-                          </a>
+                          </div>
                         ) : (
-                          <span className="text-gray-400 italic">{t("noEmail", { defaultValue: "No email" })}</span>
+                          <div className="text-gray-500 italic">{t("noEmail", { defaultValue: "No email provided" })}</div>
                         )}
-                        {visitor.phoneNumber ? (
-                          <PhoneNumberLink phoneNumber={visitor.phoneNumber} />
-                        ) : (
-                          <span className="text-gray-400 italic">{t("noPhoneProvided", { defaultValue: "No phone" })}</span>
+                        {visitor.phoneNumber && (
+                          <div className="text-gray-500">+{visitor.phoneNumber}</div>
                         )}
                       </div>
                     </TableCell>
 
                     {/* Municipality */}
-                    <TableCell className="py-4">
-                      <div className="text-sm">
-                        {visitor.municipality || t("notSpecified", { defaultValue: "Not specified" })}
-                      </div>
+                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {visitor.municipality || t("notSpecified", { defaultValue: "Not specified" })}
                     </TableCell>
                     
                     {/* Badge ID */}
-                    <TableCell className="py-4">
-                      <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-sm font-medium bg-blue-50 text-blue-800">
-                          {formatBadgeId(visitor.id)}
-                        </span>
-                        {visitor.verified && (
-                          <span title={t("verifiedVisitor", { defaultValue: "Verified visitor" })} className="relative top-px">
-                            <Badge variant="outline" className="bg-blue-50 text-blue-800 border-blue-200 flex items-center gap-1 px-2 py-0.5">
-                              <span className="text-xs font-medium">{t("verified", { defaultValue: "Verified" })}</span>
-                              <CheckCircle className="h-3.5 w-3.5 text-blue-600" />
-                            </Badge>
-                          </span>
-                        )}
-                      </div>
+                    <TableCell className="px-6 py-4 whitespace-nowrap">
+                      <span className="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-md bg-blue-100 text-blue-800">
+                        {formatBadgeId(visitor.id)}
+                      </span>
                     </TableCell>
                     
                     {/* Visit Count */}
-                    <TableCell className="py-4">
-                      <div className="flex items-center justify-center">
-                        {visitor.visitCount !== undefined ? (
-                          <div className="flex items-center">
-                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                              <span className="font-medium">{visitor.visitCount}</span>
-                            </Badge>
-                            {visitor.visitCount > 10 && (
-                              <span className="ml-1.5">
-                                <Badge className="px-1.5 py-0 bg-green-100 hover:bg-green-200 text-green-700 border-green-200">
-                                  <span className="text-xs font-medium">{language === 'fr' ? 'Régulier' : 'Regular'}</span>
-                                </Badge>
-                              </span>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </div>
+                    <TableCell className="px-6 py-4 whitespace-nowrap text-center">
+                      <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                        {visitor.visitCount || 0}
+                      </span>
                     </TableCell>
                     
                     {/* Partner */}
-                    <TableCell className="py-4">
-                      <div className="flex items-center">
-                        {visit.partnerId ? (
-                          <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 flex items-center gap-1">
-                            <Users className="h-3.5 w-3.5 mr-1" />
-                            <span className="font-medium">
-                              {(() => {
-                                // Find the partner visit and visitor
-                                const partnerVisit = visitHistory.find(item => item.visit.id === visit.partnerId);
-                                
-                                if (partnerVisit) {
-                                  return partnerVisit.visitor.fullName;
-                                } else {
-                                  // If partner not found in current visitHistory, try to display badge ID
-                                  const partnerId = visit.partnerId || 0;
-                                  return `Visitor #${formatBadgeId(partnerId)}`;
-                                }
-                              })()}
-                            </span>
-                          </Badge>
-                        ) : (
-                          <span className="text-gray-400 italic">{t("noPartner", { defaultValue: "No partner" })}</span>
-                        )}
-                      </div>
+                    <TableCell className="px-6 py-4 whitespace-nowrap">
+                      {visit.partnerId ? (
+                        (() => {
+                          // Find the partner visit and visitor
+                          const partnerVisit = visitHistory.find(item => item.visit.id === visit.partnerId);
+                          
+                          if (partnerVisit) {
+                            return (
+                              <div className="flex items-center">
+                                <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium mr-2">
+                                  {getInitials(partnerVisit.visitor.fullName)}
+                                </div>
+                                <span className="text-sm">{partnerVisit.visitor.fullName}</span>
+                              </div>
+                            );
+                          } else {
+                            return (
+                              <span className="text-gray-500 text-sm">
+                                {t("partnerNotFound", { defaultValue: "Partner not found" })}
+                              </span>
+                            );
+                          }
+                        })()
+                      ) : (
+                        <span className="text-gray-500 italic text-sm">{t("noPartner", { defaultValue: "No partner" })}</span>
+                      )}
                     </TableCell>
                     
                     {/* Visit Time */}
-                    <TableCell className="py-4">
-                      <div className="flex items-start space-x-6">
-                        <div>
-                          <div className="flex items-center">
-                            <div className="h-2 w-2 rounded-full bg-green-500 mr-2"></div>
-                            <span className="font-medium">{formatTimeOnly(visit.checkInTime, language)}</span>
-                          </div>
-                          <div className="text-xs text-gray-500 ml-4">{formatDate(visit.checkInTime, language).split(",")[0]}</div>
-                        </div>
-                        <div>
-                          <div className="flex items-center">
-                            <div className="h-2 w-2 rounded-full bg-red-500 mr-2"></div>
-                            <span className="font-medium">
-                              {visit.checkOutTime 
-                                ? formatTimeOnly(visit.checkOutTime, language)
-                                : "--:--"
-                              }
-                            </span>
-                          </div>
-                          <div className="text-xs text-gray-500 ml-4">
-                            {visit.checkOutTime 
-                              ? formatDate(visit.checkOutTime, language).split(",")[0]
-                              : "--"
-                            }
-                          </div>
-                        </div>
-                        <div className="text-sm rounded-full px-3 py-1 bg-gray-100 text-gray-800">
-                          {visit.checkOutTime 
-                            ? formatDuration(visit.checkInTime, visit.checkOutTime, language)
-                            : "--"
-                          }
-                        </div>
+                    <TableCell className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900 font-medium">
+                        {formatTimeOnly(visit.checkInTime, language)}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {visit.checkOutTime 
+                          ? formatDuration(visit.checkInTime, visit.checkOutTime, language)
+                          : t("stillActive", { defaultValue: "Still active" })}
                       </div>
                     </TableCell>
                     
                     {/* Actions */}
-                    <TableCell className="py-4 text-right">
+                    <TableCell className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">
                         <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          variant="ghost"
+                          size="sm"
+                          className="text-blue-600 hover:text-blue-900 hover:bg-blue-50"
                           onClick={() => {
                             setSelectedVisitor(visitor);
                             setSelectedVisit(visit);
@@ -1023,9 +973,9 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                         </Button>
                         
                         <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          variant="ghost"
+                          size="sm"
+                          className="text-blue-600 hover:text-blue-900 hover:bg-blue-50"
                           onClick={() => {
                             setSelectedVisitor(visitor);
                             setSelectedVisit(visit);
@@ -1037,9 +987,9 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                         
                         {showDeletedVisitors ? (
                           <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                            variant="ghost"
+                            size="sm"
+                            className="text-amber-600 hover:text-amber-900 hover:bg-amber-50"
                             onClick={() => {
                               restoreVisitorMutation.mutate(visitor.id);
                             }}
@@ -1048,9 +998,9 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                           </Button>
                         ) : (
                           <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-600 hover:text-red-900 hover:bg-red-50"
                             onClick={() => {
                               if (window.confirm(t("confirmDeleteVisitor", { defaultValue: "Are you sure you want to delete this visitor?" }))) {
                                 deleteVisitorMutation.mutate(visitor.id);
@@ -1071,51 +1021,54 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
       </div>
       
       {/* Pagination controls */}
-      <div className="flex justify-between items-center my-4 px-4">
-        <div className="flex items-center space-x-2">
-          <Select
-            value={String(itemsPerPage)}
-            onValueChange={(value) => {
-              setItemsPerPage(Number(value));
-              setPage(1); // Reset to first page when changing items per page
-            }}
-          >
-            <SelectTrigger className="w-20">
-              <SelectValue placeholder="10" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="5">5</SelectItem>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="25">25</SelectItem>
-              <SelectItem value="50">50</SelectItem>
-              <SelectItem value="100">100</SelectItem>
-            </SelectContent>
-          </Select>
-          <span className="text-sm text-gray-500">{t("itemsPerPage", { defaultValue: "items per page" })}</span>
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setPage(Math.max(1, page - 1))}
-            disabled={page === 1}
-          >
-            {t("previous", { defaultValue: "Previous" })}
-          </Button>
-          
-          <div className="text-sm">
-            {t("pageXofY", { x: page, y: totalPages || 1, defaultValue: "Page {{x}} of {{y}}" })}
+      <div className="flex justify-end items-center py-3 px-4 border-t border-gray-200">
+        <div className="flex items-center">
+          <div className="mr-4">
+            <Select
+              value={String(itemsPerPage)}
+              onValueChange={(value) => {
+                setItemsPerPage(Number(value));
+                setPage(1); // Reset to first page when changing items per page
+              }}
+            >
+              <SelectTrigger className="h-8 w-24 text-sm">
+                <SelectValue placeholder="10" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="5">5</SelectItem>
+                <SelectItem value="10">10 {t("itemsPerPage", { defaultValue: "items" })}</SelectItem>
+                <SelectItem value="25">25</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setPage(Math.min(totalPages, page + 1))}
-            disabled={page >= totalPages}
-          >
-            {t("next", { defaultValue: "Next" })}
-          </Button>
+          <div className="flex items-center">
+            <span className="px-3 text-sm text-gray-700">
+              {t("pageXofY", { x: page, y: totalPages || 1, defaultValue: "Page {{x}} of {{y}}" })}
+            </span>
+            
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 w-8 p-0 rounded-md"
+              onClick={() => setPage(Math.max(1, page - 1))}
+              disabled={page === 1}
+            >
+              <ChevronLeft className={page === 1 ? "h-4 w-4 text-gray-300" : "h-4 w-4 text-gray-600"} />
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="h-8 w-8 p-0 rounded-md"
+              onClick={() => setPage(Math.min(totalPages, page + 1))}
+              disabled={page >= totalPages}
+            >
+              <ChevronRight className={page >= totalPages ? "h-4 w-4 text-gray-300" : "h-4 w-4 text-gray-600"} />
+            </Button>
+          </div>
         </div>
       </div>
       
