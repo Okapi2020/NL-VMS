@@ -670,8 +670,8 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
           <TableBody>
             {paginatedVisits.length > 0 ? (
               paginatedVisits.map(({ visitor, visit }) => (
-                <TableRow key={visit.id}>
-                  <TableCell className="py-2">
+                <TableRow key={visit.id} className="hover:bg-gray-50">
+                  <TableCell className="py-4 whitespace-nowrap">
                     <Checkbox
                       checked={selectedVisitors.includes(visitor.id)}
                       onCheckedChange={(checked) => {
@@ -685,15 +685,15 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   </TableCell>
                   
                   {/* Visitor Information */}
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center">
+                  <TableCell className="py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
                         <span className="text-blue-600 font-medium text-sm">
                           {getInitials(visitor.fullName)}
                         </span>
                       </div>
-                      <div className="flex flex-col">
-                        <div className="font-medium">{visitor.fullName}</div>
+                      <div className="ml-4">
+                        <div className="text-sm font-medium text-gray-900">{visitor.fullName}</div>
                         <div className="text-sm text-gray-500">
                           {visitor.sex} {visitor.yearOfBirth} ({calculateAge(visitor.yearOfBirth)} ans)
                         </div>
@@ -702,86 +702,67 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   </TableCell>
                   
                   {/* Contact Information */}
-                  <TableCell className="hidden md:table-cell">
-                    <div className="flex flex-col">
-                      <div className="text-sm text-gray-500 italic">
-                        {visitor.email ? visitor.email : "Aucun courriel fourni"}
-                      </div>
-                      <div className="text-sm">
-                        {visitor.phoneNumber ? (
-                          `+${visitor.phoneNumber.replace(/^0+|^\+/, '')}`
-                        ) : (
-                          "Aucun téléphone fourni"
-                        )}
-                      </div>
+                  <TableCell className="py-4 whitespace-nowrap hidden md:table-cell">
+                    <div className="text-sm text-gray-500">
+                      {visitor.email ? (
+                        <div>{visitor.email}</div>
+                      ) : (
+                        <div className="italic">Aucun courriel fourni</div>
+                      )}
+                      <div>{visitor.phoneNumber ? `+${visitor.phoneNumber.replace(/^0+|^\+/, '')}` : "Aucun téléphone fourni"}</div>
                     </div>
                   </TableCell>
                   
                   {/* Municipality */}
-                  <TableCell className="hidden md:table-cell">
-                    <div className="text-sm">
+                  <TableCell className="py-4 whitespace-nowrap hidden md:table-cell">
+                    <div className="text-sm text-gray-500">
                       {visitor.municipality || t("notSpecified")}
                     </div>
                   </TableCell>
                   
                   {/* Badge ID */}
-                  <TableCell>
-                    <div className="px-2.5 py-1 rounded-md text-sm font-medium bg-blue-50 text-blue-800 inline-block">
+                  <TableCell className="py-4 whitespace-nowrap">
+                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-md bg-blue-100 text-blue-800">
                       {formatBadgeId(visitor.id)}
-                    </div>
+                    </span>
                   </TableCell>
                   
                   {/* Visit Count */}
-                  <TableCell className="hidden sm:table-cell">
-                    <div className="flex items-center">
-                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                        <span className="font-medium">{visitor.visitCount || 1}</span>
-                      </Badge>
-                      {(visitor.visitCount || 1) > 10 && (
-                        <span className="ml-1.5">
-                          <Badge className="px-1.5 py-0 bg-amber-100 hover:bg-amber-200 text-amber-700 border-amber-200">
-                            <span className="text-xs font-medium">{t("regular")}</span>
-                          </Badge>
-                        </span>
-                      )}
-                    </div>
+                  <TableCell className="py-4 whitespace-nowrap hidden sm:table-cell">
+                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                      {visitor.visitCount || 1}
+                    </span>
                   </TableCell>
                   
                   {/* Partner */}
-                  <TableCell>
-                    <div className="flex items-center whitespace-nowrap">
-                      {visit.partnerId ? (
-                        <div className="flex items-center text-indigo-600">
-                          <span className="inline-block h-5 w-5 rounded-full bg-indigo-100 text-xs flex items-center justify-center mr-1.5">
-                            {getInitials(paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || '')}
-                          </span>
-                          <span className="font-medium" title={paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || ''}>
-                            {paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || 
-                              formatBadgeId(paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.id || 0)}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-sm text-gray-500">{t("noPartner", { defaultValue: "No partner" })}</span>
-                      )}
-                    </div>
+                  <TableCell className="py-4 whitespace-nowrap">
+                    {visit.partnerId ? (
+                      <div className="flex items-center text-blue-600">
+                        <span className="inline-block h-5 w-5 rounded-full bg-blue-100 text-xs flex items-center justify-center mr-1.5">
+                          {getInitials(paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || '')}
+                        </span>
+                        <span className="text-sm font-medium" title={paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || ''}>
+                          {paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || 
+                            formatBadgeId(paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.id || 0)}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-gray-500">Pas de partenaire</span>
+                    )}
                   </TableCell>
                   
                   {/* Visit Time */}
-                  <TableCell>
-                    <div className="inline-flex items-center gap-x-3">
-                      <span className="inline-flex items-center whitespace-nowrap">
-                        <span className="h-2 w-2 rounded-full bg-green-500 mr-2"></span>
-                        <span className="font-medium">{formatTimeOnly(visit.checkInTime, language)}</span>
-                      </span>
-                      <div className="text-sm text-gray-500 font-medium whitespace-nowrap">
-                        {calculateDuration(visit.checkInTime)}
-                      </div>
+                  <TableCell className="py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="h-2 w-2 rounded-full bg-green-500 mr-2"></div>
+                      <div className="text-sm font-medium">{formatTimeOnly(visit.checkInTime, language)}</div>
+                      <div className="text-sm text-gray-500 ml-2">{calculateDuration(visit.checkInTime)}</div>
                     </div>
                   </TableCell>
                   
                   {/* Actions */}
-                  <TableCell>
-                    <div className="flex space-x-2 items-center">
+                  <TableCell className="py-4 whitespace-nowrap text-sm text-gray-500">
+                    <div className="flex space-x-2">
                       <button 
                         className="p-1 rounded-md text-gray-500 hover:bg-gray-100"
                         onClick={() => handleOpenDetailModal(visitor, visit)}
