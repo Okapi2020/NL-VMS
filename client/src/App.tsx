@@ -12,6 +12,7 @@ import { LanguageProvider } from "@/hooks/use-language";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { AuthProvider } from "@/hooks/use-auth";
+import { NotificationProvider } from "@/hooks/use-notifications";
 
 function Router() {
   // Check if we're in development mode
@@ -64,8 +65,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <LanguageProvider>
-          <Router />
-          <Toaster />
+          <NotificationProvider>
+            <Router />
+            <Toaster />
+          </NotificationProvider>
         </LanguageProvider>
       </AuthProvider>
     </QueryClientProvider>
