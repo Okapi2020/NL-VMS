@@ -1157,7 +1157,7 @@ export const translations: TranslationMap = {
     en: 'Municipality',
     fr: 'Municipalité'
   },
-  notSpecified: {
+  valueNotSpecified: {
     en: 'Not specified',
     fr: 'Non spécifié'
   },

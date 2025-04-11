@@ -768,7 +768,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                       {/* Municipality */}
                       <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">
                         <div className="text-sm text-gray-500">
-                          {visitor.municipality || t("notSpecified", { defaultValue: "Not specified" })}
+                          {visitor.municipality || t("valueNotSpecified", { defaultValue: "Not specified" })}
                         </div>
                       </td>
                       
