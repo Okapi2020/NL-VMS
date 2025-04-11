@@ -49,6 +49,7 @@ export const insertVisitorSchema = createInsertSchema(visitors).pick({
 export const visits = pgTable("visits", {
   id: serial("id").primaryKey(),
   visitorId: integer("visitor_id").notNull(),
+  partnerId: integer("partner_id"),
   purpose: varchar("purpose", { length: 255 }),
   checkInTime: timestamp("check_in_time").defaultNow().notNull(),
   checkOutTime: timestamp("check_out_time"),
@@ -59,6 +60,11 @@ export const visitsRelations = relations(visits, ({ one }) => ({
   visitor: one(visitors, {
     fields: [visits.visitorId],
     references: [visitors.id],
+  }),
+  partner: one(visits, {
+    fields: [visits.partnerId],
+    references: [visits.id],
+    relationName: "partnerRelation"
   }),
 }));
 
