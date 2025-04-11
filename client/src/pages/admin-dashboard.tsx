@@ -563,7 +563,7 @@ export default function AdminDashboard() {
                   {/* Average visit duration */}
                   <Card>
                     <CardContent className="px-4 py-5 sm:p-6">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 bg-blue-100 rounded-md p-3">
                             <Clock className="h-6 w-6 text-blue-600" />
@@ -579,18 +579,20 @@ export default function AdminDashboard() {
                             </dd>
                           </div>
                         </div>
-                        {/* Reset button */}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex items-center"
-                          onClick={() => resetAvgDurationMutation.mutate()}
-                          disabled={resetAvgDurationMutation.isPending}
-                          title={t("resetAvgDurationTooltip")}
-                        >
-                          <RefreshCw className="mr-1 h-3 w-3" />
-                          {t("resetAvgDuration")}
-                        </Button>
+                        
+                        {/* Reset button - smaller & centered at bottom */}
+                        <div className="flex justify-end mt-3">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => resetAvgDurationMutation.mutate()}
+                            disabled={resetAvgDurationMutation.isPending}
+                            title={t("resetAvgDurationTooltip")}
+                          >
+                            <RefreshCw className="h-4 w-4 text-gray-500" />
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>

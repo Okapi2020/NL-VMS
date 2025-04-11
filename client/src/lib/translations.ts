@@ -54,8 +54,8 @@ const translations: TranslationConfig = {
     fr: "Réinitialiser le compteur de durée moyenne de visite"
   },
   "resetSuccess": {
-    en: "Average visit duration counter reset successfully",
-    fr: "Compteur de durée moyenne de visite réinitialisé avec succès"
+    en: "Average visit duration reset successfully",
+    fr: "Durée moyenne de visite réinitialisée avec succès"
   },
   "error": {
     en: "Error",
