@@ -709,6 +709,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get all registered visitors (not deleted)
+  app.get("/api/admin/all-visitors", ensureAuthenticated, async (req, res) => {
+    try {
+      const allVisitors = await storage.getAllVisitors();
+      // Filter out deleted visitors
+      const registeredVisitors = allVisitors.filter(visitor => visitor.deleted !== true);
+      
+      // For each visitor, get their total visit count and most recent visit
+      const visitorsWithDetails = await Promise.all(
+        registeredVisitors.map(async (visitor) => {
+          // Get all visits for this visitor
+          const visitorVisits = await storage.getVisitsByVisitorId(visitor.id);
+          
+          // Get the most recent visit date
+          const lastVisit = visitorVisits.length > 0 
+            ? visitorVisits.sort((a, b) => new Date(b.checkInTime).getTime() - new Date(a.checkInTime).getTime())[0]
+            : null;
+          
+          return {
+            visitor,
+            visitCount: visitorVisits.length,
+            lastVisit: lastVisit ? {
+              checkInTime: lastVisit.checkInTime,
+              checkOutTime: lastVisit.checkOutTime
+            } : null
+          };
+        })
+      );
+      
+      res.status(200).json(visitorsWithDetails);
+    } catch (error) {
+      console.error("Error fetching registered visitors:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
   // Restore visitor from trash
   app.post("/api/admin/restore-visitor/:id", ensureAuthenticated, async (req, res) => {
     try {

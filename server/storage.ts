@@ -56,6 +56,7 @@ export interface IStorage {
   updateVisit(visit: UpdateVisit): Promise<Visit | undefined>;
   checkOutAllActiveVisits(): Promise<number>; // Return the number of visits that were checked out
   getVisitorWithActiveVisit(visitorId: number): Promise<{ visitor: Visitor, visit: Visit } | undefined>;
+  getVisitsByVisitorId(visitorId: number): Promise<Visit[]>; // Get all visits for a specific visitor
   
   // Visitor Report methods
   createVisitorReport(report: InsertVisitorReport): Promise<VisitorReport>;
@@ -538,6 +539,14 @@ export class DatabaseStorage implements IStorage {
     }
     
     return result;
+  }
+  
+  async getVisitsByVisitorId(visitorId: number): Promise<Visit[]> {
+    return await db
+      .select()
+      .from(visits)
+      .where(eq(visits.visitorId, visitorId))
+      .orderBy(desc(visits.checkInTime));
   }
   
   async getVisitHistoryWithVisitors(limit: number = 100): Promise<{ visit: Visit, visitor: Visitor }[]> {

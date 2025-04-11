@@ -961,6 +961,34 @@ export const translations: TranslationMap = {
     en: 'years old',
     fr: 'ans'
   },
+  registeredOn: {
+    en: 'Registered On',
+    fr: 'Inscrit le'
+  },
+  lastVisit: {
+    en: 'Last Visit',
+    fr: 'Dernière visite'
+  },
+  ageNotProvided: {
+    en: 'Age not provided',
+    fr: 'Âge non fourni'
+  },
+  sexNotSpecified: {
+    en: 'Sex not specified',
+    fr: 'Sexe non spécifié'
+  },
+  noVisitorsMatchFilters: {
+    en: 'No visitors match your search or filters',
+    fr: 'Aucun visiteur ne correspond à votre recherche ou à vos filtres'
+  },
+  noVisitorsRegistered: {
+    en: 'No visitors registered in the system',
+    fr: 'Aucun visiteur enregistré dans le système'
+  },
+  deleteSelectedVisitors: {
+    en: 'Delete Selected Visitors',
+    fr: 'Supprimer les visiteurs sélectionnés'
+  },
   visitorDetailsTitle: {
     en: 'Visitor Details',
     fr: 'Détails du visiteur'
