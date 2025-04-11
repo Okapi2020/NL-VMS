@@ -78,6 +78,10 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "completed">("all");
+  const [filterMunicipality, setFilterMunicipality] = useState("all");
+  const [filterVisitorType, setFilterVisitorType] = useState("all");
+  const [filterAgeMin, setFilterAgeMin] = useState(0);
+  const [filterAgeMax, setFilterAgeMax] = useState(0);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [showDeletedVisitors, setShowDeletedVisitors] = useState(false);
   
@@ -277,10 +281,53 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
       }
     }
     
+    // Check municipality filter
+    const matchesMunicipality = 
+      filterMunicipality === 'all' || 
+      visitor.municipality === filterMunicipality;
+    
+    // Check age range filter
+    let matchesAgeRange = true;
+    const currentYear = new Date().getFullYear();
+    const age = currentYear - visitor.yearOfBirth;
+    
+    if (filterAgeMin > 0 && filterAgeMax > 0) {
+      // Both min and max are set
+      matchesAgeRange = age >= filterAgeMin && age <= filterAgeMax;
+    } else if (filterAgeMin > 0) {
+      // Only min is set
+      matchesAgeRange = age >= filterAgeMin;
+    } else if (filterAgeMax > 0) {
+      // Only max is set
+      matchesAgeRange = age <= filterAgeMax;
+    }
+    
+    // Check visitor type filter
+    let matchesVisitorType = true;
+    switch (filterVisitorType) {
+      case 'regular':
+        matchesVisitorType = (visitor.visitCount || 0) > 5;
+        break;
+      case 'firstTime':
+        matchesVisitorType = (visitor.visitCount || 0) <= 1;
+        break;
+      case 'withPartner':
+        matchesVisitorType = !!visit.partnerId;
+        break;
+      case 'withoutPartner':
+        matchesVisitorType = !visit.partnerId;
+        break;
+      default:
+        // 'all' - no filtering
+        matchesVisitorType = true;
+    }
+    
     // Check deleted status
     const matchesDeletedStatus = showDeletedVisitors ? visitor.deleted : !visitor.deleted;
     
-    return matchesSearch && matchesStatus && matchesDateRange && matchesDeletedStatus;
+    return matchesSearch && matchesStatus && matchesDateRange && 
+           matchesMunicipality && matchesAgeRange && matchesVisitorType && 
+           matchesDeletedStatus;
   });
 
   // Sort the filtered visits
@@ -321,7 +368,7 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
   useEffect(() => {
     setPage(1);
     setSelectedVisitors([]);
-  }, [searchTerm, filterStatus, dateRange, showDeletedVisitors]);
+  }, [searchTerm, filterStatus, dateRange, showDeletedVisitors, filterMunicipality, filterVisitorType, filterAgeMin, filterAgeMax]);
   
   // Calculate paginated data
   const totalPages = Math.ceil(sortedVisits.length / itemsPerPage);
@@ -432,14 +479,14 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
         {/* Filter panel */}
         {showFilters && (
           <div className="mt-3 p-4 border rounded-md shadow-sm">
-            <div className="flex flex-wrap gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-1">
                 <label className="text-sm font-medium block">{t("status", { defaultValue: "Status" })}</label>
                 <Select 
                   value={filterStatus} 
                   onValueChange={(value: "all" | "active" | "completed") => setFilterStatus(value)}
                 >
-                  <SelectTrigger className="w-36">
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -455,15 +502,81 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
                 <DateRangePicker value={dateRange} onChange={setDateRange} />
               </div>
               
-              {dateRange && (
+              <div className="space-y-1">
+                <label className="text-sm font-medium block">{t("municipality", { defaultValue: "Municipality" })}</label>
+                <Select 
+                  value={filterMunicipality} 
+                  onValueChange={setFilterMunicipality}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={t("allMunicipalities", { defaultValue: "All municipalities" })} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("allMunicipalities", { defaultValue: "All municipalities" })}</SelectItem>
+                    {KINSHASA_MUNICIPALITIES.map(municipality => (
+                      <SelectItem key={municipality} value={municipality}>
+                        {municipality}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-1">
+                <label className="text-sm font-medium block">{t("ageRange", { defaultValue: "Age Range" })}</label>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    type="number"
+                    placeholder={t("min", { defaultValue: "Min" })}
+                    className="w-full"
+                    value={filterAgeMin === 0 ? "" : filterAgeMin}
+                    onChange={(e) => setFilterAgeMin(e.target.value ? parseInt(e.target.value) : 0)}
+                  />
+                  <span>-</span>
+                  <Input
+                    type="number"
+                    placeholder={t("max", { defaultValue: "Max" })}
+                    className="w-full"
+                    value={filterAgeMax === 0 ? "" : filterAgeMax}
+                    onChange={(e) => setFilterAgeMax(e.target.value ? parseInt(e.target.value) : 0)}
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-1">
+                <label className="text-sm font-medium block">{t("visitorType", { defaultValue: "Visitor Type" })}</label>
+                <Select 
+                  value={filterVisitorType} 
+                  onValueChange={setFilterVisitorType}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={t("allTypes", { defaultValue: "All types" })} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("allTypes", { defaultValue: "All types" })}</SelectItem>
+                    <SelectItem value="regular">{t("regularVisitor", { defaultValue: "Regular visitor" })}</SelectItem>
+                    <SelectItem value="firstTime">{t("firstTimeVisitor", { defaultValue: "First time visitor" })}</SelectItem>
+                    <SelectItem value="withPartner">{t("withPartner", { defaultValue: "With partner" })}</SelectItem>
+                    <SelectItem value="withoutPartner">{t("withoutPartner", { defaultValue: "Without partner" })}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {(filterAgeMin > 0 || filterAgeMax > 0 || filterMunicipality !== 'all' || filterVisitorType !== 'all' || dateRange) && (
                 <div className="flex items-end">
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    onClick={() => setDateRange(undefined)}
+                    onClick={() => {
+                      setFilterAgeMin(0);
+                      setFilterAgeMax(0);
+                      setFilterMunicipality('all');
+                      setFilterVisitorType('all');
+                      setDateRange(undefined);
+                    }}
                     className="h-10"
                   >
-                    {t("clearDates", { defaultValue: "Clear dates" })}
+                    {t("clearFilters", { defaultValue: "Clear all filters" })}
                   </Button>
                 </div>
               )}
