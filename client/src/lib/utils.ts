@@ -104,14 +104,17 @@ export function formatBadgeId(visitorId: number): string {
 
 // Format phone number for display with country code
 export function formatPhoneWithCountryCode(phoneNumber: string, countryCode: string): string {
-  // Remove any non-digit characters
-  const digitsOnly = phoneNumber.replace(/\D/g, '');
+  if (!phoneNumber) return '';
   
-  // Remove leading zero if present
+  // Remove any non-digit characters
+  let digitsOnly = phoneNumber.replace(/\D/g, '');
+  
+  // Remove leading zero if present when using with country code
+  // but only for international format
   const formattedNumber = digitsOnly.startsWith('0') ? digitsOnly.substring(1) : digitsOnly;
   
   // Return formatted number with country code
-  return `+${countryCode}${formattedNumber}`;
+  return `+${countryCode} ${formattedNumber}`;
 }
 
 /**
@@ -132,8 +135,19 @@ export function formatPhoneNumber(phoneNumber: string): string {
 
 // Create WhatsApp URL for a phone number
 export function getWhatsAppUrl(phoneNumber: string, countryCode: string): string {
-  const formattedNumber = formatPhoneWithCountryCode(phoneNumber, countryCode).replace(/\+/g, '');
-  return `https://wa.me/${formattedNumber}`;
+  if (!phoneNumber) return '#';
+  
+  // For WhatsApp, we need to strip all non-digit characters
+  // Remove any non-digit characters
+  let digitsOnly = phoneNumber.replace(/\D/g, '');
+  
+  // Remove leading zero if present
+  if (digitsOnly.startsWith('0')) {
+    digitsOnly = digitsOnly.substring(1);
+  }
+  
+  // Format for WhatsApp API - just digits, no plus, no spaces
+  return `https://wa.me/${countryCode}${digitsOnly}`;
 }
 
 // Helper function to convert objects to CSV format

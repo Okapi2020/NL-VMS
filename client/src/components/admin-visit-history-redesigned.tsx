@@ -185,9 +185,28 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
   // Update form values when selectedVisitor changes
   useEffect(() => {
     if (selectedVisitor && selectedVisit) {
-      let formattedPhoneNumber = selectedVisitor.phoneNumber;
-      if (formattedPhoneNumber && !formattedPhoneNumber.startsWith('0') && !formattedPhoneNumber.startsWith('+')) {
-        formattedPhoneNumber = '0' + formattedPhoneNumber;
+      // Format phone number with leading zero for local format display
+      let formattedPhoneNumber = selectedVisitor.phoneNumber || '';
+      
+      // Clean up the phone number from any formatting
+      const digitsOnly = formattedPhoneNumber.replace(/\D/g, '');
+      
+      // Apply local format with leading zero if not already present
+      // and if not starting with country code
+      if (digitsOnly && 
+          !digitsOnly.startsWith('0') && 
+          !digitsOnly.startsWith('243') &&
+          !digitsOnly.startsWith('+243')) {
+        formattedPhoneNumber = '0' + digitsOnly;
+      } else if (digitsOnly.startsWith('243')) {
+        // If it has country code without leading zero, format to local
+        formattedPhoneNumber = '0' + digitsOnly.substring(3);
+      } else if (digitsOnly.startsWith('+243')) {
+        // If it has country code with plus, format to local
+        formattedPhoneNumber = '0' + digitsOnly.substring(4);
+      } else {
+        // Keep original digits
+        formattedPhoneNumber = digitsOnly;
       }
       
       form.reset({
