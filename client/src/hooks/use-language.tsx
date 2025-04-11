@@ -185,7 +185,7 @@ export const translations: TranslationMap = {
     en: 'Full Name',
     fr: 'Nom complet'
   },
-  yearOfBirth: {
+  yearOfBirthLabel: {
     en: 'Year of Birth',
     fr: 'Année de naissance'
   },
@@ -965,11 +965,11 @@ export const translations: TranslationMap = {
     en: 'Full Name',
     fr: 'Nom complet'
   },
-  yearOfBirth: {
+  yearOfBirthField: {
     en: 'Year of Birth',
     fr: 'Année de naissance'
   },
-  sex: {
+  sexField: {
     en: 'Sex',
     fr: 'Sexe'
   },
