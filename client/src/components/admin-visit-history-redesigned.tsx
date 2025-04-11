@@ -768,7 +768,9 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
                           <div className="text-gray-500 italic">{t("noEmail", { defaultValue: "No email provided" })}</div>
                         )}
                         {visitor.phoneNumber && (
-                          <div className="text-gray-500">+{visitor.phoneNumber}</div>
+                          <div className="text-gray-500">
+                            <PhoneNumberLink phoneNumber={visitor.phoneNumber} className="hover:underline" />
+                          </div>
                         )}
                       </div>
                     </td>
@@ -827,23 +829,13 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
                         }} className="text-blue-600 hover:text-blue-900">
                           <Pencil className="h-4 w-4" />
                         </button>
-                        {showDeletedVisitors ? (
+                        {showDeletedVisitors && (
                           <button 
                             onClick={() => restoreVisitorMutation.mutate(visitor.id)}
                             className="text-amber-600 hover:text-amber-900"
+                            title={t("restore", { defaultValue: "Restore" })}
                           >
                             <ArchiveRestore className="h-4 w-4" />
-                          </button>
-                        ) : (
-                          <button 
-                            onClick={() => {
-                              if (window.confirm(t("confirmDeleteVisitor", { defaultValue: "Are you sure you want to delete this visitor?" }))) {
-                                deleteVisitorMutation.mutate(visitor.id);
-                              }
-                            }}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            <Trash2 className="h-4 w-4" />
                           </button>
                         )}
                       </div>
@@ -1064,28 +1056,61 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
             </div>
           )}
           
-          <DialogFooter className="mt-6">
-            <Button 
-              variant="outline" 
-              onClick={() => setDetailsDialogOpen(false)}
-            >
-              {t("close", { defaultValue: "Close" })}
-            </Button>
+          <DialogFooter className="mt-6 flex flex-wrap justify-between gap-2">
+            <div>
+              {!showDeletedVisitors && selectedVisitor && (
+                <Button
+                  variant="outline"
+                  className="text-red-600 border-red-200 hover:bg-red-50"
+                  onClick={() => {
+                    if (window.confirm(t("confirmDeleteVisitor", { defaultValue: "Are you sure you want to delete this visitor?" }))) {
+                      deleteVisitorMutation.mutate(selectedVisitor.id);
+                      setDetailsDialogOpen(false);
+                    }
+                  }}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  {t("deleteVisitor", { defaultValue: "Delete Visitor" })}
+                </Button>
+              )}
+              {showDeletedVisitors && selectedVisitor && (
+                <Button
+                  variant="outline"
+                  className="text-amber-600 border-amber-200 hover:bg-amber-50"
+                  onClick={() => {
+                    restoreVisitorMutation.mutate(selectedVisitor.id);
+                    setDetailsDialogOpen(false);
+                  }}
+                >
+                  <ArchiveRestore className="h-4 w-4 mr-2" />
+                  {t("restoreVisitor", { defaultValue: "Restore Visitor" })}
+                </Button>
+              )}
+            </div>
             
-            <Button
-              onClick={() => {
-                setDetailsDialogOpen(false);
-                // Use setTimeout to ensure the first modal is properly closed
-                setTimeout(() => {
-                  if (selectedVisitor && selectedVisit) {
-                    setEditDialogOpen(true);
-                  }
-                }, 100);
-              }}
-            >
-              <Pencil className="h-4 w-4 mr-2" />
-              {t("editVisitor", { defaultValue: "Edit Visitor" })}
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setDetailsDialogOpen(false)}
+              >
+                {t("close", { defaultValue: "Close" })}
+              </Button>
+              
+              <Button
+                onClick={() => {
+                  setDetailsDialogOpen(false);
+                  // Use setTimeout to ensure the first modal is properly closed
+                  setTimeout(() => {
+                    if (selectedVisitor && selectedVisit) {
+                      setEditDialogOpen(true);
+                    }
+                  }, 100);
+                }}
+              >
+                <Pencil className="h-4 w-4 mr-2" />
+                {t("editVisitor", { defaultValue: "Edit Visitor" })}
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
