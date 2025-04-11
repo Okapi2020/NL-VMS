@@ -1131,7 +1131,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
               <Input
-                placeholder={t("searchByNameOrBadge")}
+                placeholder={language === 'fr' ? "Rechercher par nom ou numéro de badge..." : "Search by name or badge ID..."}
                 className="pl-9"
                 value={partnerSearchTerm}
                 onChange={(e) => setPartnerSearchTerm(e.target.value)}
@@ -1143,7 +1143,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
               <div className="flex items-center p-4 bg-blue-50 rounded-md text-blue-700">
                 <Users className="h-5 w-5 mr-2 text-blue-600" />
                 <div className="text-sm">
-                  <span className="font-medium">{t("currentPartner", { defaultValue: "Current partner" })}: </span>
+                  <span className="font-medium">{language === 'fr' ? "Partenaire actuel" : "Current partner"}: </span>
                   {visits.find(item => item.visit.id === selectedVisitForPartner?.visit.partnerId)?.visitor.fullName || 
                     formatBadgeId(visits.find(item => item.visit.id === selectedVisitForPartner?.visit.partnerId)?.visitor.id || 0)}
                 </div>
@@ -1153,7 +1153,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   className="ml-auto text-red-600 hover:text-red-800 hover:bg-red-100 p-1 h-auto"
                   onClick={() => handleAssignPartner(null)}
                 >
-                  {t("remove")}
+                  {language === 'fr' ? "Supprimer" : "Remove"}
                 </Button>
               </div>
             )}
