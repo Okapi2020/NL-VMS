@@ -9,8 +9,8 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { formatTimeOnly, formatDateShort, formatDuration, formatBadgeId, calculateAge, normalizeText, getInitials } from "@/lib/utils";
-import { Visit, Visitor, UpdateVisitor } from "@shared/schema";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Visit, Visitor, UpdateVisitor, UpdateVisitPartner } from "@shared/schema";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { apiRequestWithRetry, useGlobalErrorHandler } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
@@ -40,7 +40,12 @@ import {
   X,
   Repeat,
   LogOut,
-  Eye
+  Eye,
+  Users,
+  UserPlus,
+  Link,
+  Link2,
+  UserMinus
 } from "lucide-react";
 
 import {
