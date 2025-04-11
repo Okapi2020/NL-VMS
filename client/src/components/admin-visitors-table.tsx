@@ -1122,7 +1122,10 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
           <DialogHeader>
             <DialogTitle>{t("selectPartner", { defaultValue: "Select a Partner" })}</DialogTitle>
             <DialogDescription>
-              {t("partnerDescription", { defaultValue: "Link this visitor with another visitor who arrived together." })}
+              {language === 'fr' 
+                ? `Associer un autre visiteur actif qui est arrivé ensemble avec ${selectedVisitForPartner?.visitor.fullName || 'ce visiteur'}`
+                : `Link ${selectedVisitForPartner?.visitor.fullName || 'this visitor'} with another visitor who arrived together.`
+              }
             </DialogDescription>
           </DialogHeader>
           
