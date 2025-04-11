@@ -378,8 +378,8 @@ export const translations: TranslationMap = {
     fr: 'sur'
   },
   itemsPerPage: {
-    en: 'per page',
-    fr: 'par page'
+    en: 'items per page',
+    fr: 'éléments par page'
   },
   emptyBin: {
     en: 'Empty Bin',
