@@ -388,9 +388,148 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
         >
           <Filter className="h-4 w-4" />
           {t("filters", { defaultValue: "Filters" })}
-          <ChevronDown className="h-3 w-3 opacity-50" />
+          <ChevronDown className={`h-3 w-3 opacity-50 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} />
         </Button>
       </div>
+      
+      {/* Filters panel */}
+      {isFilterOpen && (
+        <div className="border rounded-md mx-4 mt-2 p-4 bg-gray-50 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {/* Municipality Filter */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{t("municipality", { defaultValue: "Municipality" })}</label>
+              <Select
+                onValueChange={(value) => {
+                  // Apply municipality filter
+                  let result = [...visits];
+                  if (value !== "all") {
+                    result = result.filter(({visitor}) => visitor.municipality === value);
+                  }
+                  setFilteredVisits(result);
+                  setPage(1);
+                }}
+                defaultValue="all"
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={t("selectMunicipality", { defaultValue: "Select municipality" })} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("all", { defaultValue: "All municipalities" })}</SelectItem>
+                  {KINSHASA_MUNICIPALITIES.map((municipality) => (
+                    <SelectItem key={municipality} value={municipality}>
+                      {municipality}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Duration Filter */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{t("duration", { defaultValue: "Duration" })}</label>
+              <Select
+                onValueChange={(value) => {
+                  // Apply duration filter
+                  let result = [...visits];
+                  const now = new Date();
+                  
+                  if (value === "lessThan30min") {
+                    result = result.filter(({visit}) => {
+                      const diffMs = now.getTime() - new Date(visit.checkInTime).getTime();
+                      return diffMs < 30 * 60 * 1000; // Less than 30 minutes
+                    });
+                  } else if (value === "30minTo1hour") {
+                    result = result.filter(({visit}) => {
+                      const diffMs = now.getTime() - new Date(visit.checkInTime).getTime();
+                      return diffMs >= 30 * 60 * 1000 && diffMs < 60 * 60 * 1000;
+                    });
+                  } else if (value === "1hourTo3hours") {
+                    result = result.filter(({visit}) => {
+                      const diffMs = now.getTime() - new Date(visit.checkInTime).getTime();
+                      return diffMs >= 60 * 60 * 1000 && diffMs < 3 * 60 * 60 * 1000;
+                    });
+                  } else if (value === "moreThan3hours") {
+                    result = result.filter(({visit}) => {
+                      const diffMs = now.getTime() - new Date(visit.checkInTime).getTime();
+                      return diffMs >= 3 * 60 * 60 * 1000;
+                    });
+                  }
+                  
+                  setFilteredVisits(result);
+                  setPage(1);
+                }}
+                defaultValue="all"
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={t("selectDuration", { defaultValue: "Select duration" })} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("allDurations", { defaultValue: "All durations" })}</SelectItem>
+                  <SelectItem value="lessThan30min">{t("lessThan30min", { defaultValue: "Less than 30 minutes" })}</SelectItem>
+                  <SelectItem value="30minTo1hour">{t("30minTo1hour", { defaultValue: "30 minutes to 1 hour" })}</SelectItem>
+                  <SelectItem value="1hourTo3hours">{t("1hourTo3hours", { defaultValue: "1 hour to 3 hours" })}</SelectItem>
+                  <SelectItem value="moreThan3hours">{t("moreThan3hours", { defaultValue: "More than 3 hours" })}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Visit Count Filter */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{t("visitorType", { defaultValue: "Visitor Type" })}</label>
+              <Select
+                onValueChange={(value) => {
+                  // Apply visitor type filter
+                  let result = [...visits];
+                  if (value === "firstTime") {
+                    result = result.filter(({visitor}) => visitor.visitCount === 1);
+                  } else if (value === "regular") {
+                    result = result.filter(({visitor}) => visitor.visitCount > 1 && visitor.visitCount < 10);
+                  } else if (value === "frequent") {
+                    result = result.filter(({visitor}) => visitor.visitCount >= 10);
+                  }
+                  
+                  setFilteredVisits(result);
+                  setPage(1);
+                }}
+                defaultValue="all"
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={t("selectVisitorType", { defaultValue: "Select visitor type" })} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("allVisitors", { defaultValue: "All visitors" })}</SelectItem>
+                  <SelectItem value="firstTime">{t("firstTimeVisitors", { defaultValue: "First-time visitors" })}</SelectItem>
+                  <SelectItem value="regular">{t("regularVisitors", { defaultValue: "Regular visitors (2-9 visits)" })}</SelectItem>
+                  <SelectItem value="frequent">{t("frequentVisitors", { defaultValue: "Frequent visitors (10+ visits)" })}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                // Reset all filters
+                setFilteredVisits(visits);
+                setSearchQuery("");
+                setPage(1);
+              }}
+            >
+              {t("resetFilters", { defaultValue: "Reset Filters" })}
+            </Button>
+            
+            <Button 
+              size="sm"
+              onClick={() => setIsFilterOpen(false)}
+            >
+              {t("applyFilters", { defaultValue: "Apply Filters" })}
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Table */}
       <div className="border rounded-md shadow-sm overflow-hidden">

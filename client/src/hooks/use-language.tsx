@@ -889,6 +889,186 @@ export const translations: TranslationMap = {
     en: 'Close',
     fr: 'Fermer'
   },
+  searchVisitors: {
+    en: 'Search visitors...',
+    fr: 'Rechercher des visiteurs...'
+  },
+  selectAll: {
+    en: 'Select all',
+    fr: 'Tout sélectionner'
+  },
+  visitor: {
+    en: 'Visitor',
+    fr: 'Visiteur'
+  },
+  contact: {
+    en: 'Contact',
+    fr: 'Contact'
+  },
+  badge: {
+    en: 'Badge',
+    fr: 'Badge'
+  },
+  visits: {
+    en: 'Visits',
+    fr: 'Visites'
+  },
+  time: {
+    en: 'Time',
+    fr: 'Heure'
+  },
+  actions: {
+    en: 'Actions',
+    fr: 'Actions'
+  },
+  loading: {
+    en: 'Loading...',
+    fr: 'Chargement...'
+  },
+  yearsOld: {
+    en: 'years old',
+    fr: 'ans'
+  },
+  visitorDetails: {
+    en: 'Visitor Details',
+    fr: 'Détails du visiteur'
+  },
+  location: {
+    en: 'Location',
+    fr: 'Emplacement'
+  },
+  checkInTime: {
+    en: 'Check-in Time',
+    fr: 'Heure d\'arrivée'
+  },
+  visitPurpose: {
+    en: 'Visit Purpose',
+    fr: 'Motif de la visite'
+  },
+  totalVisits: {
+    en: 'Total Visits',
+    fr: 'Visites totales'
+  },
+  edit: {
+    en: 'Edit Visitor',
+    fr: 'Modifier le visiteur'
+  },
+  saveChanges: {
+    en: 'Save Changes',
+    fr: 'Enregistrer les modifications'
+  },
+  cancel: {
+    en: 'Cancel',
+    fr: 'Annuler'
+  },
+  fullName: {
+    en: 'Full Name',
+    fr: 'Nom complet'
+  },
+  yearOfBirth: {
+    en: 'Year of Birth',
+    fr: 'Année de naissance'
+  },
+  sex: {
+    en: 'Sex',
+    fr: 'Sexe'
+  },
+  selectSex: {
+    en: 'Select sex',
+    fr: 'Sélectionner le sexe'
+  },
+  male: {
+    en: 'Male',
+    fr: 'Masculin'
+  },
+  female: {
+    en: 'Female',
+    fr: 'Féminin'
+  },
+  selectMunicipality: {
+    en: 'Select municipality',
+    fr: 'Sélectionner la municipalité'
+  },
+  emailAddressOptional: {
+    en: 'Email Address (Optional)',
+    fr: 'Adresse e-mail (Facultatif)'
+  },
+  phoneNumber: {
+    en: 'Phone Number',
+    fr: 'Numéro de téléphone'
+  },
+  itemsPerPage: {
+    en: 'items per page',
+    fr: 'éléments par page'
+  },
+  page: {
+    en: 'Page',
+    fr: 'Page'
+  },
+  all: {
+    en: 'All municipalities',
+    fr: 'Toutes les municipalités'
+  },
+  duration: {
+    en: 'Duration',
+    fr: 'Durée'
+  },
+  selectDuration: {
+    en: 'Select duration',
+    fr: 'Sélectionner la durée'
+  },
+  allDurations: {
+    en: 'All durations',
+    fr: 'Toutes les durées'
+  },
+  lessThan30min: {
+    en: 'Less than 30 minutes',
+    fr: 'Moins de 30 minutes'
+  },
+  '30minTo1hour': {
+    en: '30 minutes to 1 hour',
+    fr: '30 minutes à 1 heure'
+  },
+  '1hourTo3hours': {
+    en: '1 hour to 3 hours',
+    fr: '1 heure à 3 heures'
+  },
+  moreThan3hours: {
+    en: 'More than 3 hours',
+    fr: 'Plus de 3 heures'
+  },
+  visitorType: {
+    en: 'Visitor Type',
+    fr: 'Type de visiteur'
+  },
+  selectVisitorType: {
+    en: 'Select visitor type',
+    fr: 'Sélectionner le type de visiteur'
+  },
+  allVisitors: {
+    en: 'All visitors',
+    fr: 'Tous les visiteurs'
+  },
+  firstTimeVisitors: {
+    en: 'First-time visitors',
+    fr: 'Visiteurs pour la première fois'
+  },
+  regularVisitors: {
+    en: 'Regular visitors (2-9 visits)',
+    fr: 'Visiteurs réguliers (2-9 visites)'
+  },
+  frequentVisitors: {
+    en: 'Frequent visitors (10+ visits)',
+    fr: 'Visiteurs fréquents (10+ visites)'
+  },
+  resetFilters: {
+    en: 'Reset Filters',
+    fr: 'Réinitialiser les filtres'
+  },
+  applyFilters: {
+    en: 'Apply Filters',
+    fr: 'Appliquer les filtres'
+  },
   historiqueDesVisites: {
     en: 'Visit History',
     fr: 'Historique des Visites'
