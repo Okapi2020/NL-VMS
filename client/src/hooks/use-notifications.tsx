@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useWebSocket, WebSocketMessage } from './use-websocket';
 import { useToast } from './use-toast';
+import { useLanguage } from './use-language';
 
 // Types for notifications
 export type NotificationType = 'check-in' | 'partner-update';
@@ -59,6 +60,7 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
   // State for notifications
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const { toast } = useToast();
+  const { language } = useLanguage();
 
   // Connect to WebSocket, using relative URL to handle various deployment scenarios
   const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
@@ -89,10 +91,12 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
       // Add to notifications
       setNotifications(prev => [newNotification, ...prev]);
       
-      // Show toast notification
+      // Show toast notification with language support
       toast({
-        title: 'New Visitor Check-in',
-        description: `${visitor.fullName} has checked in.`,
+        title: language === 'fr' ? 'Nouvel Enregistrement de Visiteur' : 'New Visitor Check-in',
+        description: language === 'fr' 
+          ? `${visitor.fullName} s'est enregistré.`
+          : `${visitor.fullName} has checked in.`,
         duration: 5000,
       });
     }
@@ -116,11 +120,18 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
       // Add to notifications
       setNotifications(prev => [newNotification, ...prev]);
       
-      // Show toast notification with appropriate message
-      const toastTitle = action === 'linked' ? 'Visitors Partnered' : 'Partner Relationship Removed';
-      const toastDescription = action === 'linked' 
-        ? `${visitor.fullName} partnered with ${partner?.fullName}.`
-        : `Partner relationship removed for ${visitor.fullName}.`;
+      // Show toast notification with appropriate message based on language
+      const toastTitle = language === 'fr'
+        ? (action === 'linked' ? 'Partenaires Associés' : 'Relation de Partenaire Supprimée')
+        : (action === 'linked' ? 'Visitors Partnered' : 'Partner Relationship Removed');
+        
+      const toastDescription = language === 'fr'
+        ? (action === 'linked' 
+            ? `${visitor.fullName} associé avec ${partner?.fullName}.`
+            : `Relation de partenaire supprimée pour ${visitor.fullName}.`)
+        : (action === 'linked' 
+            ? `${visitor.fullName} partnered with ${partner?.fullName}.`
+            : `Partner relationship removed for ${visitor.fullName}.`);
       
       toast({
         title: toastTitle,
@@ -128,7 +139,7 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
         duration: 5000,
       });
     }
-  }, [lastMessage, toast]);
+  }, [lastMessage, toast, language]);
 
   // Log WebSocket connection state for debugging
   useEffect(() => {

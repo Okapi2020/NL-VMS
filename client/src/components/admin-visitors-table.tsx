@@ -412,11 +412,12 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
         return res.json();
       })
       .then(() => {
+        // Direct string approach for toast notification to avoid translation issues
         toast({
-          title: t("success"),
+          title: language === 'fr' ? "Succès" : "Success",
           description: partnerId 
-            ? t("partnerAssigned", { defaultValue: "Partner assigned successfully" })
-            : t("partnerRemoved", { defaultValue: "Partner removed successfully" }),
+            ? (language === 'fr' ? "Partenaire assigné avec succès" : "Partner assigned successfully")
+            : (language === 'fr' ? "Partenaire supprimé avec succès" : "Partner removed successfully"),
         });
         setIsPartnerDialogOpen(false);
         queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
