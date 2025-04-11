@@ -633,12 +633,10 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
         {/* Selected count */}
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-500">
-            {t("showingResults", { 
-              start: paginatedVisits.length > 0 ? (page - 1) * itemsPerPage + 1 : 0, 
-              end: Math.min(page * itemsPerPage, sortedVisits.length), 
-              total: sortedVisits.length,
-              defaultValue: "Showing {{start}} - {{end}} of {{total}}"
-            })}
+            {language === 'en' 
+              ? `Showing ${paginatedVisits.length > 0 ? (page - 1) * itemsPerPage + 1 : 0} - ${Math.min(page * itemsPerPage, sortedVisits.length)} of ${sortedVisits.length}`
+              : `Affichage de ${paginatedVisits.length > 0 ? (page - 1) * itemsPerPage + 1 : 0} à ${Math.min(page * itemsPerPage, sortedVisits.length)} sur ${sortedVisits.length}`
+            }
             {showDeletedVisitors ? " " + t("trashBinLabel", { defaultValue: "(Trash Bin)" }) : ""}
             {selectedVisitors?.length > 0 ? ` • ${selectedVisitors.length} ${t("selected", { defaultValue: "selected" })}` : ""}
           </div>
@@ -1046,7 +1044,10 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
           
           <div className="flex items-center">
             <span className="px-3 text-sm text-gray-700">
-              {t("pageXofY", { x: page, y: totalPages || 1, defaultValue: "Page {{x}} of {{y}}" })}
+              {language === 'en' 
+                ? `Page ${page} of ${totalPages || 1}`
+                : `Page ${page} sur ${totalPages || 1}`
+              }
             </span>
             
             <Button 

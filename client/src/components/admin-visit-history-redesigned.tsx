@@ -881,7 +881,7 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10 {t("itemsPerPage", { defaultValue: "items per page" })}</SelectItem>
+                <SelectItem value="10">10 {language === 'en' ? 'items per page' : 'éléments par page'}</SelectItem>
                 <SelectItem value="25">25</SelectItem>
                 <SelectItem value="50">50</SelectItem>
                 <SelectItem value="100">100</SelectItem>
@@ -891,7 +891,10 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
           
           <div className="flex items-center">
             <span className="px-3 text-sm text-gray-700">
-              {t("pageXofY", { current: page, total: totalPages || 1, defaultValue: "Page ${current} of ${total}" })}
+              {language === 'en' 
+                ? `Page ${page} of ${totalPages || 1}`
+                : `Page ${page} sur ${totalPages || 1}`
+              }
             </span>
             
             <button 
