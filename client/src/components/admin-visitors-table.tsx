@@ -925,14 +925,14 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
             }}
           >
             <SelectTrigger className="h-8 w-[130px]">
-              <SelectValue placeholder={`10 ${t("itemsPerPage")}`} />
+              <SelectValue placeholder={`10 ${language === 'en' ? 'items per page' : 'éléments par page'}`} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="10">10 {t("itemsPerPage", { defaultValue: "items per page" })}</SelectItem>
-              <SelectItem value="20">20 {t("itemsPerPage", { defaultValue: "items per page" })}</SelectItem>
-              <SelectItem value="30">30 {t("itemsPerPage", { defaultValue: "items per page" })}</SelectItem>
-              <SelectItem value="50">50 {t("itemsPerPage", { defaultValue: "items per page" })}</SelectItem>
-              <SelectItem value="100">100 {t("itemsPerPage", { defaultValue: "items per page" })}</SelectItem>
+              <SelectItem value="10">10 {language === 'en' ? 'items per page' : 'éléments par page'}</SelectItem>
+              <SelectItem value="20">20 {language === 'en' ? 'items per page' : 'éléments par page'}</SelectItem>
+              <SelectItem value="30">30 {language === 'en' ? 'items per page' : 'éléments par page'}</SelectItem>
+              <SelectItem value="50">50 {language === 'en' ? 'items per page' : 'éléments par page'}</SelectItem>
+              <SelectItem value="100">100 {language === 'en' ? 'items per page' : 'éléments par page'}</SelectItem>
             </SelectContent>
           </Select>
           
@@ -947,7 +947,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
               &lt;
             </Button>
             <div className="border-y px-3 flex items-center text-sm">
-              <span className="text-gray-500">{t("page", { defaultValue: "Page" })} {page || 1} {t("of", { defaultValue: "of" })} {Math.max(1, totalPages || 1)}</span>
+              <span className="text-gray-500">{language === 'en' ? `Page ${page || 1} of ${Math.max(1, totalPages || 1)}` : `Page ${page || 1} sur ${Math.max(1, totalPages || 1)}`}</span>
             </div>
             <Button
               variant="outline"
