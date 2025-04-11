@@ -564,7 +564,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
         <div className="absolute -bottom-7 right-2 text-xs text-gray-500 md:hidden">
           <span>{t("swipeToSeeMore", { defaultValue: "← Swipe to see more →" })}</span>
         </div>
-        <Table className="w-full whitespace-nowrap min-w-[900px] lg:min-w-[1100px]">
+        <Table className="w-full whitespace-nowrap min-w-[1000px] lg:min-w-[1200px] border-separate border-spacing-x-2">
           <TableHeader>
             <TableRow>
               <TableHead className="w-[40px]">
@@ -722,7 +722,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   </TableCell>
                   
                   {/* Badge ID */}
-                  <TableCell>
+                  <TableCell className="pl-4">
                     <div className="flex items-center gap-2">
                       <span className="inline-flex items-center px-2.5 py-1 rounded-md text-sm font-medium bg-blue-50 text-blue-800">
                         {formatBadgeId(visitor.id)}
@@ -739,7 +739,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   </TableCell>
                   
                   {/* Visit Count */}
-                  <TableCell className="hidden sm:table-cell">
+                  <TableCell className="hidden sm:table-cell pl-4">
                     <div className="flex items-center">
                       <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                         <span className="font-medium">{visitor.visitCount || 1}</span>
@@ -755,7 +755,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   </TableCell>
                   
                   {/* Partner */}
-                  <TableCell>
+                  <TableCell className="pl-4">
                     <div className="flex items-center">
                       {visit.partnerId ? (
                         <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 flex items-center gap-1">
@@ -772,8 +772,8 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   </TableCell>
                   
                   {/* Visit Time */}
-                  <TableCell>
-                    <div className="inline-flex items-center gap-x-3">
+                  <TableCell className="pl-4">
+                    <div className="inline-flex items-center gap-x-4">
                       <span className="inline-flex items-center whitespace-nowrap">
                         <span className="h-2 w-2 rounded-full bg-green-500 mr-2"></span>
                         <span className="font-medium">{formatTimeOnly(visit.checkInTime, language)}</span>
@@ -785,8 +785,8 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   </TableCell>
                   
                   {/* Actions */}
-                  <TableCell>
-                    <div className="flex justify-end space-x-2 items-center">
+                  <TableCell className="pl-4 pr-2">
+                    <div className="flex justify-end space-x-3 items-center">
                       <Button
                         variant="ghost"
                         size="icon"
