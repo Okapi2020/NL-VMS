@@ -310,13 +310,38 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
   
   const handleEditVisitor = (visitor: Visitor) => {
     setSelectedVisitor(visitor);
+    
+    // Format phone number with leading zero for local format display
+    let formattedPhoneNumber = visitor.phoneNumber || '';
+    
+    // Clean up the phone number from any formatting
+    const digitsOnly = formattedPhoneNumber.replace(/\D/g, '');
+    
+    // Apply local format with leading zero if not already present
+    // and if not starting with country code
+    if (digitsOnly && 
+        !digitsOnly.startsWith('0') && 
+        !digitsOnly.startsWith('243') &&
+        !digitsOnly.startsWith('+243')) {
+      formattedPhoneNumber = '0' + digitsOnly;
+    } else if (digitsOnly.startsWith('243')) {
+      // If it has country code without leading zero, format to local
+      formattedPhoneNumber = '0' + digitsOnly.substring(3);
+    } else if (digitsOnly.startsWith('+243')) {
+      // If it has country code with plus, format to local
+      formattedPhoneNumber = '0' + digitsOnly.substring(4);
+    } else {
+      // Keep original digits
+      formattedPhoneNumber = digitsOnly;
+    }
+    
     form.reset({
       fullName: visitor.fullName,
       yearOfBirth: visitor.yearOfBirth,
       sex: visitor.sex,
       municipality: visitor.municipality,
       email: visitor.email || "",
-      phoneNumber: visitor.phoneNumber,
+      phoneNumber: formattedPhoneNumber,
     });
     setIsEditDialogOpen(true);
   };
@@ -324,7 +349,25 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
   const onSubmit = (data: EditVisitorFormValues) => {
     if (!selectedVisitor) return;
     
-    apiRequest("PATCH", `/api/admin/visitors/${selectedVisitor.id}`, data)
+    // Clone the data object to avoid modifying the original form data
+    const formattedData = { ...data };
+    
+    // Clean and format phone number for international storage
+    let phoneNumber = formattedData.phoneNumber || '';
+    phoneNumber = phoneNumber.replace(/\D/g, ''); // Remove non-digit characters
+    
+    // Format for storage: if starts with 0, replace with country code
+    if (phoneNumber.startsWith('0')) {
+      phoneNumber = '243' + phoneNumber.substring(1);
+    } else if (phoneNumber && !phoneNumber.startsWith('243') && !phoneNumber.startsWith('+243')) {
+      // If no prefix, add country code
+      phoneNumber = '243' + phoneNumber;
+    }
+    
+    // Update the data with the formatted phone number
+    formattedData.phoneNumber = phoneNumber;
+    
+    apiRequest("PATCH", `/api/admin/visitors/${selectedVisitor.id}`, formattedData)
       .then(res => {
         if (!res.ok) throw new Error("Failed to update visitor");
         return res.json();
@@ -1175,7 +1218,6 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                     {selectedVisitDetails.visitor.phoneNumber ? (
                       <PhoneNumberLink 
                         phoneNumber={selectedVisitDetails.visitor.phoneNumber} 
-                        countryCode="243"
                         showWhatsAppIcon={true}
                       />
                     ) : (
