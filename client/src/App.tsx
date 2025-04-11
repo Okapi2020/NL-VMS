@@ -3,12 +3,15 @@ import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import VisitorPortal from "@/pages/visitor-portal";
 import AdminDashboard from "@/pages/admin-dashboard";
-import SimpleAdminDashboard from "@/pages/simple-admin-dashboard"; // Import the simple dashboard
+import SimpleAdminDashboard from "@/pages/simple-admin-dashboard"; // Simple dashboard for fallback
 import AuthPage from "@/pages/auth-page";
 import WelcomePage from "@/pages/welcome-page";
 import ThankYouPage from "@/pages/thank-you-page";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { LanguageProvider } from "@/hooks/use-language";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
+import { AuthProvider } from "@/hooks/use-auth";
 
 function Router() {
   // Check if we're in development mode
@@ -21,13 +24,23 @@ function Router() {
       <Route path="/thank-you" component={ThankYouPage} />
       <Route path="/admin">
         {() => {
-          // In development mode, render the simplified admin dashboard
           if (isDevelopment) {
-            console.log("Development mode: Using simplified admin dashboard without auth");
+            console.log("Development mode: Using full admin dashboard with auto-authentication");
+            // In development, render the regular admin dashboard directly 
+            // (auth is auto-handled in the AuthProvider)
+            return <AdminDashboard />;
+          }
+          // In production, use the ProtectedRoute wrapper for security
+          return <ProtectedRoute path="/admin" component={AdminDashboard} />;
+        }}
+      </Route>
+      <Route path="/admin/simple">
+        {() => {
+          // An alternative simplified dashboard for development troubleshooting
+          if (isDevelopment) {
             return <SimpleAdminDashboard />;
           }
-          // In production, use the ProtectedRoute wrapper
-          return <ProtectedRoute path="/admin" component={AdminDashboard} />;
+          return <Redirect to="/admin" />;
         }}
       </Route>
       <Route path="/auth">
@@ -48,10 +61,14 @@ function Router() {
 
 function App() {
   return (
-    <LanguageProvider>
-      <Router />
-      <Toaster />
-    </LanguageProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <LanguageProvider>
+          <Router />
+          <Toaster />
+        </LanguageProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 
