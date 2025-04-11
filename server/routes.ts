@@ -1704,9 +1704,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add a function to the global scope to broadcast check-in notifications
   // This will be called from the visitor check-in endpoint
   global.broadcastCheckIn = (visitor: Visitor, purpose?: string) => {
+    console.log('Broadcasting check-in notification for visitor:', visitor.fullName);
+    console.log('Number of connected WebSocket clients:', clients.size);
+    
+    let sentCount = 0;
     clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify({
+        const message = JSON.stringify({
           type: 'check-in',
           visitor: {
             id: visitor.id,
@@ -1716,9 +1720,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
           purpose: purpose || 'Not specified',
           timestamp: new Date().toISOString()
-        }));
+        });
+        
+        client.send(message);
+        sentCount++;
+        console.log('Sent notification to client');
       }
     });
+    
+    console.log(`Successfully sent check-in notification to ${sentCount} clients`);
+    
+    // If no clients, log a warning
+    if (sentCount === 0) {
+      console.warn('No active WebSocket clients to receive the notification!');
+    }
   };
   
   // Add a function to the global scope to broadcast partner update notifications

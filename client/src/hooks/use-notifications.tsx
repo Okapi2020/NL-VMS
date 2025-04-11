@@ -68,9 +68,12 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
   useEffect(() => {
     if (!lastMessage) return;
     
+    console.log('WebSocket message received:', lastMessage);
+    
     // Handle check-in notifications
     if (lastMessage.type === 'check-in') {
       const { visitor, purpose, timestamp } = lastMessage;
+      console.log('Check-in notification:', visitor, purpose, timestamp);
       
       const newNotification: CheckInNotification = {
         id: `${Date.now()}-${visitor.id}`,
