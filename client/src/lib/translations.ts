@@ -36,6 +36,14 @@ const translations: TranslationConfig = {
   "partnerRemoved": {
     en: "Partner removed successfully",
     fr: "Partenaire supprimé avec succès"
+  },
+  "minutes": {
+    en: "minutes",
+    fr: "minutes"
+  },
+  "averageVisitDuration": {
+    en: "Average Visit Duration",
+    fr: "Durée moyenne de visite"
   }
 };
 
