@@ -44,6 +44,26 @@ const translations: TranslationConfig = {
   "averageVisitDuration": {
     en: "Average Visit Duration",
     fr: "Durée moyenne de visite"
+  },
+  "resetAvgDuration": {
+    en: "Reset Counter",
+    fr: "Réinitialiser"
+  },
+  "resetAvgDurationTooltip": {
+    en: "Reset the average visit duration counter",
+    fr: "Réinitialiser le compteur de durée moyenne de visite"
+  },
+  "resetSuccess": {
+    en: "Average visit duration counter reset successfully",
+    fr: "Compteur de durée moyenne de visite réinitialisé avec succès"
+  },
+  "error": {
+    en: "Error",
+    fr: "Erreur"
+  },
+  "failedToResetDuration": {
+    en: "Failed to reset average visit duration counter",
+    fr: "Échec de la réinitialisation du compteur de durée moyenne de visite"
   }
 };
 

@@ -198,6 +198,33 @@ export default function AdminDashboard() {
     enabled: activeView === "dashboard"
   });
   
+  // Mutation to reset average visit duration
+  const resetAvgDurationMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/admin/reset-avg-duration");
+      return response;
+    },
+    onSuccess: () => {
+      // Show success message
+      toast({
+        title: t("success"),
+        description: t("resetSuccess"),
+        variant: "success",
+      });
+      
+      // Invalidate the stats cache to refresh the data
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
+    },
+    onError: (error) => {
+      console.error("Failed to reset average duration:", error);
+      toast({
+        title: t("error"),
+        description: t("failedToResetDuration"),
+        variant: "destructive",
+      });
+    }
+  });
+  
   // Empty trash bin mutation
   const emptyBinMutation = useMutation({
     mutationFn: async () => {
