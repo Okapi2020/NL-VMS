@@ -87,7 +87,7 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
   const [processingVerificationIds, setProcessingVerificationIds] = useState<Set<number>>(new Set());
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
-  const [sortField, setSortField] = useState<"name" | "checkIn" | "checkOut" | "duration" | "visitCount">("checkIn");
+  const [sortField, setSortField] = useState<"name" | "checkIn" | "checkOut" | "duration" | "visitCount" | "municipality" | "badge">("checkIn");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "completed">("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
@@ -440,6 +440,16 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
         case "name":
           comparison = a.visitor.fullName.localeCompare(b.visitor.fullName);
           break;
+        case "municipality":
+          // Handle null or undefined municipalities - empty string is sorted before non-empty strings
+          const aMunicipality = a.visitor.municipality || "";
+          const bMunicipality = b.visitor.municipality || "";
+          comparison = aMunicipality.localeCompare(bMunicipality);
+          break;
+        case "badge":
+          // Sort by visitor ID (badge number)
+          comparison = a.visitor.id - b.visitor.id;
+          break;
         case "checkIn":
           comparison = new Date(a.visit.checkInTime).getTime() - new Date(b.visit.checkInTime).getTime();
           break;
@@ -715,17 +725,33 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
               </TableHead>
               
               {/* Municipality Column */}
-              <TableHead>
+              <TableHead 
+                className="cursor-pointer"
+                onClick={() => handleSortChange("municipality")}
+              >
                 <div className="flex items-center">
                   <span className="uppercase text-xs font-medium text-gray-500">{t("municipality")}</span>
+                  {sortField === "municipality" && (
+                    sortDirection === "asc" ? 
+                    <ChevronUp className="ml-1 h-4 w-4" /> : 
+                    <ChevronDown className="ml-1 h-4 w-4" />
+                  )}
                 </div>
               </TableHead>
               
               {/* Badge ID Column */}
-              <TableHead>
+              <TableHead
+                className="cursor-pointer"
+                onClick={() => handleSortChange("badge")}
+              >
                 <div className="flex items-center">
                   <Tag className="mr-1 h-4 w-4" />
                   <span className="uppercase text-xs font-medium text-gray-500">Badge</span>
+                  {sortField === "badge" && (
+                    sortDirection === "asc" ? 
+                    <ChevronUp className="ml-1 h-4 w-4" /> : 
+                    <ChevronDown className="ml-1 h-4 w-4" />
+                  )}
                 </div>
               </TableHead>
               
