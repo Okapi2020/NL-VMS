@@ -675,6 +675,14 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                 </div>
               </TableHead>
               
+              {/* Partner Column */}
+              <TableHead>
+                <div className="flex items-center">
+                  <Users className="mr-1 h-4 w-4" />
+                  <span className="uppercase text-xs font-medium text-gray-500">{t("partner", { defaultValue: "Partner" })}</span>
+                </div>
+              </TableHead>
+              
               {/* Visit Time Information */}
               <TableHead 
                 className="cursor-pointer" 

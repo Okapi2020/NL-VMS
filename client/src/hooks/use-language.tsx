@@ -817,10 +817,6 @@ export const translations: TranslationMap = {
     en: 'Partner relationship removed',
     fr: 'Relation partenaire supprimée'
   },
-  purpose: {
-    en: 'Purpose',
-    fr: 'Raison'
-  },
   viewDetails: {
     en: 'View details',
     fr: 'Voir les détails'
