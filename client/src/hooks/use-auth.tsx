@@ -142,9 +142,62 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// Mock for development
+const MOCK_ADMIN: Admin = {
+  id: 1,
+  username: "admin",
+  password: "********", // Password is hidden
+  preferredLanguage: "fr"
+};
+
+const createMockAuth = (): AuthContextType => {
+  return {
+    user: MOCK_ADMIN,
+    isLoading: false,
+    error: null,
+    loginMutation: {
+      mutate: () => console.log("Mock login"),
+      isPending: false,
+      isError: false,
+      isSuccess: true,
+      reset: () => {},
+      variables: undefined,
+      context: undefined,
+      status: "success",
+      error: null,
+      data: MOCK_ADMIN,
+      failureCount: 0,
+      failureReason: null,
+      mutateAsync: async () => MOCK_ADMIN
+    },
+    logoutMutation: {
+      mutate: () => console.log("Mock logout"),
+      isPending: false,
+      isError: false,
+      isSuccess: true,
+      reset: () => {},
+      variables: undefined,
+      context: undefined,
+      status: "success",
+      error: null,
+      data: undefined,
+      failureCount: 0,
+      failureReason: null,
+      mutateAsync: async () => {}
+    }
+  };
+};
+
 export function useAuth() {
   const context = useContext(AuthContext);
+  const isDevelopment = import.meta.env.DEV === true;
+  
   if (context === null) {
+    if (isDevelopment) {
+      console.log("Development mode: Using mock authentication");
+      return createMockAuth();
+    }
+    
     console.error("Auth context is null - provider missing");
     throw new Error("useAuth must be used within an AuthProvider");
   }

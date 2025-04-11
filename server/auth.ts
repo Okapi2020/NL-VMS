@@ -140,13 +140,27 @@ export function setupAuth(app: Express) {
     });
   });
 
-  app.get("/api/admin/user", (req, res) => {
+  app.get("/api/admin/user", async (req, res) => {
     console.log("GET /api/admin/user - isAuthenticated:", req.isAuthenticated());
     console.log("Session ID:", req.sessionID);
+    
+    const isDevelopment = process.env.NODE_ENV !== 'production';
     
     if (req.isAuthenticated()) {
       console.log("Authenticated user:", req.user);
       return res.json(req.user);
+    } else if (isDevelopment) {
+      // In development mode, automatically provide the admin user without authentication
+      try {
+        const adminUser = await storage.getAdminByUsername("admin");
+        if (adminUser) {
+          console.log("Development mode: Auto-authenticating as admin");
+          return res.json(adminUser);
+        }
+      } catch (error) {
+        console.error("Error auto-authenticating in development:", error);
+      }
+      return res.sendStatus(401);
     } else {
       console.log("User not authenticated");
       return res.sendStatus(401);

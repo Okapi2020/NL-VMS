@@ -62,6 +62,15 @@ export function ProtectedRoute({
     }
   }, [authContext, verificationAttempts]);
   
+  // Check if we're in development mode
+  const isDevelopment = import.meta.env.DEV === true;
+  
+  // If we're in development mode, bypass authentication completely
+  if (isDevelopment) {
+    console.log("Development mode: Bypassing authentication for protected route");
+    return <Route path={path} component={Component} />;
+  }
+  
   // If auth context is null, try manual auth
   if (authContext === null) {
     if (isVerifyingManually) {
