@@ -712,6 +712,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all non-deleted visitors (for reports and dropdowns)
+  app.get("/api/admin/visitors", ensureAuthenticated, async (req, res) => {
+    try {
+      const visitors = await storage.getAllVisitors();
+      res.status(200).json(visitors);
+    } catch (error) {
+      console.error("Error getting all visitors:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Get all reports for a specific visitor
   app.get("/api/admin/visitors/:id/reports", ensureAuthenticated, async (req, res) => {
     try {
