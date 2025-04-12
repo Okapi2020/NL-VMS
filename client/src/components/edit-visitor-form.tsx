@@ -19,9 +19,11 @@ import { Loader2 } from "lucide-react";
 // Define the form schema
 export const editVisitorSchema = z.object({
   fullName: z.string().min(1, "Full name is required"),
-  email: z.string().email("Invalid email format").optional().nullable()
-    .or(z.literal(""))
-    .transform(val => val === "" ? null : val),
+  email: z.union([
+    z.string().email("Invalid email format"),
+    z.string().length(0),
+    z.null()
+  ]).optional().nullable(),
   phoneNumber: z.string().min(1, "Phone number is required"),
   yearOfBirth: z.coerce.number().min(1900).max(new Date().getFullYear()),
   company: z.string().optional().nullable()
@@ -94,7 +96,12 @@ export default function EditVisitorForm({
             <FormItem>
               <FormLabel>{t("email")} ({t("optional")})</FormLabel>
               <FormControl>
-                <Input {...field} type="email" />
+                <Input 
+                  {...field} 
+                  type="email"
+                  value={field.value || ""}
+                  onChange={(e) => field.onChange(e.target.value || null)} 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -136,7 +143,11 @@ export default function EditVisitorForm({
             <FormItem>
               <FormLabel>{t("company")} ({t("optional")})</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input 
+                  {...field} 
+                  value={field.value || ""}
+                  onChange={(e) => field.onChange(e.target.value || null)}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -158,9 +158,11 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
       errorMap: () => ({ message: "Please select either Masculin or Feminin" }),
     }),
     municipality: z.string().min(1, "Municipality selection is required"),
-    email: z.string().email("Invalid email format").optional().nullable()
-      .or(z.literal(""))
-      .transform(val => val === "" ? null : val),
+    email: z.union([
+      z.string().email("Invalid email format"),
+      z.string().length(0),
+      z.null()
+    ]).optional().nullable(),
     phoneNumber: z.string().min(7, "Phone number must be at least 7 characters"),
     partnerId: z.number().nullable().optional(),
     visitId: z.number(),
