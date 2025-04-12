@@ -344,7 +344,7 @@ function AllVisitors({ isLoading = false }: AllVisitorsProps) {
     }
     
     // Visitor type filter (based on visit count)
-    const visitCount = allVisitorsData.find(v => v.visitor.id === visitor.id)?.visitCount || 0;
+    const visitCount = allVisitorsData.find(v => v.visitor.id === visitor.id)?.visitCount || 1;
     if (filterVisitorType === "first-time" && visitCount !== 1) {
       return false;
     } else if (filterVisitorType === "regular" && (visitCount < 2 || visitCount > 9)) {

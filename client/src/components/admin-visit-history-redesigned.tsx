@@ -308,10 +308,10 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
     if (filterVisitorType !== "all") {
       if (filterVisitorType === "regular") {
         // Visitor with more than 5 visits is considered regular
-        matchesVisitorType = (visitor.visitCount || 0) > 5;
+        matchesVisitorType = (visitor.visitCount || 1) > 5;
       } else if (filterVisitorType === "first-time") {
         // Visitor with only 1 visit
-        matchesVisitorType = (visitor.visitCount || 0) === 1;
+        matchesVisitorType = (visitor.visitCount || 1) === 1;
       } else if (filterVisitorType === "verified") {
         // Verified visitors
         matchesVisitorType = visitor.verified === true;
@@ -369,8 +369,8 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
         comparison = new Date(a.visit.checkInTime).getTime() - new Date(b.visit.checkInTime).getTime();
         break;
       case "visitCount":
-        const aCount = a.visitor.visitCount || 0;
-        const bCount = b.visitor.visitCount || 0;
+        const aCount = a.visitor.visitCount || 1;
+        const bCount = b.visitor.visitCount || 1;
         comparison = aCount - bCount;
         break;
     }
@@ -805,7 +805,7 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {visitor.visitCount || 0}
+                        {visitor.visitCount || 1}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -961,7 +961,7 @@ function VisitHistoryTable({ visitHistory, isLoading }: VisitHistoryProps) {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">{t("visitCount", { defaultValue: "Visit Count" })}</p>
-                    <p className="font-medium">{selectedVisitor.visitCount || 0}</p>
+                    <p className="font-medium">{selectedVisitor.visitCount || 1}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">{t("municipality", { defaultValue: "Municipality" })}</p>
