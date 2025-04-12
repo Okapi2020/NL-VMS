@@ -911,6 +911,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update a specific visitor
+  app.patch("/api/admin/visitors/:id", ensureAuthenticated, async (req, res) => {
+    try {
+      const visitorId = parseInt(req.params.id);
+      if (isNaN(visitorId)) {
+        return res.status(400).json({ message: "Invalid visitor ID" });
+      }
+      
+      // Use the existing updateVisitorSchema for validation
+      const updateData = req.body;
+      
+      // Get the visitor and update
+      const updatedVisitor = await storage.updateVisitor(visitorId, updateData);
+      if (!updatedVisitor) {
+        return res.status(404).json({ message: "Visitor not found" });
+      }
+      
+      res.status(200).json(updatedVisitor);
+    } catch (error) {
+      console.error("Error updating visitor:", error);
+      res.status(500).json({ message: "Failed to update visitor" });
+    }
+  });
+
   // Get all reports for a specific visitor
   app.get("/api/admin/visitors/:id/reports", ensureAuthenticated, async (req, res) => {
     try {
