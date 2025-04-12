@@ -14,15 +14,18 @@ import {
 } from "@/components/ui/popover";
 import { useLanguage } from "@/hooks/use-language";
 
-interface DateRangePickerProps extends React.HTMLAttributes<HTMLDivElement> {
+interface DateRangePickerProps {
   value?: DateRange;
   onChange?: (value: DateRange | undefined) => void;
+  className?: string;
+  calendarLabel?: string;
 }
 
 export function DateRangePicker({
   value,
   onChange,
   className,
+  calendarLabel,
 }: DateRangePickerProps) {
   const { language, t } = useLanguage();
   
@@ -49,7 +52,7 @@ export function DateRangePicker({
                 format(value.from, "LLL dd, y", { locale: language === 'fr' ? fr : undefined })
               )
             ) : (
-              <span>{t("selectDateRange", { defaultValue: "Select date range" })}</span>
+              <span>{calendarLabel || t("selectDateRange", { defaultValue: "Select date range" })}</span>
             )}
           </Button>
         </PopoverTrigger>
