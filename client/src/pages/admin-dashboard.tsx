@@ -563,7 +563,13 @@ export default function AdminDashboard() {
                   </Card>
 
                   {/* Total registered visitors */}
-                  <Card>
+                  <Card 
+                    className="cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => { 
+                      setActiveView("visitors");
+                      setActiveTab("all");
+                    }}
+                  >
                     <CardContent className="px-4 py-5 sm:p-6">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 bg-purple-100 rounded-md p-3">
@@ -767,6 +773,19 @@ export default function AdminDashboard() {
                         visitHistory={visitHistory}
                         isLoading={isLoadingVisitHistory}
                       />
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                <TabsContent value="all">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{t("allVisitors", { defaultValue: "All Registered Visitors" })}</CardTitle>
+                      <CardDescription>
+                        {t("allVisitorsDescription", { defaultValue: "Complete list of all registered visitors in the system" })}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <AllVisitors isLoading={isLoadingStats} />
                     </CardContent>
                   </Card>
                 </TabsContent>
