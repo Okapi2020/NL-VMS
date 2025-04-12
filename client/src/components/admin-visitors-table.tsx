@@ -92,7 +92,11 @@ const editVisitorSchema = z.object({
   yearOfBirth: z.number().min(1900).max(new Date().getFullYear()),
   sex: z.string().min(1, { message: "Sex is required" }),
   municipality: z.string().nullable(),
-  email: z.string().email().nullable().optional(),
+  email: z.union([
+    z.string().email("Invalid email format"),
+    z.string().length(0),
+    z.null()
+  ]).optional().nullable(),
   phoneNumber: z.string().min(10, { message: "Valid phone number is required" }),
 });
 
@@ -1084,7 +1088,8 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                         placeholder="john@example.com" 
                         type="email" 
                         {...field} 
-                        value={field.value || ""} 
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(e.target.value || null)}
                       />
                     </FormControl>
                     <FormMessage />
