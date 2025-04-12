@@ -649,13 +649,14 @@ function AllVisitors({ isLoading = false }: AllVisitorsProps) {
             
             <div>
               <Label className="text-sm font-medium block">{t("dateRange", { defaultValue: "Date Range" })}</Label>
-              <DateRangePicker 
-                date={dateRange} 
-                onSelect={setDateRange} 
-                className="mt-1" 
-                align="start"
-                calendarLabel={t("selectDateRange", { defaultValue: "Select date range" })}
-              />
+              <div onClick={(e) => e.stopPropagation()}>
+                <DateRangePicker 
+                  value={dateRange} 
+                  onChange={setDateRange} 
+                  className="mt-1" 
+                  calendarLabel={t("selectDateRange", { defaultValue: "Select date range" })}
+                />
+              </div>
             </div>
           </div>
           

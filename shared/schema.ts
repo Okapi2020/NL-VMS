@@ -26,6 +26,7 @@ export const visitors = pgTable("visitors", {
   email: varchar("email", { length: 255 }),
   phoneNumber: varchar("phone_number", { length: 50 }).notNull(),
   municipality: varchar("municipality", { length: 100 }),
+  company: varchar("company", { length: 255 }),
   verified: boolean("verified").default(false).notNull(),
   deleted: boolean("deleted").default(false).notNull(),
   visitCount: integer("visit_count").default(0).notNull(),
@@ -43,6 +44,7 @@ export const insertVisitorSchema = createInsertSchema(visitors).pick({
   email: true,
   phoneNumber: true,
   municipality: true,
+  company: true,
 });
 
 // Visits schema
@@ -240,6 +242,7 @@ export const updateVisitorSchema = z.object({
         message: "Phone number must be exactly 10 digits"
       }
     ),
+  company: z.string().optional().nullable(),
 });
 
 export type UpdateVisitor = z.infer<typeof updateVisitorSchema>;

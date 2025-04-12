@@ -56,9 +56,19 @@ export default function EditVisitorForm({
     },
   });
 
+  // Handle form submission with success callback
+  const handleSubmit = async (data: EditVisitorFormValues) => {
+    if (onSubmit) {
+      await onSubmit(data);
+    }
+    if (onSuccess) {
+      onSuccess();
+    }
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <FormField
           control={form.control}
           name="fullName"
@@ -129,15 +139,20 @@ export default function EditVisitorForm({
           )}
         />
 
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          {onCancel && (
+            <Button type="button" variant="outline" onClick={onCancel}>
+              {t("cancel", { defaultValue: "Cancel" })}
+            </Button>
+          )}
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {t("saving")}
+                {t("saving", { defaultValue: "Saving..." })}
               </>
             ) : (
-              t("saveChanges")
+              t("saveChanges", { defaultValue: "Save Changes" })
             )}
           </Button>
         </div>
