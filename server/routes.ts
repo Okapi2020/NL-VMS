@@ -654,8 +654,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Visitor not found" });
       }
       
+      // Extract visitor ID and create update data object
+      const { id, ...updateData } = visitorData;
+      
+      // Clean up email field (convert empty strings to null)
+      if (updateData.email === "") {
+        updateData.email = null;
+      }
+      
       // Update visitor
-      const updatedVisitor = await storage.updateVisitor(visitorData);
+      const updatedVisitor = await storage.updateVisitor(id, updateData);
       
       if (!updatedVisitor) {
         return res.status(500).json({ message: "Failed to update visitor" });
