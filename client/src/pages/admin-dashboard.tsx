@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminVisitorsTable } from "@/components/admin-visitors-table";
 import { AdminVisitHistory } from "@/components/admin-visit-history-redesigned";
+import AllVisitors from "@/components/admin-all-visitors";
 import { AdminSettings } from "@/components/admin-settings";
 import { AdminSystemLogs } from "@/components/admin-system-logs";
 import { AdminVisitorReports } from "@/components/admin-visitor-reports";
@@ -735,6 +736,7 @@ export default function AdminDashboard() {
                 <TabsList className="mb-4">
                   <TabsTrigger value="current">{t("currentVisitors")}</TabsTrigger>
                   <TabsTrigger value="history">{t("visitHistory")}</TabsTrigger>
+                  <TabsTrigger value="all">{t("allVisitors", { defaultValue: "All Visitors" })}</TabsTrigger>
                 </TabsList>
                 <TabsContent value="current">
                   <Card>

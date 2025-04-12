@@ -313,8 +313,8 @@ function AllVisitors({ isLoading = false }: AllVisitorsProps) {
       const munB = b.visitor.municipality || "";
       comparison = munA.localeCompare(munB);
     } else if (sortField === "badge") {
-      const badgeA = a.visitor.badgeId || 0;
-      const badgeB = b.visitor.badgeId || 0;
+      const badgeA = a.visitor.id;
+      const badgeB = b.visitor.id;
       comparison = badgeA - badgeB;
     } else if (sortField === "visitCount") {
       comparison = a.visitCount - b.visitCount;
@@ -715,7 +715,7 @@ function AllVisitors({ isLoading = false }: AllVisitorsProps) {
                       />
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="font-medium">{visitor.name}</div>
+                      <div className="font-medium">{visitor.fullName}</div>
                       {visitor.yearOfBirth && (
                         <div className="text-xs text-gray-500">
                           {formatYearWithAge(visitor.yearOfBirth)}
@@ -735,7 +735,7 @@ function AllVisitors({ isLoading = false }: AllVisitorsProps) {
                       </div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <Badge variant="outline">{formatBadgeId(visitor.badgeId)}</Badge>
+                      <Badge variant="outline">{formatBadgeId(visitor.id)}</Badge>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       {visitor.municipality || <span className="text-gray-400">{t("valueNotSpecified", { defaultValue: "Not specified" })}</span>}
@@ -899,8 +899,8 @@ function AllVisitors({ isLoading = false }: AllVisitorsProps) {
             <AlertDialogTitle>{t("deleteVisitor", { defaultValue: "Delete Visitor" })}</AlertDialogTitle>
             <AlertDialogDescription>
               {visitorToDelete && t("confirmDeleteVisitorDialog", { 
-                name: visitorToDelete.name,
-                defaultValue: `Are you sure you want to delete ${visitorToDelete.name}?` 
+                name: visitorToDelete.fullName,
+                defaultValue: `Are you sure you want to delete ${visitorToDelete.fullName}?` 
               })}
             </AlertDialogDescription>
           </AlertDialogHeader>
