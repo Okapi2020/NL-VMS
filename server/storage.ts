@@ -41,7 +41,7 @@ export interface IStorage {
   getAllVisitors(): Promise<Visitor[]>;
   getDeletedVisitors(): Promise<Visitor[]>;
   updateVisitorVerification(update: UpdateVisitorVerification): Promise<Visitor | undefined>;
-  updateVisitor(visitor: UpdateVisitor): Promise<Visitor | undefined>;
+  updateVisitor(id: number, updateData: Partial<Omit<Visitor, 'id'>>): Promise<Visitor | undefined>;
   deleteVisitor(id: number): Promise<boolean>;
   restoreVisitor(id: number): Promise<Visitor | undefined>;
   permanentlyDeleteVisitor(id: number): Promise<boolean>;
@@ -252,17 +252,11 @@ export class DatabaseStorage implements IStorage {
     return updatedVisitor;
   }
   
-  async updateVisitor(visitor: UpdateVisitor): Promise<Visitor | undefined> {
+  async updateVisitor(id: number, updateData: Partial<Omit<Visitor, 'id'>>): Promise<Visitor | undefined> {
     const [updatedVisitor] = await db
       .update(visitors)
-      .set({
-        fullName: visitor.fullName,
-        yearOfBirth: visitor.yearOfBirth,
-        email: visitor.email,
-        phoneNumber: visitor.phoneNumber,
-        municipality: visitor.municipality // Add municipality to be updated
-      })
-      .where(eq(visitors.id, visitor.id))
+      .set(updateData)
+      .where(eq(visitors.id, id))
       .returning();
     return updatedVisitor;
   }

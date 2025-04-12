@@ -919,8 +919,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid visitor ID" });
       }
       
-      // Use the existing updateVisitorSchema for validation
+      // Validate update data
       const updateData = req.body;
+      
+      // Clean up email field (convert empty strings to null)
+      if (updateData.email === "") {
+        updateData.email = null;
+      }
       
       // Get the visitor and update
       const updatedVisitor = await storage.updateVisitor(visitorId, updateData);
