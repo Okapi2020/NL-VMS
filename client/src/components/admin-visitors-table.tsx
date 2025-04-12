@@ -809,9 +809,9 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                             <span className="inline-block h-5 w-5 mr-1.5">
                               <User size={18} className="text-blue-600" />
                             </span>
-                            <span className="text-sm font-medium" title={paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || ''}>
-                              {paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || 
-                                formatBadgeId(paginatedVisits.find(item => item.visit.id === visit.partnerId)?.visitor.id || 0)}
+                            <span className="text-sm font-medium" title={visits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || ''}>
+                              {visits.find(item => item.visit.id === visit.partnerId)?.visitor.fullName || 
+                                formatBadgeId(visits.find(item => item.visit.id === visit.partnerId)?.visitor.id || 0)}
                             </span>
                           </div>
                         ) : (
