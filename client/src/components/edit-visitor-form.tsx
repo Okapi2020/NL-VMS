@@ -29,11 +29,19 @@ export type EditVisitorFormValues = z.infer<typeof editVisitorSchema>;
 
 interface EditVisitorFormProps {
   visitor: Visitor;
-  onSubmit: (data: EditVisitorFormValues) => void;
+  onSubmit?: (data: EditVisitorFormValues) => void;
   isSubmitting?: boolean;
+  onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
-export default function EditVisitorForm({ visitor, onSubmit, isSubmitting = false }: EditVisitorFormProps) {
+export default function EditVisitorForm({ 
+  visitor, 
+  onSubmit, 
+  isSubmitting = false,
+  onSuccess,
+  onCancel
+}: EditVisitorFormProps) {
   const { t } = useLanguage();
   
   // Initialize form with visitor data

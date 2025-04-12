@@ -6,6 +6,7 @@ import { useLanguage } from "@/hooks/use-language";
 import { useToast } from "@/hooks/use-toast";
 import { DateRange } from "react-day-picker";
 import { DateRangePicker } from "@/components/date-range-picker";
+import { PhoneNumberLink } from "@/components/phone-number-link";
 import { 
   Search, 
   Filter, 
@@ -22,7 +23,8 @@ import {
   User,
   Tag,
   Database,
-  UserPlus
+  UserPlus,
+  Loader2
 } from "lucide-react";
 import {
   Dialog,
@@ -101,8 +103,52 @@ interface VisitorDetailsDialogProps {
 
 function VisitorDetailsDialog({ visitor, visitCount, lastVisit, isOpen, onClose }: VisitorDetailsDialogProps) {
   const { t, language } = useLanguage();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   if (!visitor) return null;
+  
+  // Delete visitor mutation
+  const deleteVisitorMutation = useMutation({
+    mutationFn: async (visitorId: number) => {
+      const res = await apiRequest("DELETE", `/api/admin/delete-visitor/${visitorId}`);
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: t("success", { defaultValue: "Success" }),
+        description: data.message || t("visitorDeleted", { defaultValue: "Visitor deleted successfully" }),
+      });
+      
+      // Refresh necessary data
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/all-visitors"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
+      
+      // Close dialog
+      onClose();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: t("error", { defaultValue: "Error" }),
+        description: t("failedToDeleteVisitor", { defaultValue: "Failed to delete visitor" }) + ": " + error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Get settings to retrieve the country code
+  const { data: settings = {} } = useQuery<{ countryCode?: string }>({
+    queryKey: ["/api/settings"],
+  });
+  
+  const countryCode = settings?.countryCode || "243";
+  
+  const handleDelete = () => {
+    if (window.confirm(t("confirmDeleteVisitor", { defaultValue: "Are you sure you want to delete this visitor? This action cannot be undone." }))) {
+      deleteVisitorMutation.mutate(visitor.id);
+    }
+  };
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -121,7 +167,7 @@ function VisitorDetailsDialog({ visitor, visitCount, lastVisit, isOpen, onClose 
                 {getInitials(visitor.fullName)}
               </div>
               <div>
-                <h3 className="text-xl font-bold">{visitor.fullName}</h3>
+                <h3 className="text-xl font-bold text-purple-700">{visitor.fullName}</h3>
                 <p className="text-sm text-gray-500">
                   {visitor.yearOfBirth ? formatYearWithAge(visitor.yearOfBirth) : t("ageNotProvided", { defaultValue: "Age not provided" })}
                 </p>
@@ -137,7 +183,11 @@ function VisitorDetailsDialog({ visitor, visitCount, lastVisit, isOpen, onClose 
               </div>
               <div className="grid grid-cols-[24px_1fr] gap-2 items-center">
                 <User className="h-4 w-4 text-gray-500" />
-                <p className="text-sm">{visitor.phoneNumber || t("noPhone", { defaultValue: "No phone provided" })}</p>
+                {visitor.phoneNumber ? (
+                  <PhoneNumberLink phoneNumber={visitor.phoneNumber} />
+                ) : (
+                  <p className="text-sm">{t("noPhone", { defaultValue: "No phone provided" })}</p>
+                )}
               </div>
               <div className="grid grid-cols-[24px_1fr] gap-2 items-center">
                 <Users className="h-4 w-4 text-gray-500" />
@@ -192,6 +242,36 @@ function VisitorDetailsDialog({ visitor, visitCount, lastVisit, isOpen, onClose 
             )}
           </div>
         </div>
+        
+        <DialogFooter className="flex justify-between sm:justify-between mt-6 gap-2">
+          <div>
+            <Button 
+              variant="destructive" 
+              onClick={handleDelete}
+              disabled={deleteVisitorMutation.isPending}
+            >
+              {deleteVisitorMutation.isPending ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {t("deleting", { defaultValue: "Deleting..." })}
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  {t("deleteVisitor", { defaultValue: "Delete Visitor" })}
+                </>
+              )}
+            </Button>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onClose}>
+              {t("close", { defaultValue: "Close" })}
+            </Button>
+          </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -372,9 +452,9 @@ function AllVisitors({ isLoading = false }: AllVisitorsProps) {
     setDateRange(undefined);
   };
   
-  const uniqueMunicipalities = [
-    ...new Set(allVisitorsData.map(({ visitor }) => visitor.municipality).filter(Boolean))
-  ].sort();
+  const uniqueMunicipalities = Array.from(
+    new Set(allVisitorsData.map(({ visitor }) => visitor.municipality).filter(Boolean) as string[])
+  ).sort();
   
   // Function to view visitor details
   const viewVisitorDetails = (visitorData: VisitorWithDetails) => {
@@ -729,7 +809,9 @@ function AllVisitors({ isLoading = false }: AllVisitorsProps) {
                         )}
                       </div>
                       <div className="text-sm">
-                        {visitor.phoneNumber || (
+                        {visitor.phoneNumber ? (
+                          <PhoneNumberLink phoneNumber={visitor.phoneNumber} />
+                        ) : (
                           <span className="text-gray-400">{t("noPhone", { defaultValue: "No phone" })}</span>
                         )}
                       </div>
@@ -767,14 +849,6 @@ function AllVisitors({ isLoading = false }: AllVisitorsProps) {
                           title={t("editVisitorButton", { defaultValue: "Edit visitor" })}
                         >
                           <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => confirmDeleteVisitor(visitor)}
-                          title={t("deleteVisitor", { defaultValue: "Delete visitor" })}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
                       </div>
                     </td>
