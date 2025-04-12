@@ -19,10 +19,14 @@ import { Loader2 } from "lucide-react";
 // Define the form schema
 export const editVisitorSchema = z.object({
   fullName: z.string().min(1, "Full name is required"),
-  email: z.string().email().optional().or(z.literal("")),
+  email: z.string().email("Invalid email format").optional().nullable()
+    .or(z.literal(""))
+    .transform(val => val === "" ? null : val),
   phoneNumber: z.string().min(1, "Phone number is required"),
   yearOfBirth: z.coerce.number().min(1900).max(new Date().getFullYear()),
-  company: z.string().optional().or(z.literal("")),
+  company: z.string().optional().nullable()
+    .or(z.literal(""))
+    .transform(val => val === "" ? null : val),
 });
 
 export type EditVisitorFormValues = z.infer<typeof editVisitorSchema>;
