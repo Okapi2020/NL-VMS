@@ -109,8 +109,13 @@ export function formatPhoneWithCountryCode(phoneNumber: string, countryCode: str
   // Remove any non-digit characters
   let digitsOnly = phoneNumber.replace(/\D/g, '');
   
+  // Check if the phone number already starts with the country code
+  if (digitsOnly.startsWith(countryCode)) {
+    // If it does, remove the country code to avoid duplication
+    digitsOnly = digitsOnly.substring(countryCode.length);
+  }
+  
   // Remove leading zero if present when using with country code
-  // but only for international format
   const formattedNumber = digitsOnly.startsWith('0') ? digitsOnly.substring(1) : digitsOnly;
   
   // Return formatted number with country code
@@ -140,6 +145,12 @@ export function getWhatsAppUrl(phoneNumber: string, countryCode: string): string
   // For WhatsApp, we need to strip all non-digit characters
   // Remove any non-digit characters
   let digitsOnly = phoneNumber.replace(/\D/g, '');
+  
+  // Check if the phone number already starts with the country code
+  if (digitsOnly.startsWith(countryCode)) {
+    // If it does, remove the country code to avoid duplication
+    digitsOnly = digitsOnly.substring(countryCode.length);
+  }
   
   // Remove leading zero if present
   if (digitsOnly.startsWith('0')) {
