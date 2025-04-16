@@ -1009,6 +1009,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Partner Tracking Feature - Set/update visit partner
   app.post("/api/admin/visits/partner", ensureAuthenticated, async (req, res) => {
     try {
+
+
+// Export full database
+app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
+  try {
+    // Get all data
+    const visitorData = await storage.getAllVisitors();
+    const visitHistory = await storage.getVisitHistory(5000);
+    const activeVisits = await storage.getActiveVisits();
+    const systemLogs = await storage.getSystemLogs(5000);
+    const settings = await storage.getSettings();
+    
+    // Compile full database export
+    const databaseExport = {
+      visitors: visitorData,
+      visits: [...visitHistory, ...activeVisits],
+      systemLogs: systemLogs,
+      settings: settings,
+      exportDate: new Date().toISOString(),
+      version: "1.0"
+    };
+
+    // Set headers for file download
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename=database-export-${new Date().toISOString().split('T')[0]}.json`);
+    
+    res.status(200).json(databaseExport);
+  } catch (error) {
+    console.error("Database export error:", error);
+    res.status(500).json({ message: "Failed to export database" });
+  }
+});
+
       const partnerData = updateVisitPartnerSchema.parse(req.body);
       
       // Check if the visit exists

@@ -52,7 +52,7 @@ export function AdminSettings() {
   const queryClient = useQueryClient();
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  
+
   // Query for fetching settings
   const { 
     data: settings, 
@@ -65,7 +65,7 @@ export function AdminSettings() {
       return res.json();
     },
   });
-  
+
   // Mutation for updating settings
   const updateSettingsMutation = useMutation({
     mutationFn: async (data: SettingsFormValues) => {
@@ -87,7 +87,7 @@ export function AdminSettings() {
       });
     },
   });
-  
+
   // Setup form with react-hook-form
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
@@ -103,7 +103,7 @@ export function AdminSettings() {
       theme: "light" as const,
     },
   });
-  
+
   // Update form when settings are loaded
   useEffect(() => {
     if (settings) {
@@ -121,12 +121,12 @@ export function AdminSettings() {
       });
     }
   }, [settings, form]);
-  
+
   // Handle logo file upload
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    
+
     // Only accept image files
     if (!file.type.startsWith("image/")) {
       toast({
@@ -136,7 +136,7 @@ export function AdminSettings() {
       });
       return;
     }
-    
+
     // Check file size (limit to 2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast({
@@ -146,13 +146,13 @@ export function AdminSettings() {
       });
       return;
     }
-    
+
     setUploading(true);
-    
+
     try {
       // Convert to base64 and store directly
       const reader = new FileReader();
-      
+
       reader.onloadend = () => {
         try {
           const base64 = reader.result as string;
@@ -174,7 +174,7 @@ export function AdminSettings() {
           setUploading(false);
         }
       };
-      
+
       reader.onerror = () => {
         toast({
           title: "Upload failed",
@@ -183,7 +183,7 @@ export function AdminSettings() {
         });
         setUploading(false);
       };
-      
+
       reader.readAsDataURL(file);
     } catch (error) {
       console.error("Error uploading logo:", error);
@@ -195,14 +195,14 @@ export function AdminSettings() {
       setUploading(false);
     }
   };
-  
+
   const onSubmit = (data: SettingsFormValues) => {
     // Ensure the legacy theme field is synchronized with adminTheme
     const submissionData = {
       ...data,
       theme: data.adminTheme // Keep theme field updated for backward compatibility
     };
-    
+
     // Save the settings first
     updateSettingsMutation.mutate(submissionData, {
       onSuccess: () => {
@@ -210,7 +210,7 @@ export function AdminSettings() {
         try {
           // We're in the admin interface, so use adminTheme
           setTheme(data.adminTheme);
-          
+
           // Also update the localStorage for the theme
           localStorage.setItem("theme", data.adminTheme);
         } catch (e) {
@@ -219,7 +219,7 @@ export function AdminSettings() {
       }
     });
   };
-  
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center w-full h-64">
@@ -227,7 +227,7 @@ export function AdminSettings() {
       </div>
     );
   }
-  
+
   return (
     <Card>
       <CardHeader>
@@ -241,7 +241,7 @@ export function AdminSettings() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="border rounded-lg p-4 bg-card shadow-sm mb-6">
               <h3 className="text-lg font-medium mb-2">Application Name Settings</h3>
-              
+
               <div className="space-y-4">
                 <FormField
                   control={form.control}
@@ -259,7 +259,7 @@ export function AdminSettings() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="headerAppName"
@@ -280,7 +280,7 @@ export function AdminSettings() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="footerAppName"
@@ -303,7 +303,7 @@ export function AdminSettings() {
                 />
               </div>
             </div>
-            
+
             <FormField
               control={form.control}
               name="countryCode"
@@ -327,7 +327,7 @@ export function AdminSettings() {
 
             <div className="space-y-4">
               <FormLabel>Application Logo</FormLabel>
-              
+
               {(logoPreview || settings?.logoUrl) && (
                 <div className="mb-4">
                   <div className="p-2 border rounded-md w-fit">
@@ -339,7 +339,7 @@ export function AdminSettings() {
                   </div>
                 </div>
               )}
-              
+
               <div className="flex items-center space-x-4">
                 <Button
                   type="button"
@@ -359,7 +359,7 @@ export function AdminSettings() {
                     </>
                   )}
                 </Button>
-                
+
                 {(logoPreview || settings?.logoUrl) && (
                   <Button
                     type="button"
@@ -372,7 +372,7 @@ export function AdminSettings() {
                     Remove
                   </Button>
                 )}
-                
+
                 <input
                   id="logo-upload"
                   type="file"
@@ -381,7 +381,7 @@ export function AdminSettings() {
                   className="hidden"
                 />
               </div>
-              
+
               <FormDescription>
                 Upload a logo to display on the welcome page. Recommended size is 200×200 pixels.
               </FormDescription>
@@ -393,7 +393,7 @@ export function AdminSettings() {
                 Configure separate theme defaults for the admin dashboard and visitor portal. 
                 Users can still override these using the theme toggle in the header.
               </p>
-              
+
               {/* Admin Theme Selection */}
               <div className="mb-6">
                 <h4 className="text-md font-medium mb-2 text-primary">Admin Dashboard Theme</h4>
@@ -470,7 +470,7 @@ export function AdminSettings() {
                   )}
                 />
               </div>
-              
+
               {/* Visitor Theme Selection */}
               <div className="mt-6 pt-4 border-t">
                 <h4 className="text-md font-medium mb-2 text-primary">Visitor Portal Theme</h4>
@@ -548,7 +548,7 @@ export function AdminSettings() {
                   )}
                 />
               </div>
-              
+
               {/* Hidden legacy theme field that gets automatically updated */}
               <FormField
                 control={form.control}
@@ -562,14 +562,14 @@ export function AdminSettings() {
                 )}
               />
             </div>
-            
+
             {/* Language Settings Section */}
             <div className="border rounded-lg p-4 bg-card shadow-sm mt-6 mb-6">
               <h3 className="text-lg font-medium mb-2">Language Settings</h3>
               <p className="text-muted-foreground mb-4">
                 Configure the default language for visitor-facing pages. Admin users can set their individual preferences.
               </p>
-              
+
               <FormField
                 control={form.control}
                 name="defaultLanguage"
@@ -609,11 +609,11 @@ export function AdminSettings() {
                 )}
               />
             </div>
-            
+
             {/* Account Settings Section */}
             <div className="border rounded-lg p-4 bg-card shadow-sm mt-6 mb-6">
               <h3 className="text-lg font-medium mb-2">Account Settings</h3>
-              
+
               <div className="space-y-4">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   <div>
@@ -635,7 +635,7 @@ export function AdminSettings() {
                       Change Password
                     </Button>
                   </div>
-                  
+
                   <div>
                     <h4 className="text-sm font-medium mb-1">Create Admin Account</h4>
                     <p className="text-muted-foreground text-sm mb-2">
@@ -658,20 +658,28 @@ export function AdminSettings() {
                 </div>
               </div>
             </div>
-            
-            <Button
-              type="submit"
-              disabled={updateSettingsMutation.isPending || uploading}
-            >
-              {updateSettingsMutation.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                "Save Settings"
-              )}
-            </Button>
+
+            <div className="flex justify-end"> {/* Added div for better button alignment */}
+              <Button
+                type="submit"
+                disabled={updateSettingsMutation.isPending || uploading}
+              >
+                {updateSettingsMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Settings"
+                )}
+              </Button>
+              <Button 
+                onClick={() => window.location.href = '/api/admin/export-database'}
+                className="ml-4"
+              >
+                Export Database
+              </Button>
+            </div> {/* Closing div */}
           </form>
         </Form>
       </CardContent>
