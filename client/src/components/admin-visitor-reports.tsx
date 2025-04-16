@@ -209,6 +209,13 @@ export function AdminVisitorReports() {
     refetch: refetchReports
   } = useQuery<VisitorReport[]>({
     queryKey: ["/api/admin/visitor-reports"],
+    queryFn: async () => {
+      const response = await fetch("/api/admin/visitor-reports");
+      if (!response.ok) {
+        throw new Error("Failed to fetch reports");
+      }
+      return response.json();
+    },
     retry: 3,
     onError: (error) => {
       console.error("Error fetching visitor reports:", error);
