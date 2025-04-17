@@ -855,8 +855,24 @@ function AllVisitors({ isLoading = false }: AllVisitorsProps) {
                 ))
               ) : currentItems.length > 0 ? (
                 currentItems.map(({ visitor, visitCount, lastVisit }) => (
-                  <tr key={visitor.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="px-4 py-4 whitespace-nowrap">
+                  <tr 
+                    key={visitor.id} 
+                    className="hover:bg-muted/30 transition-colors cursor-pointer"
+                    onClick={(e) => {
+                      // Don't open the modal if they clicked on a checkbox or button
+                      if (
+                        e.target instanceof HTMLElement && 
+                        (e.target.closest('button') || 
+                         e.target.closest('input[type="checkbox"]') ||
+                         e.target.tagName === 'INPUT' ||
+                         e.target.tagName === 'BUTTON')
+                      ) {
+                        return;
+                      }
+                      viewVisitorDetails({ visitor, visitCount, lastVisit });
+                    }}
+                  >
+                    <td className="px-4 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                       <Checkbox 
                         checked={selectedVisitors.includes(visitor.id)}
                         onCheckedChange={(checked) => handleSelectVisitor(visitor.id, !!checked)}
@@ -907,7 +923,7 @@ function AllVisitors({ isLoading = false }: AllVisitorsProps) {
                         {formatDate(visitor.createdAt, language)}
                       </div>
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center space-x-2">
                         <Button
                           variant="ghost"
