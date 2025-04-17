@@ -45,6 +45,7 @@ import {
   Users,
   Clock,
   Settings,
+  ShieldCheck, // Added import for ShieldCheck icon
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/use-language";
@@ -106,7 +107,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
   const { toast } = useToast();
   const { t, language } = useLanguage();
   const queryClient = useQueryClient();
-  
+
   // State for table functionality
   const [selectedVisitors, setSelectedVisitors] = useState<number[]>([]);
   const [processingIds, setProcessingIds] = useState<Set<number>>(new Set());
@@ -126,7 +127,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
   const [selectedVisitDetails, setSelectedVisitDetails] = useState<{ visitor: Visitor, visit: Visit } | null>(null);
   const [selectedVisitForPartner, setSelectedVisitForPartner] = useState<{ visitor: Visitor, visit: Visit } | null>(null);
   const [partnerSearchTerm, setPartnerSearchTerm] = useState("");
-  
+
   // Form for editing visitors
   const form = useForm<EditVisitorFormValues>({
     resolver: zodResolver(editVisitorSchema),
@@ -139,20 +140,20 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
       phoneNumber: "",
     },
   });
-  
+
   // Calculate pagination
   const totalPages = Math.ceil(filteredVisits.length / itemsPerPage);
   const paginatedVisits = filteredVisits.slice((page - 1) * itemsPerPage, page * itemsPerPage);
-  
+
   // Check if all visitors on the current page are selected
   const headerChecked = paginatedVisits.length > 0 && 
     paginatedVisits.every(item => selectedVisitors.includes(item.visitor.id));
-  
+
   // Update filtered visits when visits change
   useEffect(() => {
     applyFiltersAndSort();
   }, [visits, searchQuery, sortField, sortDirection]);
-  
+
   // Helper functions
   const getInitials = (name: string) => {
     if (!name) return "";
@@ -163,21 +164,21 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
       .toUpperCase()
       .substring(0, 2);
   };
-  
+
   const formatBadgeId = (id: number) => {
     return `VIS-${id.toString().padStart(4, "0")}`;
   };
-  
+
   const calculateAge = (yearOfBirth: number) => {
     return new Date().getFullYear() - yearOfBirth;
   };
-  
+
   const calculateDuration = (checkInTime: Date) => {
     const checkIn = new Date(checkInTime);
     const now = new Date();
     const diffMs = now.getTime() - checkIn.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));
-    
+
     if (diffMins < 60) {
       return `${diffMins}min`;
     } else {
@@ -186,10 +187,10 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
       return `${hours}h${mins > 0 ? ` ${mins}min` : ""}`;
     }
   };
-  
+
   const applyFiltersAndSort = () => {
     let result = [...visits];
-    
+
     // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -203,7 +204,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
         );
       });
     }
-    
+
     // Apply sorting
     result = result.sort((a, b) => {
       if (sortField === "name") {
@@ -231,10 +232,10 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
       }
       return 0;
     });
-    
+
     setFilteredVisits(result);
   };
-  
+
   const handleSortChange = (field: string) => {
     if (sortField === field) {
       // Toggle direction if same field
@@ -245,23 +246,23 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
       setSortDirection("desc");
     }
   };
-  
+
   const handleCheckOut = async (visitId: number) => {
     if (processingIds.has(visitId)) return;
-    
+
     try {
       // Add to processing set
       setProcessingIds(new Set(processingIds.add(visitId)));
-      
+
       // Check if this visit has a partner
       const visit = visits.find(item => item.visit.id === visitId)?.visit;
       const checkOutVisitIds = [visitId];
-      
+
       if (visit?.partnerId) {
         // If partner exists, add to the checkOutVisitIds
         checkOutVisitIds.push(visit.partnerId);
       }
-      
+
       // Check out all visits
       await Promise.all(
         checkOutVisitIds.map(id => 
@@ -269,7 +270,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
             .then(res => res.json())
         )
       );
-      
+
       // Show success message
       toast({
         title: t("success"),
@@ -277,7 +278,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
           ? t("partnersCheckedOut", { defaultValue: "Visitor and partner checked out successfully" })
           : t("visitorCheckedOut", { defaultValue: "Visitor checked out successfully" }),
       });
-      
+
       // Refresh data
       queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
@@ -302,26 +303,26 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
       setSelectedVisitors([]);
     }
   };
-  
+
   const handlePartnerDialog = (visitor: Visitor, visit: Visit) => {
     setSelectedVisitForPartner({ visitor, visit });
     setIsPartnerDialogOpen(true);
   };
-  
+
   const handleOpenDetailModal = (visitor: Visitor, visit: Visit) => {
     setSelectedVisitDetails({ visitor, visit });
     setIsDetailDialogOpen(true);
   };
-  
+
   const handleEditVisitor = (visitor: Visitor) => {
     setSelectedVisitor(visitor);
-    
+
     // Format phone number with leading zero for local format display
     let formattedPhoneNumber = visitor.phoneNumber || '';
-    
+
     // Clean up the phone number from any formatting
     const digitsOnly = formattedPhoneNumber.replace(/\D/g, '');
-    
+
     // Apply local format with leading zero if not already present
     // and if not starting with country code
     if (digitsOnly && 
@@ -339,7 +340,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
       // Keep original digits
       formattedPhoneNumber = digitsOnly;
     }
-    
+
     form.reset({
       fullName: visitor.fullName,
       yearOfBirth: visitor.yearOfBirth,
@@ -350,17 +351,17 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
     });
     setIsEditDialogOpen(true);
   };
-  
+
   const onSubmit = (data: EditVisitorFormValues) => {
     if (!selectedVisitor) return;
-    
+
     // Clone the data object to avoid modifying the original form data
     const formattedData = { ...data };
-    
+
     // Clean and format phone number for international storage
     let phoneNumber = formattedData.phoneNumber || '';
     phoneNumber = phoneNumber.replace(/\D/g, ''); // Remove non-digit characters
-    
+
     // Format for storage: if starts with 0, replace with country code
     if (phoneNumber.startsWith('0')) {
       phoneNumber = '243' + phoneNumber.substring(1);
@@ -368,10 +369,10 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
       // If no prefix, add country code
       phoneNumber = '243' + phoneNumber;
     }
-    
+
     // Update the data with the formatted phone number
     formattedData.phoneNumber = phoneNumber;
-    
+
     apiRequest("PATCH", `/api/admin/visitors/${selectedVisitor.id}`, formattedData)
       .then(res => {
         if (!res.ok) throw new Error("Failed to update visitor");
@@ -394,12 +395,12 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
         });
       });
   };
-  
+
   const handleAssignPartner = (partnerId: number | null) => {
     if (!selectedVisitForPartner) return;
-    
+
     const visitId = selectedVisitForPartner.visit.id;
-    
+
     apiRequest("POST", "/api/admin/set-visit-partner", { visitId, partnerId })
       .then(res => {
         if (!res.ok) {
@@ -434,7 +435,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
         });
       });
   };
-  
+
   return (
     <div className="space-y-4">
       {/* Header with search and filters */}
@@ -449,7 +450,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
             className="pl-9 h-10"
           />
         </div>
-        
+
         <Button 
           variant="outline" 
           size="sm" 
@@ -461,7 +462,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
           <ChevronDown className={`h-3 w-3 opacity-50 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} />
         </Button>
       </div>
-      
+
       {/* Filters panel */}
       {isFilterOpen && (
         <div className="border rounded-md mx-4 mt-2 p-4 bg-gray-50 space-y-4">
@@ -494,7 +495,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 </SelectContent>
               </Select>
             </div>
-            
+
             {/* Duration Filter */}
             <div className="space-y-2">
               <label className="text-sm font-medium">{t("duration", { defaultValue: "Duration" })}</label>
@@ -503,7 +504,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   // Apply duration filter
                   let result = [...visits];
                   const now = new Date();
-                  
+
                   if (value === "lessThan30min") {
                     result = result.filter(({visit}) => {
                       const diffMs = now.getTime() - new Date(visit.checkInTime).getTime();
@@ -525,7 +526,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                       return diffMs >= 3 * 60 * 60 * 1000;
                     });
                   }
-                  
+
                   setFilteredVisits(result);
                   setPage(1);
                 }}
@@ -543,7 +544,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 </SelectContent>
               </Select>
             </div>
-            
+
             {/* Visit Count Filter */}
             <div className="space-y-2">
               <label className="text-sm font-medium">{t("visitorType", { defaultValue: "Visitor Type" })}</label>
@@ -558,7 +559,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   } else if (value === "frequent") {
                     result = result.filter(({visitor}) => visitor.visitCount >= 10);
                   }
-                  
+
                   setFilteredVisits(result);
                   setPage(1);
                 }}
@@ -576,7 +577,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
               </Select>
             </div>
           </div>
-          
+
           <div className="flex flex-wrap justify-end gap-2">
             <Button 
               variant="outline" 
@@ -590,7 +591,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
             >
               {t("resetFilters", { defaultValue: "Reset Filters" })}
             </Button>
-            
+
             <Button 
               size="sm"
               onClick={() => setIsFilterOpen(false)}
@@ -615,7 +616,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                       aria-label={t("selectAll", { defaultValue: "Select all" })}
                     />
                   </th>
-                  
+
                   {/* Visitor Information */}
                   <th 
                     scope="col" 
@@ -632,7 +633,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                       )}
                     </div>
                   </th>
-                  
+
                   {/* Contact Information */}
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                     <div className="flex items-center">
@@ -640,7 +641,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                       <span>{t("contact", { defaultValue: "Contact" })}</span>
                     </div>
                   </th>
-                  
+
                   {/* Municipality Column */}
                   <th 
                     scope="col" 
@@ -657,7 +658,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                       )}
                     </div>
                   </th>
-                  
+
                   {/* Badge ID Column */}
                   <th 
                     scope="col" 
@@ -674,7 +675,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                       )}
                     </div>
                   </th>
-                  
+
                   {/* Visit Count Column */}
                   <th
                     scope="col"
@@ -691,7 +692,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                       )}
                     </div>
                   </th>
-                  
+
                   {/* Partner Column */}
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <div className="flex items-center">
@@ -699,7 +700,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                       <span>{t("partner", { defaultValue: "Partner" })}</span>
                     </div>
                   </th>
-                  
+
                   {/* Visit Time Information */}
                   <th 
                     scope="col"
@@ -716,7 +717,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                       )}
                     </div>
                   </th>
-                  
+
                   {/* Actions */}
                   <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <div className="flex items-center justify-end">
@@ -742,7 +743,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                           }}
                         />
                       </td>
-                      
+
                       {/* Visitor Information */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
@@ -759,7 +760,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                           </div>
                         </div>
                       </td>
-                      
+
                       {/* Contact Information */}
                       <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">
                         <div className="text-sm text-gray-500">
@@ -780,28 +781,36 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                           )}
                         </div>
                       </td>
-                      
+
                       {/* Municipality */}
                       <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">
                         <div className="text-sm text-gray-500">
                           {visitor.municipality || t("valueNotSpecified", { defaultValue: "Not specified" })}
                         </div>
                       </td>
-                      
+
                       {/* Badge ID */}
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-md bg-blue-100 text-blue-800">
-                          {formatBadgeId(visitor.id)}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-md bg-blue-100 text-blue-800">
+                            {formatBadgeId(visitor.id)}
+                          </span>
+                          {visitor.verified && (
+                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1">
+                              <ShieldCheck className="h-3.5 w-3.5" />
+                              <span className="text-xs{t("verified")}</span>
+                            </Badge>
+                          )}
+                        </div>
                       </td>
-                      
+
                       {/* Visit Count */}
                       <td className="px-6 py-4 whitespace-nowrap hidden sm:table-cell">
                         <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
                           {visitor.visitCount || 1}
                         </span>
                       </td>
-                      
+
                       {/* Partner */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         {visit.partnerId ? (
@@ -818,7 +827,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                           <span className="text-sm text-gray-500">{t("noPartner", { defaultValue: "No partner" })}</span>
                         )}
                       </td>
-                      
+
                       {/* Visit Time */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
@@ -827,7 +836,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                           <div className="text-sm text-gray-500 ml-2">{calculateDuration(visit.checkInTime)}</div>
                         </div>
                       </td>
-                      
+
                       {/* Actions */}
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
                         <div className="flex space-x-2 justify-end">
@@ -838,7 +847,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                           >
                             <Eye size={16} className="text-gray-500" />
                           </button>
-                          
+
                           <button 
                             className="p-1 rounded-md text-green-600 hover:bg-green-100"
                             onClick={() => handleCheckOut(visit.id)}
@@ -851,7 +860,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                               <LogOut size={16} className="text-green-600" />
                             )}
                           </button>
-                          
+
                           <button 
                             className="p-1 rounded-md text-purple-600 hover:bg-purple-100"
                             onClick={() => handlePartnerDialog(visitor, visit)}
@@ -876,13 +885,13 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
             </table>
           </div>
         </div>
-        
+
         {/* Add mobile swipe indicator */}
         <div className="md:hidden text-xs text-center text-gray-500 pb-2 pt-1">
           <span>{t("swipeToSeeMore", { defaultValue: "← Swipe to see more →" })}</span>
         </div>
       </div>
-      
+
       {/* Bulk actions and pagination controls */}
       <div className="flex flex-wrap justify-between items-center gap-2 mt-4 px-4 pb-4">
         <div className="flex flex-wrap gap-2">
@@ -897,7 +906,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   const selectedVisits = visits
                     .filter(({ visitor }) => selectedVisitors.includes(visitor.id))
                     .map(({ visit }) => visit.id);
-                  
+
                   // Check out each visit
                   Promise.all(
                     selectedVisits.map(visitId => 
@@ -951,7 +960,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
               <SelectItem value="100">100 {language === 'en' ? 'items per page' : 'éléments par page'}</SelectItem>
             </SelectContent>
           </Select>
-          
+
           <div className="flex">
             <Button
               variant="outline"
@@ -977,7 +986,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
           </div>
         </div>
       </div>
-      
+
       {/* Edit Visitor Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-md">
@@ -987,7 +996,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
               {t("updateVisitorDetails", { defaultValue: "Update the visitor's personal information and contact details." })}
             </DialogDescription>
           </DialogHeader>
-          
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -1003,7 +1012,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="yearOfBirth"
@@ -1047,7 +1056,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="municipality"
@@ -1076,7 +1085,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="email"
@@ -1096,7 +1105,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="phoneNumber"
@@ -1110,7 +1119,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   </FormItem>
                 )}
               />
-              
+
               <div className="flex justify-end gap-2 mt-6">
                 <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                   {t("cancel", { defaultValue: "Cancel" })}
@@ -1121,7 +1130,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
           </Form>
         </DialogContent>
       </Dialog>
-      
+
       {/* Partner Selection Dialog */}
       <Dialog open={isPartnerDialogOpen} onOpenChange={setIsPartnerDialogOpen}>
         <DialogContent className="sm:max-w-md">
@@ -1149,7 +1158,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
               }
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             {/* Search input for filtering partners */}
             <div className="relative">
@@ -1161,7 +1170,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 onChange={(e) => setPartnerSearchTerm(e.target.value)}
               />
             </div>
-            
+
             {/* Current partner info if any */}
             {selectedVisitForPartner?.visit.partnerId && (
               <div className="flex items-center p-4 bg-blue-50 rounded-md text-blue-700">
@@ -1181,7 +1190,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 </Button>
               </div>
             )}
-            
+
             <div className="space-y-4 max-h-[300px] overflow-y-auto">
               {/* List of potential partners (all other current visitors) */}
               {(() => {
@@ -1189,10 +1198,10 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 const potentialPartners = visits.filter(({ visit, visitor }) => {
                   // Don't show the current visitor
                   if (visit.id === selectedVisitForPartner?.visit.id) return false;
-                  
+
                   // Don't show visitors who are already partnered with another visitor
                   if (visit.partnerId && visit.partnerId !== selectedVisitForPartner?.visit.id) return false;
-                  
+
                   // Apply search filter if any
                   if (partnerSearchTerm) {
                     const badgeId = formatBadgeId(visitor.id).toLowerCase();
@@ -1201,10 +1210,10 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                            badgeId.includes(searchLower) ||
                            String(visitor.id).includes(searchLower);
                   }
-                  
+
                   return true;
                 });
-                
+
                 // Display either the list or "no results" message
                 return potentialPartners.length > 0 ? (
                   // List of available partners
@@ -1238,20 +1247,20 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
               })()}
             </div>
           </div>
-          
+
           <div className="flex justify-end gap-2 mt-4">
             <Button variant="outline" onClick={() => setIsPartnerDialogOpen(false)}>{t("close", { defaultValue: "Close" })}</Button>
           </div>
         </DialogContent>
       </Dialog>
-      
+
       {/* Visitor Details Dialog */}
       <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t("visitorDetails", { defaultValue: "Visitor Details" })}</DialogTitle>
           </DialogHeader>
-          
+
           {selectedVisitDetails && (
             <div className="space-y-4">
               <div className="flex items-center">
@@ -1270,7 +1279,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   {formatBadgeId(selectedVisitDetails.visitor.id)}
                 </Badge>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4 pt-4">
                 <div>
                   <h4 className="text-sm font-medium text-gray-500">{t("contact", { defaultValue: "Contact" })}</h4>
@@ -1288,27 +1297,27 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                     )}
                   </p>
                 </div>
-                
+
                 <div>
                   <h4 className="text-sm font-medium text-gray-500">{t("location", { defaultValue: "Location" })}</h4>
                   <p className="text-sm mt-1">{selectedVisitDetails.visitor.municipality || t("valueNotSpecified", { defaultValue: "Not specified" })}</p>
                 </div>
-                
+
                 <div>
                   <h4 className="text-sm font-medium text-gray-500">{t("checkInTime", { defaultValue: "Check-in Time" })}</h4>
                   <p className="text-sm mt-1">{formatDateTime(selectedVisitDetails.visit.checkInTime, language)}</p>
                 </div>
-                
+
                 <div>
                   <h4 className="text-sm font-medium text-gray-500">{t("visitPurpose", { defaultValue: "Visit Purpose" })}</h4>
                   <p className="text-sm mt-1">{selectedVisitDetails.visit.purpose || t("valueNotSpecified", { defaultValue: "Not specified" })}</p>
                 </div>
-                
+
                 <div>
                   <h4 className="text-sm font-medium text-gray-500">{t("totalVisits", { defaultValue: "Total Visits" })}</h4>
                   <p className="text-sm mt-1">{selectedVisitDetails.visitor.visitCount || 1}</p>
                 </div>
-                
+
                 <div>
                   <h4 className="text-sm font-medium text-gray-500">{t("partner", { defaultValue: "Partner" })}</h4>
                   <p className="text-sm mt-1">
@@ -1318,7 +1327,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   </p>
                 </div>
               </div>
-              
+
               <div className="flex justify-between gap-2 pt-4">
                 <Button
                   variant="outline"
@@ -1331,7 +1340,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 >
                   {t("edit", { defaultValue: "Edit Visitor" })}
                 </Button>
-                
+
                 <Button
                   variant="outline"
                   size="sm"

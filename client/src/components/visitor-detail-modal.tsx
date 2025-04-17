@@ -12,7 +12,9 @@ import { formatDate, formatTimeOnly, formatDateShort, formatDuration, formatBadg
 import { useLanguage } from "@/hooks/use-language";
 import { X, Pencil, Trash2, ShieldCheck, Users, Link2 } from "lucide-react";
 import { PhoneNumberLink } from "@/components/phone-number-link";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/api"; // Assuming this is where your apiRequest function resides.  Adjust if necessary.
+import { queryClient } from "@/lib/query-client"; // Assuming this is where your queryClient is defined
 
 type VisitorDetailModalProps = {
   visitor?: Visitor;
@@ -82,6 +84,20 @@ export function VisitorDetailModal({
     return formatDuration(visit.checkInTime, visit.checkOutTime, language);
   };
 
+  const verifyMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/admin/verify-visitor", {
+        visitorId: visitor?.id, // Added ? to handle potential undefined visitor
+        verified: !visitor?.verified // Added ? to handle potential undefined visitor.verified
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
+    }
+  });
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg">
@@ -96,6 +112,15 @@ export function VisitorDetailModal({
                 </Badge>
               )}
             </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => verifyMutation.mutate()}
+              className={visitor?.verified ? "bg-blue-50 text-blue-700" : ""}
+            >
+              <ShieldCheck className="h-4 w-4 mr-1" />
+              {visitor?.verified ? t("verified") : t("verify")}
+            </Button>
           </div>
         </DialogHeader>
 
