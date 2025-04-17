@@ -142,7 +142,7 @@ export function VisitorDetailModal({
               ) : (
                 <ShieldCheck className="h-4 w-4 mr-1" />
               )}
-              {visitor?.verified ? t("verified") : t("verify")}
+              {visitor?.verified ? t("verified", { defaultValue: "Verified" }) : t("verify", { defaultValue: "Verify" })}
             </Button>
           </div>
         </DialogHeader>
@@ -159,7 +159,7 @@ export function VisitorDetailModal({
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{visitor.fullName}</span>
                     {visitor.verified && (
-                      <span title={t("verifiedVisitor")}>
+                      <span title={t("verifiedVisitor", { defaultValue: "Verified Visitor" })}>
                         <ShieldCheck className="h-4 w-4" style={{ color: '#da32e1' }} />
                       </span>
                     )}

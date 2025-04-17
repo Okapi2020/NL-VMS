@@ -72,6 +72,30 @@ const translations: TranslationConfig = {
   "verify": {
     en: "Verify",
     fr: "Vérifier"
+  },
+  "unverify": {
+    en: "Unverify",
+    fr: "Annuler la vérification"
+  },
+  "visitorVerified": {
+    en: "Visitor verified successfully",
+    fr: "Visiteur vérifié avec succès"
+  },
+  "visitorUnverified": {
+    en: "Visitor unverified successfully",
+    fr: "Vérification du visiteur annulée avec succès"
+  },
+  "verifiedVisitor": {
+    en: "Verified Visitor",
+    fr: "Visiteur vérifié"
+  },
+  "verifiedVisitors": {
+    en: "Verified visitors",
+    fr: "Visiteurs vérifiés"
+  },
+  "verified": {
+    en: "Verified",
+    fr: "Vérifié"
   }
 };
 
