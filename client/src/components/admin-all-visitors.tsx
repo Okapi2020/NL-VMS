@@ -322,9 +322,9 @@ function VisitorDetailsDialog({ visitor, visitCount, lastVisit, isOpen, onClose 
           <div className="flex gap-2">
             <Button
               variant="outline"
-              className={visitor.verified 
-                ? "text-red-600 border-red-200 hover:bg-red-50" 
-                : "text-green-600 border-green-200 hover:bg-green-50"}
+              style={visitor.verified 
+                ? {color: '#e32950', borderColor: '#fad1db', backgroundColor: 'rgba(227, 41, 80, 0.05)'} 
+                : {color: '#da32e1', borderColor: '#f5d0f9', backgroundColor: 'rgba(218, 50, 225, 0.05)'}}
               onClick={() => verifyVisitorMutation.mutate(!visitor.verified)}
               disabled={processingVerification}
             >

@@ -1419,7 +1419,14 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                       </Avatar>
                       
                       <div className="flex-1">
-                        <div className="font-medium">{visitor.fullName}</div>
+                        <div className="font-medium flex items-center">
+                          {visitor.fullName}
+                          {visitor.verified && (
+                            <span title={t("verified", { defaultValue: "Verified Visitor" })} className="ml-1">
+                              <ShieldCheck className="h-4 w-4" style={{ color: '#da32e1' }} />
+                            </span>
+                          )}
+                        </div>
                         <div className="text-sm text-gray-500">
                           {t("badgeColon", { defaultValue: "Badge:" })} {formatBadgeId(visitor.id)} | {t("timeColon", { defaultValue: "Time:" })} {formatTimeOnly(visit.checkInTime, language)}
                         </div>
