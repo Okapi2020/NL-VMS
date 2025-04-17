@@ -798,7 +798,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                           {visitor.verified && (
                             <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1">
                               <ShieldCheck className="h-3.5 w-3.5" />
-                              <span className="text-xs{t("verified")}</span>
+                              <span className="text-xs">{t("verified")}</span>
                             </Badge>
                           )}
                         </div>
