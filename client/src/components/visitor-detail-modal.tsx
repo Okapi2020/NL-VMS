@@ -22,6 +22,7 @@ type VisitorDetailModalProps = {
   onClose: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onVerify?: (verified: boolean) => void; // Add onVerify callback
   showDeleteButton?: boolean;
 };
 
@@ -32,6 +33,7 @@ export function VisitorDetailModal({
   onClose,
   onEdit,
   onDelete,
+  onVerify,
   showDeleteButton = true, // Default to showing the delete button
 }: VisitorDetailModalProps) {
   const { t, language } = useLanguage();
@@ -123,7 +125,15 @@ export function VisitorDetailModal({
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => verifyMutation.mutate()}
+              onClick={() => {
+                if (onVerify) {
+                  // If onVerify is provided, use it
+                  onVerify(!visitor.verified);
+                } else {
+                  // Otherwise use the internal mutation
+                  verifyMutation.mutate();
+                }
+              }}
               style={visitor?.verified ? {backgroundColor: 'rgba(218, 50, 225, 0.1)', color: '#da32e1', borderColor: '#da32e1'} : {}}
               disabled={processingVerification}
             >

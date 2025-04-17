@@ -1359,6 +1359,14 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
             }
           }
         }}
+        onVerify={(verified) => {
+          if (selectedVisitor) {
+            verifyVisitorMutation.mutate({ 
+              visitorId: selectedVisitor.id, 
+              verified: verified 
+            });
+          }
+        }}
         showDeleteButton={true} // Show delete button for visit history
       />
       
