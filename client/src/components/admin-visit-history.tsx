@@ -847,7 +847,14 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
-                          <div className="font-medium text-gray-900">{visitor.fullName}</div>
+                          <div className="font-medium text-gray-900 flex items-center">
+                            {visitor.fullName}
+                            {visitor.verified && (
+                              <span title={t("verified", { defaultValue: "Verified Visitor" })} className="ml-1">
+                                <ShieldCheck className="h-4 w-4 text-blue-500" />
+                              </span>
+                            )}
+                          </div>
                           <div className="flex space-x-4 text-sm text-gray-500">
                             <span>{visitor.sex}</span>
                             <span>{formatYearWithAge(visitor.yearOfBirth, language)}</span>

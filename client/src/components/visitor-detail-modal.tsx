@@ -12,9 +12,8 @@ import { formatDate, formatTimeOnly, formatDateShort, formatDuration, formatBadg
 import { useLanguage } from "@/hooks/use-language";
 import { X, Pencil, Trash2, ShieldCheck, Users, Link2 } from "lucide-react";
 import { PhoneNumberLink } from "@/components/phone-number-link";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient"; 
-import { queryClient } from "@/lib/queryClient";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 type VisitorDetailModalProps = {
   visitor?: Visitor;
@@ -36,6 +35,7 @@ export function VisitorDetailModal({
   showDeleteButton = true, // Default to showing the delete button
 }: VisitorDetailModalProps) {
   const { t, language } = useLanguage();
+  const queryClient = useQueryClient();
   const [partnerInfo, setPartnerInfo] = useState<{visitor: Visitor, visit: Visit} | null>(null);
 
   // Fetch partner information if this visit has a partner
@@ -96,6 +96,7 @@ export function VisitorDetailModal({
       return res.json();
     },
     onSuccess: () => {
+      // Using the queryClient from useQueryClient hook
       queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/all-visitors"] });
