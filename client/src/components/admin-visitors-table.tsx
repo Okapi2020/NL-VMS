@@ -1318,9 +1318,17 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                     {selectedVisitDetails.visitor.sex} • {calculateAge(selectedVisitDetails.visitor.yearOfBirth)} {t("yearsOld", { defaultValue: "years old" })}
                   </p>
                 </div>
-                <Badge className="ml-auto px-2 py-1" variant="outline">
-                  {formatBadgeId(selectedVisitDetails.visitor.id)}
-                </Badge>
+                <div className="ml-auto flex items-center gap-2">
+                  {selectedVisitDetails.visitor.verified && (
+                    <Badge className="px-2 py-1 bg-green-100 text-green-800 hover:bg-green-100 border-green-200" variant="outline">
+                      <ShieldCheck className="h-3.5 w-3.5 mr-1" />
+                      {t("verified", { defaultValue: "Verified" })}
+                    </Badge>
+                  )}
+                  <Badge className="px-2 py-1" variant="outline">
+                    {formatBadgeId(selectedVisitDetails.visitor.id)}
+                  </Badge>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4 pt-4">
@@ -1371,18 +1379,40 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 </div>
               </div>
 
-              <div className="flex justify-between gap-2 pt-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                  onClick={() => {
-                    setIsDetailDialogOpen(false);
-                    handleEditVisitor(selectedVisitDetails.visitor);
-                  }}
-                >
-                  {t("edit", { defaultValue: "Edit Visitor" })}
-                </Button>
+              <div className="flex flex-wrap justify-between gap-2 pt-4">
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                    onClick={() => {
+                      setIsDetailDialogOpen(false);
+                      handleEditVisitor(selectedVisitDetails.visitor);
+                    }}
+                  >
+                    {t("edit", { defaultValue: "Edit Visitor" })}
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={selectedVisitDetails.visitor.verified 
+                      ? "text-red-600 border-red-200 hover:bg-red-50" 
+                      : "text-green-600 border-green-200 hover:bg-green-50"
+                    }
+                    onClick={() => handleVerifyVisitor(
+                      selectedVisitDetails.visitor.id, 
+                      selectedVisitDetails.visitor.verified
+                    )}
+                    disabled={processingVerificationId === selectedVisitDetails.visitor.id}
+                  >
+                    <ShieldCheck className="h-4 w-4 mr-1" />
+                    {selectedVisitDetails.visitor.verified 
+                      ? t("unverify", { defaultValue: "Unverify" })
+                      : t("verify", { defaultValue: "Verify" })
+                    }
+                  </Button>
+                </div>
 
                 <Button
                   variant="outline"
