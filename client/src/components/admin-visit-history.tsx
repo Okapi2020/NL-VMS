@@ -1008,37 +1008,6 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                           <span>{t("viewButton", { defaultValue: "View" })}</span>
                         </Button>
                         
-                        {/* Verify Button */}
-                        {!showDeletedVisitors && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className={visitor.verified ? 
-                              "h-8 rounded-md flex items-center border-transparent" : 
-                              "h-8 rounded-md flex items-center"}
-                            style={visitor.verified ? 
-                              {backgroundColor: 'rgba(218, 50, 225, 0.1)', color: '#da32e1', borderColor: '#da32e1'} : 
-                              {}}
-                            onClick={() => {
-                              verifyVisitorMutation.mutate({ 
-                                visitorId: visitor.id, 
-                                verified: !visitor.verified 
-                              });
-                            }}
-                            disabled={processingVerificationIds.has(visitor.id)}
-                          >
-                            <ShieldCheck className="h-4 w-4 mr-1" />
-                            <span>
-                              {processingVerificationIds.has(visitor.id) ? 
-                                t("processing") : 
-                                visitor.verified ? 
-                                  t("unverify", { defaultValue: "Unverify" }) : 
-                                  t("verify", { defaultValue: "Verify" })
-                              }
-                            </span>
-                          </Button>
-                        )}
-                        
                         {/* Partner button no longer needed as it's in the Edit modal */}
                         
                         {showDeletedVisitors && (
@@ -1381,14 +1350,6 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
           setIsDetailModalOpen(false);
           setIsEditDialogOpen(true);
         }}
-        onVerify={(verified) => {
-          if (selectedVisitor) {
-            verifyVisitorMutation.mutate({ 
-              visitorId: selectedVisitor.id, 
-              verified: verified 
-            });
-          }
-        }}
         onDelete={() => {
           setIsDetailModalOpen(false);
           if (selectedVisitor) {
@@ -1396,6 +1357,14 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
             if (confirm) {
               deleteVisitorMutation.mutate(selectedVisitor.id);
             }
+          }
+        }}
+        onVerify={(verified) => {
+          if (selectedVisitor) {
+            verifyVisitorMutation.mutate({ 
+              visitorId: selectedVisitor.id, 
+              verified: verified 
+            });
           }
         }}
         showDeleteButton={true} // Show delete button for visit history

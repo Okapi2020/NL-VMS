@@ -142,7 +142,7 @@ export function VisitorDetailModal({
               ) : (
                 <ShieldCheck className="h-4 w-4 mr-1" />
               )}
-              {visitor?.verified ? t("unverify", { defaultValue: "Unverify" }) : t("verify", { defaultValue: "Verify" })}
+              {visitor?.verified ? t("verified", { defaultValue: "Verified" }) : t("verify", { defaultValue: "Verify" })}
             </Button>
           </div>
         </DialogHeader>
