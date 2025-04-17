@@ -213,7 +213,14 @@ function VisitorDetailsDialog({ visitor, visitCount, lastVisit, isOpen, onClose 
                 {getInitials(visitor.fullName)}
               </div>
               <div>
-                <h3 className="text-xl font-bold text-purple-700">{visitor.fullName}</h3>
+                <h3 className="text-xl font-bold text-purple-700 flex items-center">
+                  {visitor.fullName}
+                  {visitor.verified && (
+                    <span title={t("verified", { defaultValue: "Verified Visitor" })} className="ml-2">
+                      <ShieldCheck className="h-5 w-5 text-blue-500" />
+                    </span>
+                  )}
+                </h3>
                 <p className="text-sm text-gray-500">
                   {visitor.yearOfBirth ? formatYearWithAge(visitor.yearOfBirth) : t("ageNotProvided", { defaultValue: "Age not provided" })}
                 </p>
@@ -856,7 +863,14 @@ function AllVisitors({ isLoading = false }: AllVisitorsProps) {
                       />
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="font-medium">{visitor.fullName}</div>
+                      <div className="font-medium flex items-center">
+                        {visitor.fullName}
+                        {visitor.verified && (
+                          <span title={t("verified", { defaultValue: "Verified Visitor" })} className="ml-1">
+                            <ShieldCheck className="h-4 w-4 text-blue-500" />
+                          </span>
+                        )}
+                      </div>
                       {visitor.yearOfBirth && (
                         <div className="text-xs text-gray-500">
                           {formatYearWithAge(visitor.yearOfBirth)}
