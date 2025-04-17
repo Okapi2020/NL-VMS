@@ -35,14 +35,14 @@ export function VisitorDetailModal({
 }: VisitorDetailModalProps) {
   const { t, language } = useLanguage();
   const [partnerInfo, setPartnerInfo] = useState<{visitor: Visitor, visit: Visit} | null>(null);
-  
+
   // Fetch partner information if this visit has a partner
   const { data: visitsData } = useQuery({
     queryKey: ['/api/admin/visit-history'],
     enabled: isOpen && !!visit && !!visit.partnerId,
     staleTime: 30000 // 30 seconds
   });
-  
+
   // Update partner info when visitsData changes or partnerId changes
   useEffect(() => {
     if (visit?.partnerId && visitsData && Array.isArray(visitsData)) {
@@ -68,11 +68,11 @@ export function VisitorDetailModal({
       const checkIn = new Date(visit.checkInTime);
       const diffMs = now.getTime() - checkIn.getTime();
       const diffMin = Math.floor(diffMs / 60000);
-      
+
       // Format to hours and minutes
       const hours = Math.floor(diffMin / 60);
       const mins = diffMin % 60;
-      
+
       if (hours > 0) {
         return `${hours}h ${mins}min`;
       } else {
@@ -87,7 +87,15 @@ export function VisitorDetailModal({
       <DialogContent className="sm:max-w-lg">
         <DialogHeader className="border-b pb-2">
           <div className="flex justify-between items-center">
-            <DialogTitle className="text-xl">{t("visitorDetails")}</DialogTitle>
+            <div className="flex items-center gap-2">
+              <DialogTitle className="text-xl">{t("visitorDetails")}</DialogTitle>
+              {visitor?.verified && (
+                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  <span className="text-xs">{t("verified")}</span>
+                </Badge>
+              )}
+            </div>
           </div>
         </DialogHeader>
 
@@ -129,7 +137,7 @@ export function VisitorDetailModal({
                 </div>
               </div>
             </div>
-            
+
             {/* Contact Information Section */}
             <div>
               <h3 className="text-md font-semibold border-b pb-2 mb-4 text-gray-700">{t("contactDetails")}</h3>
@@ -159,7 +167,7 @@ export function VisitorDetailModal({
               </div>
             </div>
           </div>
-          
+
           {/* Right Column - Visit Information */}
           <div>
             <div className="mb-8">
@@ -205,7 +213,7 @@ export function VisitorDetailModal({
                       getCurrentDuration()}
                   </div>
                 </div>
-                
+
                 {/* Partner Information */}
                 <div>
                   <div className="text-sm text-gray-500">{t("partner")}</div>
@@ -225,7 +233,7 @@ export function VisitorDetailModal({
                 </div>
               </div>
             </div>
-            
+
             {/* Actions Section */}
             <div>
               <h3 className="text-md font-semibold border-b pb-2 mb-4 text-gray-700">{t("actions")}</h3>
@@ -238,7 +246,7 @@ export function VisitorDetailModal({
                   <Pencil className="h-4 w-4" />
                   {t("editDetails")}
                 </Button>
-                
+
                 {showDeleteButton && (
                   <Button
                     variant="outline"
