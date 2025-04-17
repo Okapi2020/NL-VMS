@@ -68,6 +68,10 @@ const translations: TranslationConfig = {
   "failedToResetDuration": {
     en: "Failed to reset average visit duration counter",
     fr: "Échec de la réinitialisation du compteur de durée moyenne de visite"
+  },
+  "verify": {
+    en: "Verify",
+    fr: "Vérifier"
   }
 };
 
