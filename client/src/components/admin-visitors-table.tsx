@@ -904,7 +904,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                       </td>
 
                       {/* Actions */}
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500" onClick={(e) => e.stopPropagation()}>
                         <div className="flex space-x-2 justify-end">
                           <button 
                             className="p-1 rounded-md text-gray-500 hover:bg-gray-100"
