@@ -24,7 +24,8 @@ import {
   Tag,
   Database,
   UserPlus,
-  Loader2
+  Loader2,
+  ShieldCheck
 } from "lucide-react";
 import {
   Dialog,
@@ -105,8 +106,43 @@ function VisitorDetailsDialog({ visitor, visitCount, lastVisit, isOpen, onClose 
   const { t, language } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [processingVerification, setProcessingVerification] = useState(false);
   
   if (!visitor) return null;
+  
+  // Verify visitor mutation
+  const verifyVisitorMutation = useMutation({
+    mutationFn: async (verified: boolean) => {
+      setProcessingVerification(true);
+      const res = await apiRequest("POST", "/api/admin/verify-visitor", {
+        visitorId: visitor.id,
+        verified: verified
+      });
+      return await res.json();
+    },
+    onSuccess: (_, verified) => {
+      toast({
+        title: t("success", { defaultValue: "Success" }),
+        description: verified 
+          ? t("visitorVerified", { defaultValue: "Visitor verified successfully" })
+          : t("visitorUnverified", { defaultValue: "Visitor unverified successfully" }),
+      });
+      // Refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/all-visitors"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: t("error", { defaultValue: "Error" }),
+        description: t("failedToUpdateVerification", { defaultValue: "Failed to update verification status" }) + ": " + error.message,
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      setProcessingVerification(false);
+    }
+  });
   
   // Delete visitor mutation
   const deleteVisitorMutation = useMutation({
@@ -154,10 +190,20 @@ function VisitorDetailsDialog({ visitor, visitCount, lastVisit, isOpen, onClose 
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{t("visitorDetails", { defaultValue: "Visitor Details" })}</DialogTitle>
-          <DialogDescription>
-            {t("visitorDetailsDescription", { defaultValue: "View complete information about this visitor" })}
-          </DialogDescription>
+          <div className="flex justify-between items-center">
+            <div>
+              <DialogTitle>{t("visitorDetails", { defaultValue: "Visitor Details" })}</DialogTitle>
+              <DialogDescription>
+                {t("visitorDetailsDescription", { defaultValue: "View complete information about this visitor" })}
+              </DialogDescription>
+            </div>
+            {visitor.verified && (
+              <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200 flex items-center gap-1">
+                <ShieldCheck className="h-3.5 w-3.5 mr-1" />
+                {t("verified", { defaultValue: "Verified" })}
+              </Badge>
+            )}
+          </div>
         </DialogHeader>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
@@ -267,6 +313,20 @@ function VisitorDetailsDialog({ visitor, visitCount, lastVisit, isOpen, onClose 
             </Button>
           </div>
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className={visitor.verified 
+                ? "text-red-600 border-red-200 hover:bg-red-50" 
+                : "text-green-600 border-green-200 hover:bg-green-50"}
+              onClick={() => verifyVisitorMutation.mutate(!visitor.verified)}
+              disabled={processingVerification}
+            >
+              <ShieldCheck className="mr-2 h-4 w-4" />
+              {visitor.verified 
+                ? t("unverify", { defaultValue: "Unverify" })
+                : t("verify", { defaultValue: "Verify" })
+              }
+            </Button>
             <Button variant="outline" onClick={onClose}>
               {t("close", { defaultValue: "Close" })}
             </Button>
