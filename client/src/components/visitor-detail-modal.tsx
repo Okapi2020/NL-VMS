@@ -13,8 +13,8 @@ import { useLanguage } from "@/hooks/use-language";
 import { X, Pencil, Trash2, ShieldCheck, Users, Link2 } from "lucide-react";
 import { PhoneNumberLink } from "@/components/phone-number-link";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/api"; // Assuming this is where your apiRequest function resides.  Adjust if necessary.
-import { queryClient } from "@/lib/query-client"; // Assuming this is where your queryClient is defined
+import { apiRequest } from "@/lib/queryClient"; 
+import { queryClient } from "@/lib/queryClient";
 
 type VisitorDetailModalProps = {
   visitor?: Visitor;
@@ -84,8 +84,11 @@ export function VisitorDetailModal({
     return formatDuration(visit.checkInTime, visit.checkOutTime, language);
   };
 
+  const [processingVerification, setProcessingVerification] = useState<boolean>(false);
+  
   const verifyMutation = useMutation({
     mutationFn: async () => {
+      setProcessingVerification(true);
       const res = await apiRequest("POST", "/api/admin/verify-visitor", {
         visitorId: visitor?.id, // Added ? to handle potential undefined visitor
         verified: !visitor?.verified // Added ? to handle potential undefined visitor.verified
@@ -95,6 +98,10 @@ export function VisitorDetailModal({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/all-visitors"] });
+    },
+    onSettled: () => {
+      setProcessingVerification(false);
     }
   });
 
@@ -117,9 +124,14 @@ export function VisitorDetailModal({
               size="sm"
               onClick={() => verifyMutation.mutate()}
               className={visitor?.verified ? "bg-blue-50 text-blue-700" : ""}
+              disabled={processingVerification}
             >
-              <ShieldCheck className="h-4 w-4 mr-1" />
-              {visitor?.verified ? t("verified") : t("verify")}
+              {processingVerification ? (
+                <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-1" />
+              ) : (
+                <ShieldCheck className="h-4 w-4 mr-1" />
+              )}
+              {visitor?.verified ? t("verified", { defaultValue: "Verified" }) : t("verify", { defaultValue: "Verify" })}
             </Button>
           </div>
         </DialogHeader>
