@@ -796,7 +796,14 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                             </span>
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{visitor.fullName}</div>
+                            <div className="text-sm font-medium text-gray-900 flex items-center">
+                              {visitor.fullName}
+                              {visitor.verified && (
+                                <span title={t("verified", { defaultValue: "Verified Visitor" })} className="ml-1">
+                                  <ShieldCheck className="h-4 w-4" style={{ color: '#da32e1' }} />
+                                </span>
+                              )}
+                            </div>
                             <div className="text-sm text-gray-500">
                               {visitor.sex} {visitor.yearOfBirth} ({calculateAge(visitor.yearOfBirth)} ans)
                             </div>
