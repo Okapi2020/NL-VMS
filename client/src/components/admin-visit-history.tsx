@@ -851,7 +851,7 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                             {visitor.fullName}
                             {visitor.verified && (
                               <span title={t("verified", { defaultValue: "Verified Visitor" })} className="ml-1">
-                                <ShieldCheck className="h-4 w-4 text-blue-500" />
+                                <ShieldCheck className="h-4 w-4" style={{ color: '#da32e1' }} />
                               </span>
                             )}
                           </div>
@@ -896,9 +896,9 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                         </span>
                         {visitor.verified && (
                           <span title={t("verifiedVisitor")} className="relative top-px">
-                            <Badge variant="outline" className="bg-blue-50 text-blue-800 border-blue-200 flex items-center gap-1 px-2 py-0.5">
+                            <Badge variant="outline" className="bg-purple-50 flex items-center gap-1 px-2 py-0.5" style={{ borderColor: '#da32e1', color: '#da32e1' }}>
                               <span className="text-xs font-medium">{t("verified")}</span>
-                              <CheckCircle className="h-3.5 w-3.5 text-blue-600" />
+                              <CheckCircle className="h-3.5 w-3.5" style={{ color: '#da32e1' }} />
                             </Badge>
                           </span>
                         )}

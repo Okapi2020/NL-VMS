@@ -217,7 +217,7 @@ function VisitorDetailsDialog({ visitor, visitCount, lastVisit, isOpen, onClose 
                   {visitor.fullName}
                   {visitor.verified && (
                     <span title={t("verified", { defaultValue: "Verified Visitor" })} className="ml-2">
-                      <ShieldCheck className="h-5 w-5 text-blue-500" />
+                      <ShieldCheck className="h-5 w-5" style={{ color: '#da32e1' }} />
                     </span>
                   )}
                 </h3>
@@ -867,7 +867,7 @@ function AllVisitors({ isLoading = false }: AllVisitorsProps) {
                         {visitor.fullName}
                         {visitor.verified && (
                           <span title={t("verified", { defaultValue: "Verified Visitor" })} className="ml-1">
-                            <ShieldCheck className="h-4 w-4 text-blue-500" />
+                            <ShieldCheck className="h-4 w-4" style={{ color: '#da32e1' }} />
                           </span>
                         )}
                       </div>

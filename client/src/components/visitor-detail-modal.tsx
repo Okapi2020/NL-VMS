@@ -114,7 +114,7 @@ export function VisitorDetailModal({
             <div className="flex items-center gap-2">
               <DialogTitle className="text-xl">{t("visitorDetails")}</DialogTitle>
               {visitor?.verified && (
-                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1">
+                <Badge variant="outline" className="bg-purple-50 flex items-center gap-1" style={{ borderColor: '#da32e1', color: '#da32e1' }}>
                   <ShieldCheck className="h-3.5 w-3.5" />
                   <span className="text-xs">{t("verified")}</span>
                 </Badge>
@@ -124,7 +124,7 @@ export function VisitorDetailModal({
               variant="outline" 
               size="sm"
               onClick={() => verifyMutation.mutate()}
-              className={visitor?.verified ? "bg-blue-50 text-blue-700" : ""}
+              style={visitor?.verified ? {backgroundColor: 'rgba(218, 50, 225, 0.1)', color: '#da32e1', borderColor: '#da32e1'} : {}}
               disabled={processingVerification}
             >
               {processingVerification ? (
@@ -150,7 +150,7 @@ export function VisitorDetailModal({
                     <span className="font-medium">{visitor.fullName}</span>
                     {visitor.verified && (
                       <span title={t("verifiedVisitor")}>
-                        <ShieldCheck className="h-4 w-4 text-blue-500" />
+                        <ShieldCheck className="h-4 w-4" style={{ color: '#da32e1' }} />
                       </span>
                     )}
                   </div>
