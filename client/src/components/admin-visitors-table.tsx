@@ -846,7 +846,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                             {formatBadgeId(visitor.id)}
                           </span>
                           {visitor.verified && (
-                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1">
+                            <Badge variant="outline" className="bg-purple-50 flex items-center gap-1" style={{ borderColor: '#da32e1', color: '#da32e1' }}>
                               <ShieldCheck className="h-3.5 w-3.5" />
                               <span className="text-xs">{t("verified")}</span>
                             </Badge>
@@ -1327,7 +1327,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                 </div>
                 <div className="ml-auto flex items-center gap-2">
                   {selectedVisitDetails.visitor.verified && (
-                    <Badge className="px-2 py-1 bg-green-100 text-green-800 hover:bg-green-100 border-green-200" variant="outline">
+                    <Badge variant="outline" className="px-2 py-1" style={{ backgroundColor: 'rgba(218, 50, 225, 0.1)', color: '#da32e1', borderColor: '#da32e1' }}>
                       <ShieldCheck className="h-3.5 w-3.5 mr-1" />
                       {t("verified", { defaultValue: "Verified" })}
                     </Badge>
@@ -1403,9 +1403,9 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
                   <Button
                     variant="outline"
                     size="sm"
-                    className={selectedVisitDetails.visitor.verified 
-                      ? "text-red-600 border-red-200 hover:bg-red-50" 
-                      : "text-green-600 border-green-200 hover:bg-green-50"
+                    style={selectedVisitDetails.visitor.verified 
+                      ? {color: '#e32950', borderColor: '#fad1db', backgroundColor: 'rgba(227, 41, 80, 0.05)'} 
+                      : {color: '#da32e1', borderColor: '#f5d0f9', backgroundColor: 'rgba(218, 50, 225, 0.05)'}
                     }
                     onClick={() => handleVerifyVisitor(
                       selectedVisitDetails.visitor.id, 
