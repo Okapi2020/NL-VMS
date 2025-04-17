@@ -1350,6 +1350,11 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
           setIsDetailModalOpen(false);
           setIsEditDialogOpen(true);
         }}
+        onVerify={(verified) => {
+          if (selectedVisitor) {
+            handleVerifyToggle(selectedVisitor.id, selectedVisitor.verified);
+          }
+        }}
         onDelete={() => {
           setIsDetailModalOpen(false);
           if (selectedVisitor) {
