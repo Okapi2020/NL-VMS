@@ -817,9 +817,27 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                 }
                 
                 return (
-                  <TableRow key={`${visitor.id}-${visit.id}`}>
+                  <TableRow 
+                    key={`${visitor.id}-${visit.id}`}
+                    className="cursor-pointer hover:bg-gray-50"
+                    onClick={(e) => {
+                      // Don't open the modal if they clicked on a checkbox or button
+                      if (
+                        e.target instanceof HTMLElement && 
+                        (e.target.closest('button') || 
+                         e.target.closest('input[type="checkbox"]') ||
+                         e.target.tagName === 'INPUT' ||
+                         e.target.tagName === 'BUTTON')
+                      ) {
+                        return;
+                      }
+                      setSelectedVisitor(visitor);
+                      setSelectedVisit(visit);
+                      setIsDetailModalOpen(true);
+                    }}
+                  >
                     {/* Checkbox */}
-                    <TableCell className="py-4">
+                    <TableCell className="py-4" onClick={(e) => e.stopPropagation()}>
                       <Checkbox
                         checked={selectedVisitors?.includes(visitor.id)}
                         onCheckedChange={(checked) => {
@@ -992,7 +1010,7 @@ function AdminVisitHistoryComponent({ visitHistory, isLoading }: AdminVisitHisto
                     </TableCell>
                     
                     {/* Actions */}
-                    <TableCell className="py-4 text-right">
+                    <TableCell className="py-4 text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex justify-end space-x-2">
                         <Button
                           variant="outline"
