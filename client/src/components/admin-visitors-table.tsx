@@ -127,6 +127,7 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
   const [selectedVisitDetails, setSelectedVisitDetails] = useState<{ visitor: Visitor, visit: Visit } | null>(null);
   const [selectedVisitForPartner, setSelectedVisitForPartner] = useState<{ visitor: Visitor, visit: Visit } | null>(null);
   const [partnerSearchTerm, setPartnerSearchTerm] = useState("");
+  const [processingVerificationId, setProcessingVerificationId] = useState<number | null>(null);
 
   // Form for editing visitors
   const form = useForm<EditVisitorFormValues>({
@@ -434,6 +435,48 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
           variant: "destructive",
         });
       });
+  };
+  
+  // Visitor verification mutation
+  const handleVerifyVisitor = async (visitorId: number, currentVerificationStatus: boolean) => {
+    // Prevent multiple clicks
+    if (processingVerificationId === visitorId) return;
+    
+    setProcessingVerificationId(visitorId);
+    
+    try {
+      const res = await apiRequest("POST", "/api/admin/verify-visitor", {
+        visitorId: visitorId,
+        verified: !currentVerificationStatus
+      });
+      
+      const data = await res.json();
+      
+      toast({
+        title: t("success", { defaultValue: "Success" }),
+        description: !currentVerificationStatus 
+          ? t("visitorVerified", { defaultValue: "Visitor verified successfully" })
+          : t("visitorUnverified", { defaultValue: "Visitor unverified successfully" }),
+      });
+      
+      // Refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/current-visitors"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/visit-history"] });
+      
+      // Close the dialog if needed
+      setIsDetailDialogOpen(false);
+      
+      return data;
+    } catch (error) {
+      toast({
+        title: t("error", { defaultValue: "Error" }),
+        description: t("failedToUpdateVerification", { defaultValue: "Failed to update verification status" }) + 
+          ": " + (error instanceof Error ? error.message : "Unknown error"),
+        variant: "destructive",
+      });
+    } finally {
+      setProcessingVerificationId(null);
+    }
   };
 
   return (
