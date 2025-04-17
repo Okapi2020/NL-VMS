@@ -24,10 +24,11 @@ export function PhoneNumberLink({ phoneNumber, className = "", showWhatsAppIcon 
   const whatsappUrl = getWhatsAppUrl(phoneNumber, countryCode);
   
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
       <a
         href={`tel:${formattedPhone}`}
         className={`text-blue-600 hover:text-blue-800 hover:underline flex items-center ${className}`}
+        onClick={(e) => e.stopPropagation()}
       >
         {formattedPhone}
       </a>
@@ -39,6 +40,7 @@ export function PhoneNumberLink({ phoneNumber, className = "", showWhatsAppIcon 
           rel="noopener noreferrer"
           className="text-green-600 hover:text-green-800"
           title="Open in WhatsApp"
+          onClick={(e) => e.stopPropagation()}
         >
           <SiWhatsapp className="w-4 h-4" />
         </a>
