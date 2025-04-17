@@ -773,8 +773,24 @@ function AdminVisitorsTableComponent({ visits, isLoading }: AdminVisitorsTablePr
               <tbody className="bg-white divide-y divide-gray-200">
                 {paginatedVisits.length > 0 ? (
                   paginatedVisits.map(({ visitor, visit }) => (
-                    <tr key={visit.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                    <tr 
+                      key={visit.id} 
+                      className="hover:bg-gray-50 cursor-pointer"
+                      onClick={(e) => {
+                        // Don't open the modal if they clicked on a checkbox or button
+                        if (
+                          e.target instanceof HTMLElement && 
+                          (e.target.closest('button') || 
+                           e.target.closest('input[type="checkbox"]') ||
+                           e.target.tagName === 'INPUT' ||
+                           e.target.tagName === 'BUTTON')
+                        ) {
+                          return;
+                        }
+                        handleOpenDetailModal(visitor, visit);
+                      }}
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <Checkbox
                           checked={selectedVisitors.includes(visitor.id)}
                           onCheckedChange={(checked) => {
