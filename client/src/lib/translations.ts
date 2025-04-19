@@ -25,6 +25,10 @@ const translations: TranslationConfig = {
     en: "Success",
     fr: "Succès"
   },
+  "partnersCheckedOut": {
+    en: "Partners checked out",
+    fr: "Partenaires déconnectés"
+  },
   "partnerAssigned": {
     en: "Partner assigned successfully",
     fr: "Partenaire assigné avec succès"
