@@ -19,17 +19,40 @@ import { seedDatabase } from "./seed";
 import { WebSocketServer, WebSocket } from 'ws';
 
 // Middleware for API key authentication
-const validateApiKey = (req: Request, res: Response, next: NextFunction) => {
+const validateApiKey = async (req: Request, res: Response, next: NextFunction) => {
   const apiKey = req.headers['x-api-key'];
   
-  // In development mode, use a default API key
-  const isDevelopment = process.env.NODE_ENV !== 'production';
-  const validApiKey = process.env.EXTERNAL_API_KEY || 'vms-dev-api-key-2025';
-  
-  if (apiKey === validApiKey) {
-    next();
-  } else {
-    return res.status(401).json({ error: 'Unauthorized: Invalid API key' });
+  try {
+    // Get settings from database
+    const settings = await storage.getSettings();
+    
+    if (!settings) {
+      console.error("Settings not found when validating API key");
+      return res.status(500).json({ error: 'Server error: Cannot validate API key' });
+    }
+    
+    // Check if API is enabled
+    if (!settings.apiEnabled) {
+      return res.status(403).json({ error: 'Forbidden: API access is disabled' });
+    }
+    
+    // Validate the API key
+    if (apiKey === settings.apiKey) {
+      next();
+    } else {
+      // In development mode, also accept a default key for testing
+      const isDevelopment = process.env.NODE_ENV !== 'production';
+      const devApiKey = process.env.EXTERNAL_API_KEY || 'vms-dev-api-key-2025';
+      
+      if (isDevelopment && apiKey === devApiKey) {
+        next();
+      } else {
+        return res.status(401).json({ error: 'Unauthorized: Invalid API key' });
+      }
+    }
+  } catch (error) {
+    console.error("Error validating API key:", error);
+    return res.status(500).json({ error: 'Server error: Cannot validate API key' });
   }
 };
 
@@ -226,7 +249,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         theme: req.body.theme,
         adminTheme: req.body.adminTheme,
         visitorTheme: req.body.visitorTheme,
-        defaultLanguage: req.body.defaultLanguage
+        defaultLanguage: req.body.defaultLanguage,
+        apiEnabled: req.body.apiEnabled,
+        hasApiKey: !!req.body.apiKey
       });
       
       // Update settings
@@ -240,7 +265,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         theme: req.body.theme || "light", // Default to light if not provided
         adminTheme: req.body.adminTheme || req.body.theme || "light", // Use adminTheme, fallback to theme
         visitorTheme: req.body.visitorTheme || req.body.theme || "light", // Use visitorTheme, fallback to theme
-        defaultLanguage: req.body.defaultLanguage || "en" // Default language to English if not provided
+        defaultLanguage: req.body.defaultLanguage || "en", // Default language to English if not provided
+        // API settings
+        apiKey: req.body.apiKey,
+        apiEnabled: req.body.apiEnabled !== undefined ? req.body.apiEnabled : false
       });
       
       if (!updatedSettings) {
