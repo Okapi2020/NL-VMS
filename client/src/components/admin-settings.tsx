@@ -668,6 +668,96 @@ export function AdminSettings() {
               </div>
             </div>
 
+            {/* API Settings Section */}
+            <div className="border rounded-lg p-4 bg-card shadow-sm mt-6 mb-6">
+              <h3 className="text-lg font-medium mb-2 flex items-center">
+                <Shield className="mr-2 h-5 w-5 text-primary" />
+                API Settings
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                Configure API access for external applications to connect with your Visitor Management System.
+              </p>
+
+              {/* API Enable/Disable Switch */}
+              <FormField
+                control={form.control}
+                name="apiEnabled"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 mb-4 shadow-sm">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base font-medium flex items-center">
+                        <Key className="mr-2 h-4 w-4 text-primary" />
+                        Enable API Access
+                      </FormLabel>
+                      <FormDescription>
+                        Allow external applications to access visitor data through the API.
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              {/* API Key Display and Management */}
+              <FormField
+                control={form.control}
+                name="apiKey"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>API Key</FormLabel>
+                    <div className="flex space-x-2">
+                      <FormControl>
+                        <Input 
+                          {...field}
+                          type="text"
+                          readOnly
+                          className="font-mono text-sm"
+                          value={field.value}
+                        />
+                      </FormControl>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          // Generate a new API key
+                          const newKey = `vms-${Math.random().toString(36).substring(2, 12)}-${Date.now().toString(36)}`;
+                          field.onChange(newKey);
+                          toast({
+                            title: "API Key Generated",
+                            description: "A new API key has been generated. Save settings to apply.",
+                          });
+                        }}
+                      >
+                        Regenerate
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          navigator.clipboard.writeText(field.value || '');
+                          toast({
+                            title: "API Key Copied",
+                            description: "API key copied to clipboard",
+                          });
+                        }}
+                      >
+                        Copy
+                      </Button>
+                    </div>
+                    <FormDescription>
+                      This key is required for external applications to authenticate with the API. Keep it secure.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             <div className="flex justify-end"> {/* Added div for better button alignment */}
               <Button
                 type="submit"
