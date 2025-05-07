@@ -1947,6 +1947,218 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
     }
   });
 
+  // ==========================================================================
+  // EXTERNAL API ENDPOINTS FOR INTEGRATION WITH OTHER APPLICATIONS (E.G. LARAVEL)
+  // ==========================================================================
+  
+  // Get all visitors with pagination and filtering options
+  app.get("/api/external/visitors", validateApiKey, async (req, res) => {
+    try {
+      console.log("External API: Request for all visitors received");
+      
+      // Parse query parameters for filtering and pagination
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 100;
+      const name = req.query.name as string;
+      const verified = req.query.verified === 'true';
+      const sortBy = req.query.sortBy as string || 'id';
+      const sortOrder = req.query.sortOrder as string || 'asc';
+      
+      // Get all visitors with possible filters
+      const visitors = await storage.getAllVisitorsWithFilters({
+        page,
+        limit,
+        name,
+        verified: req.query.verified !== undefined ? verified : undefined,
+        sortBy,
+        sortOrder,
+      });
+      
+      // Get total count for pagination
+      const totalCount = await storage.getVisitorCount({
+        name,
+        verified: req.query.verified !== undefined ? verified : undefined,
+      });
+      
+      return res.json({
+        data: visitors,
+        pagination: {
+          page,
+          limit,
+          total: totalCount,
+          totalPages: Math.ceil(totalCount / limit)
+        }
+      });
+    } catch (error) {
+      console.error("External API error - getAllVisitors:", error);
+      return res.status(500).json({ error: "Failed to fetch visitors" });
+    }
+  });
+  
+  // Get a specific visitor by ID
+  app.get("/api/external/visitors/:id", validateApiKey, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid visitor ID" });
+      }
+      
+      const visitor = await storage.getVisitorById(id);
+      
+      if (!visitor) {
+        return res.status(404).json({ error: "Visitor not found" });
+      }
+      
+      return res.json(visitor);
+    } catch (error) {
+      console.error(`External API error - getVisitor(${req.params.id}):`, error);
+      return res.status(500).json({ error: "Failed to fetch visitor" });
+    }
+  });
+  
+  // Get all visits with pagination and filtering options
+  app.get("/api/external/visits", validateApiKey, async (req, res) => {
+    try {
+      console.log("External API: Request for all visits received");
+      
+      // Parse query parameters for filtering and pagination
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 100;
+      const status = req.query.status as string; // 'active', 'completed'
+      const dateFrom = req.query.dateFrom as string;
+      const dateTo = req.query.dateTo as string;
+      const visitorId = req.query.visitorId ? parseInt(req.query.visitorId as string) : undefined;
+      
+      // Determine if we need active or completed visits
+      let visits = [];
+      
+      if (status === 'active') {
+        visits = await storage.getActiveVisits();
+      } else if (status === 'completed') {
+        visits = await storage.getCompletedVisits({
+          page,
+          limit,
+          dateFrom: dateFrom ? new Date(dateFrom) : undefined,
+          dateTo: dateTo ? new Date(dateTo) : undefined,
+          visitorId
+        });
+      } else {
+        // Get all visits (both active and completed)
+        const activeVisits = await storage.getActiveVisits();
+        const completedVisits = await storage.getCompletedVisits({
+          page,
+          limit: Math.max(0, limit - activeVisits.length),
+          dateFrom: dateFrom ? new Date(dateFrom) : undefined,
+          dateTo: dateTo ? new Date(dateTo) : undefined,
+          visitorId
+        });
+        
+        visits = [...activeVisits, ...completedVisits];
+      }
+      
+      return res.json({
+        data: visits,
+        pagination: {
+          page,
+          limit,
+          total: visits.length
+        }
+      });
+    } catch (error) {
+      console.error("External API error - getAllVisits:", error);
+      return res.status(500).json({ error: "Failed to fetch visits" });
+    }
+  });
+  
+  // Get visitor statistics and analytics
+  app.get("/api/external/statistics", validateApiKey, async (req, res) => {
+    try {
+      console.log("External API: Request for statistics received");
+      
+      // Get the time range from query parameters
+      const dateFrom = req.query.dateFrom ? new Date(req.query.dateFrom as string) : new Date(new Date().setDate(new Date().getDate() - 30)); // Default to last 30 days
+      const dateTo = req.query.dateTo ? new Date(req.query.dateTo as string) : new Date();
+      
+      // Get stats from storage
+      const stats = await storage.getVisitorStats(dateFrom, dateTo);
+      
+      // Format the stats in a more consumable way
+      const result = {
+        periodStart: dateFrom.toISOString(),
+        periodEnd: dateTo.toISOString(),
+        totalVisits: stats.totalVisits,
+        uniqueVisitors: stats.uniqueVisitors,
+        averageDuration: stats.averageDuration,
+        visitsByDay: stats.visitsByDay,
+        visitsByPurpose: stats.visitsByPurpose,
+        visitsByMunicipality: stats.visitsByMunicipality,
+        visitsByGender: stats.visitsByGender,
+        verifiedPercentage: stats.verifiedPercentage
+      };
+      
+      return res.json(result);
+    } catch (error) {
+      console.error("External API error - getStatistics:", error);
+      return res.status(500).json({ error: "Failed to fetch statistics" });
+    }
+  });
+  
+  // API endpoint documentation
+  app.get("/api/external", validateApiKey, (req, res) => {
+    res.json({
+      name: "Visitor Management System API",
+      version: "1.0",
+      description: "API for integrating with the Visitor Management System",
+      endpoints: [
+        { 
+          path: "/api/external/visitors", 
+          method: "GET", 
+          description: "Get all visitors with pagination and filtering",
+          parameters: [
+            { name: "page", type: "number", description: "Page number for pagination" },
+            { name: "limit", type: "number", description: "Number of records per page" },
+            { name: "name", type: "string", description: "Filter by visitor name" },
+            { name: "verified", type: "boolean", description: "Filter by verification status" },
+            { name: "sortBy", type: "string", description: "Field to sort by" },
+            { name: "sortOrder", type: "string", description: "Sort order (asc/desc)" }
+          ]
+        },
+        { 
+          path: "/api/external/visitors/:id", 
+          method: "GET", 
+          description: "Get a specific visitor by ID",
+          parameters: [
+            { name: "id", type: "number", description: "Visitor ID" }
+          ]
+        },
+        { 
+          path: "/api/external/visits", 
+          method: "GET", 
+          description: "Get all visits with pagination and filtering",
+          parameters: [
+            { name: "page", type: "number", description: "Page number for pagination" },
+            { name: "limit", type: "number", description: "Number of records per page" },
+            { name: "status", type: "string", description: "Filter by status (active/completed)" },
+            { name: "dateFrom", type: "date", description: "Filter by start date" },
+            { name: "dateTo", type: "date", description: "Filter by end date" },
+            { name: "visitorId", type: "number", description: "Filter by visitor ID" }
+          ]
+        },
+        { 
+          path: "/api/external/statistics", 
+          method: "GET", 
+          description: "Get visitor statistics and analytics",
+          parameters: [
+            { name: "dateFrom", type: "date", description: "Start date for statistics" },
+            { name: "dateTo", type: "date", description: "End date for statistics" }
+          ]
+        }
+      ],
+      authentication: "API Key required in X-API-Key header"
+    });
+  });
+
   // Return the existing httpServer that was initialized at the beginning of the function
   return httpServer;
 }

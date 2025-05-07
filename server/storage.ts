@@ -48,6 +48,40 @@ export interface IStorage {
   emptyRecycleBin(): Promise<boolean>;
   incrementVisitCount(visitorId: number): Promise<Visitor | undefined>;
   
+  // External API methods
+  getAllVisitorsWithFilters(options: {
+    page?: number;
+    limit?: number;
+    name?: string;
+    verified?: boolean;
+    sortBy?: string;
+    sortOrder?: string;
+  }): Promise<Visitor[]>;
+  
+  getVisitorCount(options: {
+    name?: string;
+    verified?: boolean;
+  }): Promise<number>;
+  
+  getCompletedVisits(options: {
+    page?: number;
+    limit?: number;
+    dateFrom?: Date;
+    dateTo?: Date;
+    visitorId?: number;
+  }): Promise<{visit: Visit, visitor: Visitor}[]>;
+  
+  getVisitorStats(dateFrom: Date, dateTo: Date): Promise<{
+    totalVisits: number;
+    uniqueVisitors: number;
+    averageDuration: number;
+    visitsByDay: Array<{date: string, count: number}>;
+    visitsByPurpose: Array<{purpose: string, count: number}>;
+    visitsByMunicipality: Array<{municipality: string, count: number}>;
+    visitsByGender: Array<{gender: string, count: number}>;
+    verifiedPercentage: number;
+  }>;
+  
   // Visit methods
   createVisit(visit: InsertVisit): Promise<Visit>;
   getVisit(id: number): Promise<Visit | undefined>;
@@ -789,6 +823,315 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error updating visitor report:", error);
       return undefined;
+    }
+  }
+  
+  // External API methods
+  async getAllVisitorsWithFilters(options: {
+    page?: number;
+    limit?: number;
+    name?: string;
+    verified?: boolean;
+    sortBy?: string;
+    sortOrder?: string;
+  }): Promise<Visitor[]> {
+    try {
+      const {
+        page = 1,
+        limit = 100,
+        name,
+        verified,
+        sortBy = 'id',
+        sortOrder = 'desc'
+      } = options;
+      
+      // Calculate offset for pagination
+      const offset = (page - 1) * limit;
+      
+      // Start building the query
+      let query = db
+        .select()
+        .from(visitors)
+        .where(eq(visitors.deleted, false));
+      
+      // Add name filter if provided
+      if (name) {
+        query = query.where(sql`${visitors.fullName} ILIKE ${`%${name}%`}`);
+      }
+      
+      // Add verified filter if provided
+      if (verified !== undefined) {
+        query = query.where(eq(visitors.verified, verified));
+      }
+      
+      // Add sorting
+      if (sortBy && sortOrder) {
+        // Handle different sort fields
+        if (sortBy === 'id' && sortOrder === 'desc') {
+          query = query.orderBy(desc(visitors.id));
+        } else if (sortBy === 'id') {
+          query = query.orderBy(visitors.id);
+        } else if (sortBy === 'name' && sortOrder === 'desc') {
+          query = query.orderBy(desc(visitors.fullName));
+        } else if (sortBy === 'name') {
+          query = query.orderBy(visitors.fullName);
+        } else if (sortBy === 'visits' && sortOrder === 'desc') {
+          query = query.orderBy(desc(visitors.visitCount));
+        } else if (sortBy === 'visits') {
+          query = query.orderBy(visitors.visitCount);
+        }
+      }
+      
+      // Add pagination
+      query = query.limit(limit).offset(offset);
+      
+      // Execute the query
+      return await query;
+    } catch (error) {
+      console.error("Error getting filtered visitors:", error);
+      return [];
+    }
+  }
+  
+  async getVisitorCount(options: {
+    name?: string;
+    verified?: boolean;
+  }): Promise<number> {
+    try {
+      const { name, verified } = options;
+      
+      // Start building the query
+      let query = db
+        .select({ count: sql<number>`count(*)` })
+        .from(visitors)
+        .where(eq(visitors.deleted, false));
+      
+      // Add name filter if provided
+      if (name) {
+        query = query.where(sql`${visitors.fullName} ILIKE ${`%${name}%`}`);
+      }
+      
+      // Add verified filter if provided
+      if (verified !== undefined) {
+        query = query.where(eq(visitors.verified, verified));
+      }
+      
+      // Execute the query
+      const [result] = await query;
+      return result?.count || 0;
+    } catch (error) {
+      console.error("Error getting visitor count:", error);
+      return 0;
+    }
+  }
+  
+  async getVisitorById(id: number): Promise<Visitor | undefined> {
+    // This is an alias for getVisitor to match API naming convention
+    return this.getVisitor(id);
+  }
+  
+  async getCompletedVisits(options: {
+    page?: number;
+    limit?: number;
+    dateFrom?: Date;
+    dateTo?: Date;
+    visitorId?: number;
+  }): Promise<{visit: Visit, visitor: Visitor}[]> {
+    try {
+      const {
+        page = 1,
+        limit = 100,
+        dateFrom,
+        dateTo,
+        visitorId
+      } = options;
+      
+      // Calculate offset for pagination
+      const offset = (page - 1) * limit;
+      
+      // Build the base query for completed visits
+      let visitsQuery = db
+        .select()
+        .from(visits)
+        .where(eq(visits.active, false));
+      
+      // Add date range filter if provided
+      if (dateFrom) {
+        visitsQuery = visitsQuery.where(sql`${visits.checkInTime} >= ${dateFrom}`);
+      }
+      
+      if (dateTo) {
+        visitsQuery = visitsQuery.where(sql`${visits.checkInTime} <= ${dateTo}`);
+      }
+      
+      // Add visitor filter if provided
+      if (visitorId) {
+        visitsQuery = visitsQuery.where(eq(visits.visitorId, visitorId));
+      }
+      
+      // Add order by and pagination
+      visitsQuery = visitsQuery
+        .orderBy(desc(visits.checkInTime))
+        .limit(limit)
+        .offset(offset);
+      
+      // Get the visits
+      const completedVisits = await visitsQuery;
+      
+      // If no visits, return empty array
+      if (completedVisits.length === 0) {
+        return [];
+      }
+      
+      // Get all visitor IDs from the visits
+      const visitorIds = completedVisits.map(visit => visit.visitorId);
+      
+      // Get all visitors in one query
+      const allVisitors = await db
+        .select()
+        .from(visitors)
+        .where(sql`${visitors.id} IN (${visitorIds.join(',')})`);
+      
+      // Create a map of visitor ID to visitor object for quick lookup
+      const visitorMap = new Map<number, Visitor>();
+      allVisitors.forEach(visitor => {
+        visitorMap.set(visitor.id, visitor);
+      });
+      
+      // Combine visits with their visitors
+      return completedVisits.map(visit => ({
+        visit,
+        visitor: visitorMap.get(visit.visitorId)!
+      }));
+    } catch (error) {
+      console.error("Error getting completed visits:", error);
+      return [];
+    }
+  }
+  
+  async getVisitorStats(dateFrom: Date, dateTo: Date): Promise<{
+    totalVisits: number;
+    uniqueVisitors: number;
+    averageDuration: number;
+    visitsByDay: Array<{date: string, count: number}>;
+    visitsByPurpose: Array<{purpose: string, count: number}>;
+    visitsByMunicipality: Array<{municipality: string, count: number}>;
+    visitsByGender: Array<{gender: string, count: number}>;
+    verifiedPercentage: number;
+  }> {
+    try {
+      // Get all visits within the date range
+      const allVisits = await db
+        .select()
+        .from(visits)
+        .where(
+          and(
+            sql`${visits.checkInTime} >= ${dateFrom}`,
+            sql`${visits.checkInTime} <= ${dateTo}`
+          )
+        );
+      
+      // Get total visits
+      const totalVisits = allVisits.length;
+      
+      // Get unique visitor IDs
+      const uniqueVisitorIds = new Set(allVisits.map(visit => visit.visitorId));
+      const uniqueVisitors = uniqueVisitorIds.size;
+      
+      // Calculate average duration for visits that have been checked out
+      const completedVisits = allVisits.filter(visit => visit.checkOutTime);
+      let totalDurationMs = 0;
+      
+      completedVisits.forEach(visit => {
+        if (visit.checkOutTime && visit.checkInTime) {
+          const duration = new Date(visit.checkOutTime).getTime() - new Date(visit.checkInTime).getTime();
+          totalDurationMs += duration;
+        }
+      });
+      
+      const averageDuration = completedVisits.length > 0 
+        ? Math.floor(totalDurationMs / completedVisits.length / 60000) // in minutes
+        : 0;
+      
+      // Get visits by day
+      const visitsByDayMap = new Map<string, number>();
+      allVisits.forEach(visit => {
+        const dateStr = new Date(visit.checkInTime).toISOString().split('T')[0];
+        visitsByDayMap.set(dateStr, (visitsByDayMap.get(dateStr) || 0) + 1);
+      });
+      
+      const visitsByDay = Array.from(visitsByDayMap.entries())
+        .map(([date, count]) => ({ date, count }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+      
+      // Get all visitors for further analysis
+      const visitorIds = Array.from(uniqueVisitorIds);
+      const allVisitors = await db
+        .select()
+        .from(visitors)
+        .where(sql`${visitors.id} IN (${visitorIds.join(',')})`);
+      
+      // Count by purpose
+      const purposeCount = new Map<string, number>();
+      allVisits.forEach(visit => {
+        const purpose = visit.purpose || 'Not specified';
+        purposeCount.set(purpose, (purposeCount.get(purpose) || 0) + 1);
+      });
+      
+      const visitsByPurpose = Array.from(purposeCount.entries())
+        .map(([purpose, count]) => ({ purpose, count }))
+        .sort((a, b) => b.count - a.count);
+      
+      // Count by municipality
+      const municipalityCount = new Map<string, number>();
+      allVisitors.forEach(visitor => {
+        const municipality = visitor.municipality || 'Not specified';
+        municipalityCount.set(municipality, (municipalityCount.get(municipality) || 0) + 1);
+      });
+      
+      const visitsByMunicipality = Array.from(municipalityCount.entries())
+        .map(([municipality, count]) => ({ municipality, count }))
+        .sort((a, b) => b.count - a.count);
+      
+      // Count by gender
+      const genderCount = new Map<string, number>();
+      allVisitors.forEach(visitor => {
+        const gender = visitor.sex || 'Not specified';
+        genderCount.set(gender, (genderCount.get(gender) || 0) + 1);
+      });
+      
+      const visitsByGender = Array.from(genderCount.entries())
+        .map(([gender, count]) => ({ gender, count }))
+        .sort((a, b) => b.count - a.count);
+      
+      // Calculate verified percentage
+      const verifiedCount = allVisitors.filter(visitor => visitor.verified).length;
+      const verifiedPercentage = allVisitors.length > 0 
+        ? Math.round((verifiedCount / allVisitors.length) * 100) 
+        : 0;
+      
+      return {
+        totalVisits,
+        uniqueVisitors,
+        averageDuration,
+        visitsByDay,
+        visitsByPurpose,
+        visitsByMunicipality,
+        visitsByGender,
+        verifiedPercentage
+      };
+    } catch (error) {
+      console.error("Error getting visitor stats:", error);
+      return {
+        totalVisits: 0,
+        uniqueVisitors: 0,
+        averageDuration: 0,
+        visitsByDay: [],
+        visitsByPurpose: [],
+        visitsByMunicipality: [],
+        visitsByGender: [],
+        verifiedPercentage: 0
+      };
     }
   }
 }
