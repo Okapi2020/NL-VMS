@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import "./migrate"; // Run migrations on startup
+import { migrateDatabase } from "./migrate"; // Import the migration function
 import { setupMidnightCheckout } from "./scheduler"; // Import the auto-checkout scheduler
 
 const app = express();
@@ -39,6 +39,9 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Run the database migrations
+  await migrateDatabase();
+  
   // Initialize the auto-checkout scheduler
   const checkoutScheduler = setupMidnightCheckout();
   

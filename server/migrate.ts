@@ -1,138 +1,21 @@
 import { db } from "./db";
 import { sql } from "drizzle-orm";
-import { seedDatabase } from "./seed";
 
-async function migrate() {
+export async function migrateDatabase() {
   console.log("Running database migrations...");
   
   try {
-    // Add 'deleted' column to visitors table if it doesn't exist
+    // Add API columns to settings table if they don't exist
     await db.execute(sql`
-      DO $$ 
-      BEGIN 
-        IF NOT EXISTS (
-          SELECT 1 
-          FROM information_schema.columns 
-          WHERE table_name = 'visitors' AND column_name = 'deleted'
-        ) THEN 
-          ALTER TABLE visitors ADD COLUMN deleted BOOLEAN NOT NULL DEFAULT false;
-        END IF;
-      END $$;
-    `);
-    
-    // Add 'visit_count' column to visitors table if it doesn't exist
-    await db.execute(sql`
-      DO $$ 
-      BEGIN 
-        IF NOT EXISTS (
-          SELECT 1 
-          FROM information_schema.columns 
-          WHERE table_name = 'visitors' AND column_name = 'visit_count'
-        ) THEN 
-          ALTER TABLE visitors ADD COLUMN visit_count INTEGER NOT NULL DEFAULT 0;
-        END IF;
-      END $$;
-    `);
-    
-    // Add 'preferred_language' column to admins table if it doesn't exist
-    await db.execute(sql`
-      DO $$ 
-      BEGIN 
-        IF NOT EXISTS (
-          SELECT 1 
-          FROM information_schema.columns 
-          WHERE table_name = 'admins' AND column_name = 'preferred_language'
-        ) THEN 
-          ALTER TABLE admins ADD COLUMN preferred_language VARCHAR(10) NOT NULL DEFAULT 'en';
-        END IF;
-      END $$;
-    `);
-    
-    // Add 'default_language' column to settings table if it doesn't exist
-    await db.execute(sql`
-      DO $$ 
-      BEGIN 
-        IF NOT EXISTS (
-          SELECT 1 
-          FROM information_schema.columns 
-          WHERE table_name = 'settings' AND column_name = 'default_language'
-        ) THEN 
-          ALTER TABLE settings ADD COLUMN default_language VARCHAR(10) NOT NULL DEFAULT 'en';
-        END IF;
-      END $$;
-    `);
-    
-    // Create settings table if it doesn't exist with all columns
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS settings (
-        id SERIAL PRIMARY KEY,
-        app_name VARCHAR(255) NOT NULL DEFAULT 'Visitor Management System',
-        header_app_name VARCHAR(255),
-        footer_app_name VARCHAR(255),
-        logo_url TEXT,
-        country_code VARCHAR(10) NOT NULL DEFAULT '243',
-        theme VARCHAR(10) NOT NULL DEFAULT 'light',
-        admin_theme VARCHAR(10) NOT NULL DEFAULT 'light',
-        visitor_theme VARCHAR(10) NOT NULL DEFAULT 'light',
-        default_language VARCHAR(10) NOT NULL DEFAULT 'en',
-        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-      );
-    `);
-    
-    // Create initial settings record if none exists with all fields
-    await db.execute(sql`
-      INSERT INTO settings (
-        app_name, 
-        header_app_name, 
-        footer_app_name, 
-        logo_url, 
-        country_code, 
-        theme, 
-        admin_theme, 
-        visitor_theme,
-        default_language
-      )
-      SELECT 
-        'Visitor Management System', 
-        'Visitor Management System',
-        'Visitor Management System',
-        NULL, 
-        '243', 
-        'light', 
-        'light', 
-        'light',
-        'en'
-      WHERE NOT EXISTS (SELECT 1 FROM settings);
-    `);
-    
-    // Create visitor_reports table if it doesn't exist
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS visitor_reports (
-        id SERIAL PRIMARY KEY,
-        visitor_id INTEGER NOT NULL REFERENCES visitors(id),
-        admin_id INTEGER NOT NULL REFERENCES admins(id),
-        report_type VARCHAR(50) NOT NULL,
-        description TEXT NOT NULL,
-        severity_level VARCHAR(20) NOT NULL,
-        status VARCHAR(20) NOT NULL DEFAULT 'Open',
-        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-        resolution_date TIMESTAMP,
-        resolution_notes TEXT
-      );
+      ALTER TABLE settings 
+      ADD COLUMN IF NOT EXISTS api_key VARCHAR(255) DEFAULT 'vms-dev-api-key-2025' NOT NULL,
+      ADD COLUMN IF NOT EXISTS api_enabled BOOLEAN DEFAULT FALSE NOT NULL;
     `);
     
     console.log("Migration completed successfully!");
-    
-    // Run seed after migration is successful
-    await seedDatabase();
-    console.log("Initial database seed check completed");
-    
+    return true;
   } catch (error) {
     console.error("Migration error:", error);
+    return false;
   }
 }
-
-// Self-executing function when this file is imported
-migrate().catch(console.error);
-
-export default migrate;
