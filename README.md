@@ -2,6 +2,8 @@
 
 A comprehensive visitor management solution designed to streamline visitor interactions with advanced administrative controls and real-time insights. This enterprise-grade application provides a modern, secure, and efficient way to register, track, and manage visitors across your organization.
 
+**[View API Documentation](API_DOCUMENTATION.md)** | **[Installation Instructions](#installation)** | **[Features](#key-features)**
+
 ## Overview
 
 The Visitor Management System is built to simplify visitor check-in, enhance security, and streamline client reception at organizations. The system provides real-time tracking of visitors, comprehensive reporting, and an intuitive interface for both administrators and front-desk staff.
@@ -134,6 +136,8 @@ The VMS can be integrated with other systems through its API:
 - **REST API**: Connect to external systems via secure API endpoints
 - **Authentication**: API key-based authentication for secure access
 - **Webhooks**: Configure webhooks for real-time updates to external systems
+
+For detailed API documentation including endpoints, authentication, request/response formats, and Laravel integration examples, see the [API Documentation](API_DOCUMENTATION.md).
 
 ## Data Model
 
