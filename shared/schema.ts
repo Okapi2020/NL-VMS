@@ -262,6 +262,9 @@ export const settings = pgTable("settings", {
   defaultLanguage: varchar("default_language", { length: 10 }).default("en").notNull(),
   // Keep legacy theme field for backward compatibility
   theme: varchar("theme", { length: 10 }).default("light").notNull(),
+  // API credentials settings
+  apiKey: varchar("api_key", { length: 255 }).default("vms-dev-api-key-2025").notNull(),
+  apiEnabled: boolean("api_enabled").default(false).notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
@@ -275,6 +278,8 @@ export const insertSettingsSchema = createInsertSchema(settings).pick({
   visitorTheme: true,
   defaultLanguage: true,
   theme: true, // Include the legacy theme field as well
+  apiKey: true,
+  apiEnabled: true,
 });
 
 export const updateSettingsSchema = z.object({
@@ -296,6 +301,9 @@ export const updateSettingsSchema = z.object({
   theme: z.enum(["light", "dark", "twilight", "system"], {
     errorMap: () => ({ message: "Theme must be light, dark, twilight, or system" }),
   }).optional(),
+  // API settings
+  apiKey: z.string().min(10, "API key must be at least 10 characters").optional(),
+  apiEnabled: z.boolean().optional(),
 });
 
 export type Settings = typeof settings.$inferSelect;

@@ -640,6 +640,9 @@ export class DatabaseStorage implements IStorage {
           footerAppName: updateData.footerAppName || existingSettings.footerAppName || updateData.appName || existingSettings.appName,
           // Set defaultLanguage if not provided
           defaultLanguage: updateData.defaultLanguage || existingSettings.defaultLanguage,
+          // Set API settings if provided or keep existing ones
+          apiKey: updateData.apiKey || existingSettings.apiKey,
+          apiEnabled: updateData.apiEnabled !== undefined ? updateData.apiEnabled : existingSettings.apiEnabled,
           updatedAt: new Date() 
         };
         
@@ -698,6 +701,8 @@ export class DatabaseStorage implements IStorage {
           adminTheme: customSettings?.adminTheme || themeValue, // Admin theme
           visitorTheme: customSettings?.visitorTheme || themeValue, // Visitor theme
           defaultLanguage: customSettings?.defaultLanguage || "en", // Default language
+          apiKey: customSettings?.apiKey || "vms-dev-api-key-2025", // Default API key
+          apiEnabled: customSettings?.apiEnabled !== undefined ? customSettings.apiEnabled : false, // Default to disabled
         })
         .returning();
       
