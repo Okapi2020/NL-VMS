@@ -18,6 +18,21 @@ import { fromZodError } from "zod-validation-error";
 import { seedDatabase } from "./seed";
 import { WebSocketServer, WebSocket } from 'ws';
 
+// Middleware for API key authentication
+const validateApiKey = (req: Request, res: Response, next: NextFunction) => {
+  const apiKey = req.headers['x-api-key'];
+  
+  // In development mode, use a default API key
+  const isDevelopment = process.env.NODE_ENV !== 'production';
+  const validApiKey = process.env.EXTERNAL_API_KEY || 'vms-dev-api-key-2025';
+  
+  if (apiKey === validApiKey) {
+    next();
+  } else {
+    return res.status(401).json({ error: 'Unauthorized: Invalid API key' });
+  }
+};
+
 // Middleware to ensure user is authenticated
 const ensureAuthenticated = (req: Request, res: Response, next: NextFunction) => {
   // In development mode, auto-authenticate
