@@ -8,9 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Switch } from "@/components/ui/switch";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, Moon, Sun, Laptop, SunDim } from "lucide-react";
+import { Loader2, Upload, Moon, Sun, Laptop, SunDim, Key, Shield } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
 
 // Settings schema for the form
@@ -42,6 +43,9 @@ const settingsSchema = z.object({
   theme: z.enum(["light", "dark", "twilight", "system"], {
     errorMap: () => ({ message: "Theme must be light, dark, twilight, or system" }),
   }).optional(),
+  // API settings
+  apiKey: z.string().min(10, "API key must be at least 10 characters").optional(),
+  apiEnabled: z.boolean().optional(),
 });
 
 type SettingsFormValues = z.infer<typeof settingsSchema>;
@@ -101,6 +105,8 @@ export function AdminSettings() {
       visitorTheme: "light" as const,
       defaultLanguage: "en" as const,
       theme: "light" as const,
+      apiKey: "vms-dev-api-key-2025",
+      apiEnabled: false,
     },
   });
 
@@ -118,6 +124,9 @@ export function AdminSettings() {
         visitorTheme: (settings.visitorTheme || settings.theme) as "light" | "dark" | "twilight" | "system",
         defaultLanguage: (settings.defaultLanguage || "en") as "en" | "fr",
         theme: settings.theme as "light" | "dark" | "twilight" | "system",
+        // API settings
+        apiKey: settings.apiKey || "vms-dev-api-key-2025",
+        apiEnabled: settings.apiEnabled !== undefined ? settings.apiEnabled : false,
       });
     }
   }, [settings, form]);
