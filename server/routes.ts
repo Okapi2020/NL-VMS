@@ -232,6 +232,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Regenerate API key endpoint
+  app.post("/api/settings/regenerate-api-key", ensureAuthenticated, async (req, res) => {
+    try {
+      // Generate a new random API key
+      const generateApiKey = () => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        const prefix = 'vms-';
+        let key = prefix;
+        
+        // Generate a random string of 32 characters
+        for (let i = 0; i < 32; i++) {
+          key += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        
+        return key;
+      };
+      
+      // Get current settings
+      const settings = await storage.getSettings();
+      
+      if (!settings) {
+        return res.status(404).json({ message: "Settings not found" });
+      }
+      
+      // Generate new API key
+      const newApiKey = generateApiKey();
+      
+      // Update settings with new API key
+      const updatedSettings = await storage.updateSettings({
+        ...settings,
+        apiKey: newApiKey
+      });
+      
+      if (!updatedSettings) {
+        return res.status(500).json({ message: "Failed to update API key" });
+      }
+      
+      // Log the action
+      await storage.createSystemLog({
+        action: "API_KEY_REGENERATED",
+        details: "API key has been regenerated",
+        userId: req.user?.id || null
+      });
+      
+      // Return the new API key
+      res.status(200).json({ 
+        apiKey: newApiKey,
+        message: "API key regenerated successfully" 
+      });
+    } catch (error) {
+      console.error("Error regenerating API key:", error);
+      res.status(500).json({ message: "Failed to regenerate API key" });
+    }
+  });
+  
   app.post("/api/settings", ensureAuthenticated, async (req, res) => {
     try {
       if (!req.body) {
@@ -1980,7 +2035,13 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
   // ==========================================================================
   
   // Get all visitors with pagination and filtering options
-  app.get("/api/external/visitors", validateApiKey, async (req, res) => {
+  app.get("/api/external/visitors", async (req, res, next) => {
+    try {
+      await validateApiKey(req, res, next);
+    } catch (error) {
+      return; // Error response already sent by middleware
+    }
+  }, async (req, res) => {
     try {
       console.log("External API: Request for all visitors received");
       
@@ -2024,7 +2085,13 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
   });
   
   // Get a specific visitor by ID
-  app.get("/api/external/visitors/:id", validateApiKey, async (req, res) => {
+  app.get("/api/external/visitors/:id", async (req, res, next) => {
+    try {
+      await validateApiKey(req, res, next);
+    } catch (error) {
+      return; // Error response already sent by middleware
+    }
+  }, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       
@@ -2046,7 +2113,13 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
   });
   
   // Get all visits with pagination and filtering options
-  app.get("/api/external/visits", validateApiKey, async (req, res) => {
+  app.get("/api/external/visits", async (req, res, next) => {
+    try {
+      await validateApiKey(req, res, next);
+    } catch (error) {
+      return; // Error response already sent by middleware
+    }
+  }, async (req, res) => {
     try {
       console.log("External API: Request for all visits received");
       
@@ -2100,7 +2173,13 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
   });
   
   // Get visitor statistics and analytics
-  app.get("/api/external/statistics", validateApiKey, async (req, res) => {
+  app.get("/api/external/statistics", async (req, res, next) => {
+    try {
+      await validateApiKey(req, res, next);
+    } catch (error) {
+      return; // Error response already sent by middleware
+    }
+  }, async (req, res) => {
     try {
       console.log("External API: Request for statistics received");
       
@@ -2133,7 +2212,13 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
   });
   
   // API endpoint documentation
-  app.get("/api/external", validateApiKey, (req, res) => {
+  app.get("/api/external", async (req, res, next) => {
+    try {
+      await validateApiKey(req, res, next);
+    } catch (error) {
+      return; // Error response already sent by middleware
+    }
+  }, (req, res) => {
     res.json({
       name: "Visitor Management System API",
       version: "1.0",
