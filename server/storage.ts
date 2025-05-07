@@ -669,6 +669,8 @@ export class DatabaseStorage implements IStorage {
               admin_theme VARCHAR(10) NOT NULL DEFAULT 'light',
               visitor_theme VARCHAR(10) NOT NULL DEFAULT 'light',
               default_language VARCHAR(10) NOT NULL DEFAULT 'en',
+              api_key VARCHAR(255) NOT NULL DEFAULT 'vms-dev-api-key-2025',
+              api_enabled BOOLEAN NOT NULL DEFAULT false,
               updated_at TIMESTAMP NOT NULL DEFAULT NOW()
             );
           `);
