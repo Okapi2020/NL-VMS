@@ -47,6 +47,13 @@ export interface IStorage {
   permanentlyDeleteVisitor(id: number): Promise<boolean>;
   emptyRecycleBin(): Promise<boolean>;
   incrementVisitCount(visitorId: number): Promise<Visitor | undefined>;
+  getOnsiteVisitors(options: {
+    page?: number;
+    limit?: number;
+    sortBy?: string;
+    sortOrder?: string;
+  }): Promise<Visitor[]>;
+  getOnsiteVisitorCount(): Promise<number>;
   
   // External API methods
   getAllVisitorsWithFilters(options: {
@@ -841,6 +848,8 @@ export class DatabaseStorage implements IStorage {
     verified?: boolean;
     sortBy?: string;
     sortOrder?: string;
+    modifiedSince?: Date;
+    searchPartial?: boolean;
   }): Promise<Visitor[]> {
     try {
       const {
@@ -849,7 +858,9 @@ export class DatabaseStorage implements IStorage {
         name,
         verified,
         sortBy = 'id',
-        sortOrder = 'desc'
+        sortOrder = 'desc',
+        modifiedSince,
+        searchPartial = false
       } = options;
       
       // Calculate offset for pagination
@@ -861,9 +872,20 @@ export class DatabaseStorage implements IStorage {
         .from(visitors)
         .where(eq(visitors.deleted, false));
       
+      // Add modifiedSince filter if provided
+      if (modifiedSince) {
+        query = query.where(sql`${visitors.updatedAt} > ${modifiedSince}`);
+      }
+      
       // Add name filter if provided
       if (name) {
-        query = query.where(sql`${visitors.fullName} ILIKE ${`%${name}%`}`);
+        if (searchPartial) {
+          // Use partial matching (case-insensitive)
+          query = query.where(sql`${visitors.fullName} ILIKE ${`%${name}%`}`);
+        } else {
+          // Use exact matching (case-insensitive)
+          query = query.where(sql`LOWER(${visitors.fullName}) = LOWER(${name})`);
+        }
       }
       
       // Add verified filter if provided
@@ -1013,6 +1035,111 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error getting completed visits:", error);
       return [];
+    }
+  }
+  
+  async getOnsiteVisitors(options: {
+    page?: number;
+    limit?: number;
+    sortBy?: string;
+    sortOrder?: string;
+  }): Promise<Visitor[]> {
+    try {
+      const {
+        page = 1,
+        limit = 100,
+        sortBy = 'id',
+        sortOrder = 'desc'
+      } = options;
+      
+      // Calculate offset for pagination
+      const offset = (page - 1) * limit;
+      
+      // First, find all active visits
+      const activeVisits = await db
+        .select()
+        .from(visits)
+        .where(eq(visits.active, true));
+      
+      // If no active visits, return empty array
+      if (activeVisits.length === 0) {
+        return [];
+      }
+      
+      // Get the visitor IDs from active visits
+      const visitorIds = activeVisits.map(visit => visit.visitorId);
+      
+      // Get all visitors that are currently onsite
+      let query = db
+        .select()
+        .from(visitors)
+        .where(
+          and(
+            sql`${visitors.id} IN (${visitorIds.join(',')})`,
+            eq(visitors.deleted, false)
+          )
+        );
+      
+      // Add sorting
+      if (sortBy && sortOrder) {
+        // Handle different sort fields
+        if (sortBy === 'id' && sortOrder === 'desc') {
+          query = query.orderBy(desc(visitors.id));
+        } else if (sortBy === 'id') {
+          query = query.orderBy(visitors.id);
+        } else if (sortBy === 'name' && sortOrder === 'desc') {
+          query = query.orderBy(desc(visitors.fullName));
+        } else if (sortBy === 'name') {
+          query = query.orderBy(visitors.fullName);
+        } else if (sortBy === 'visits' && sortOrder === 'desc') {
+          query = query.orderBy(desc(visitors.visitCount));
+        } else if (sortBy === 'visits') {
+          query = query.orderBy(visitors.visitCount);
+        }
+      }
+      
+      // Add pagination
+      query = query.limit(limit).offset(offset);
+      
+      // Execute the query
+      return await query;
+    } catch (error) {
+      console.error("Error getting onsite visitors:", error);
+      return [];
+    }
+  }
+  
+  async getOnsiteVisitorCount(): Promise<number> {
+    try {
+      // First, find all active visits
+      const activeVisits = await db
+        .select()
+        .from(visits)
+        .where(eq(visits.active, true));
+      
+      // If no active visits, return 0
+      if (activeVisits.length === 0) {
+        return 0;
+      }
+      
+      // Get the visitor IDs from active visits
+      const visitorIds = activeVisits.map(visit => visit.visitorId);
+      
+      // Count all visitors that are currently onsite
+      const result = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(visitors)
+        .where(
+          and(
+            sql`${visitors.id} IN (${visitorIds.join(',')})`,
+            eq(visitors.deleted, false)
+          )
+        );
+      
+      return result[0]?.count || 0;
+    } catch (error) {
+      console.error("Error getting onsite visitor count:", error);
+      return 0;
     }
   }
   

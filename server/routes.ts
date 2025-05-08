@@ -2034,6 +2034,49 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
   // EXTERNAL API ENDPOINTS FOR INTEGRATION WITH OTHER APPLICATIONS (E.G. LARAVEL)
   // ==========================================================================
   
+  // Get only visitors who are currently onsite
+  app.get("/api/external/visitors/onsite", async (req, res, next) => {
+    try {
+      await validateApiKey(req, res, next);
+    } catch (error) {
+      return; // Error response already sent by middleware
+    }
+  }, async (req, res) => {
+    try {
+      console.log("External API: Request for onsite visitors received");
+      
+      // Parse query parameters for filtering and pagination
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 100;
+      const sortBy = req.query.sortBy as string || 'id';
+      const sortOrder = req.query.sortOrder as string || 'asc';
+      
+      // Get visitors with is_onsite flag set to true
+      const onsiteVisitors = await storage.getOnsiteVisitors({
+        page,
+        limit,
+        sortBy,
+        sortOrder
+      });
+      
+      // Get total count of onsite visitors for pagination
+      const totalCount = await storage.getOnsiteVisitorCount();
+      
+      return res.json({
+        data: onsiteVisitors,
+        pagination: {
+          page,
+          limit,
+          total: totalCount,
+          totalPages: Math.ceil(totalCount / limit)
+        }
+      });
+    } catch (error) {
+      console.error("External API error - getOnsiteVisitors:", error);
+      return res.status(500).json({ error: "Failed to fetch onsite visitors" });
+    }
+  });
+  
   // Get all visitors with pagination and filtering options
   app.get("/api/external/visitors", async (req, res, next) => {
     try {
@@ -2052,6 +2095,12 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
       const verified = req.query.verified === 'true';
       const sortBy = req.query.sortBy as string || 'id';
       const sortOrder = req.query.sortOrder as string || 'asc';
+      const modifiedSince = req.query.modifiedSince ? new Date(req.query.modifiedSince as string) : undefined;
+      const searchPartial = req.query.searchPartial === 'true';
+      
+      // Check settings to see if partial search is enabled
+      const settings = await storage.getSettings();
+      const enablePartialSearch = settings?.enablePartialSearch || false;
       
       // Get all visitors with possible filters
       const visitors = await storage.getAllVisitorsWithFilters({
@@ -2061,6 +2110,8 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
         verified: req.query.verified !== undefined ? verified : undefined,
         sortBy,
         sortOrder,
+        modifiedSince,
+        searchPartial: searchPartial && enablePartialSearch,
       });
       
       // Get total count for pagination
@@ -2233,6 +2284,19 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
             { name: "limit", type: "number", description: "Number of records per page" },
             { name: "name", type: "string", description: "Filter by visitor name" },
             { name: "verified", type: "boolean", description: "Filter by verification status" },
+            { name: "sortBy", type: "string", description: "Field to sort by" },
+            { name: "sortOrder", type: "string", description: "Sort order (asc/desc)" },
+            { name: "modifiedSince", type: "date", description: "Filter for visitors modified after this date (ISO format)" },
+            { name: "searchPartial", type: "boolean", description: "Enable partial name matching for search (if allowed in settings)" }
+          ]
+        },
+        { 
+          path: "/api/external/visitors/onsite", 
+          method: "GET", 
+          description: "Get only visitors who are currently onsite",
+          parameters: [
+            { name: "page", type: "number", description: "Page number for pagination" },
+            { name: "limit", type: "number", description: "Number of records per page" },
             { name: "sortBy", type: "string", description: "Field to sort by" },
             { name: "sortOrder", type: "string", description: "Sort order (asc/desc)" }
           ]
