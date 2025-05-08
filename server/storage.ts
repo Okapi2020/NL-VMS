@@ -15,6 +15,12 @@ import {
   type InsertVisitorReport, 
   type UpdateVisitorReport 
 } from "@shared/schema";
+import {
+  webhooks,
+  type Webhook,
+  type InsertWebhook,
+  type UpdateWebhook
+} from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull } from "drizzle-orm";
 import { sql } from "drizzle-orm/sql/sql";
@@ -54,6 +60,14 @@ export interface IStorage {
     sortOrder?: string;
   }): Promise<Visitor[]>;
   getOnsiteVisitorCount(): Promise<number>;
+  
+  // Webhook methods
+  getWebhooks(): Promise<Webhook[]>;
+  getWebhook(id: number): Promise<Webhook | undefined>;
+  createWebhook(webhook: InsertWebhook): Promise<Webhook>;
+  updateWebhook(webhook: UpdateWebhook): Promise<Webhook | undefined>;
+  deleteWebhook(id: number): Promise<boolean>;
+  recordWebhookCall(id: number, success: boolean): Promise<boolean>;
   
   // External API methods
   getAllVisitorsWithFilters(options: {
@@ -1140,6 +1154,155 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error getting onsite visitor count:", error);
       return 0;
+    }
+  }
+  
+  // Webhook methods
+  async getWebhooks(): Promise<Webhook[]> {
+    try {
+      return await db
+        .select()
+        .from(webhooks)
+        .orderBy(desc(webhooks.id));
+    } catch (error) {
+      console.error("Error getting webhooks:", error);
+      return [];
+    }
+  }
+  
+  async getWebhook(id: number): Promise<Webhook | undefined> {
+    try {
+      const [webhook] = await db
+        .select()
+        .from(webhooks)
+        .where(eq(webhooks.id, id));
+      return webhook;
+    } catch (error) {
+      console.error(`Error getting webhook with ID ${id}:`, error);
+      return undefined;
+    }
+  }
+  
+  async createWebhook(webhook: InsertWebhook): Promise<Webhook> {
+    try {
+      const [createdWebhook] = await db
+        .insert(webhooks)
+        .values(webhook)
+        .returning();
+      
+      // Create a system log about this action
+      await this.createSystemLog({
+        action: "CREATE_WEBHOOK",
+        details: `Created webhook with URL: ${webhook.url}`,
+        userId: webhook.createdById || undefined,
+        affectedRecords: 1
+      });
+      
+      return createdWebhook;
+    } catch (error) {
+      console.error("Error creating webhook:", error);
+      throw error;
+    }
+  }
+  
+  async updateWebhook(webhook: UpdateWebhook): Promise<Webhook | undefined> {
+    try {
+      const [updatedWebhook] = await db
+        .update(webhooks)
+        .set({
+          url: webhook.url,
+          description: webhook.description,
+          secretKey: webhook.secretKey,
+          events: webhook.events,
+          active: webhook.active,
+        })
+        .where(eq(webhooks.id, webhook.id))
+        .returning();
+      
+      // Create a system log about this action
+      await this.createSystemLog({
+        action: "UPDATE_WEBHOOK",
+        details: `Updated webhook ID ${webhook.id}`,
+        affectedRecords: 1
+      });
+      
+      return updatedWebhook;
+    } catch (error) {
+      console.error(`Error updating webhook with ID ${webhook.id}:`, error);
+      return undefined;
+    }
+  }
+  
+  async deleteWebhook(id: number): Promise<boolean> {
+    try {
+      await db
+        .delete(webhooks)
+        .where(eq(webhooks.id, id));
+      
+      // Create a system log about this action
+      await this.createSystemLog({
+        action: "DELETE_WEBHOOK",
+        details: `Deleted webhook with ID ${id}`,
+        affectedRecords: 1
+      });
+      
+      return true;
+    } catch (error) {
+      console.error(`Error deleting webhook with ID ${id}:`, error);
+      return false;
+    }
+  }
+  
+  async recordWebhookCall(id: number, success: boolean): Promise<boolean> {
+    try {
+      if (success) {
+        // Reset fail count and update last called time
+        await db
+          .update(webhooks)
+          .set({
+            lastCalledAt: new Date(),
+            failCount: 0
+          })
+          .where(eq(webhooks.id, id));
+      } else {
+        // Increment fail count and update last called time
+        const [webhook] = await db
+          .select()
+          .from(webhooks)
+          .where(eq(webhooks.id, id));
+        
+        if (webhook) {
+          await db
+            .update(webhooks)
+            .set({
+              lastCalledAt: new Date(),
+              failCount: webhook.failCount + 1
+            })
+            .where(eq(webhooks.id, id));
+            
+          // If we've exceeded the max retry count, deactivate the webhook
+          if (webhook.failCount >= 5) {  // Default max 5 failures before deactivation
+            await db
+              .update(webhooks)
+              .set({
+                active: false
+              })
+              .where(eq(webhooks.id, id));
+              
+            // Log this deactivation
+            await this.createSystemLog({
+              action: "DEACTIVATE_WEBHOOK",
+              details: `Webhook ${id} deactivated due to exceeding maximum failure count`,
+              affectedRecords: 1
+            });
+          }
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      console.error(`Error recording webhook call for ID ${id}:`, error);
+      return false;
     }
   }
   
