@@ -100,6 +100,94 @@ const handleZodError = (error: unknown, res: Response) => {
   return res.status(500).json({ message: "Internal Server Error" });
 };
 
+// Helper function to dispatch webhooks for visitor events
+const dispatchWebhooks = async (event: string, data: any, visitor?: Visitor) => {
+  try {
+    // Check if webhooks are enabled in settings
+    const settings = await storage.getSettings();
+    if (!settings?.webhooksEnabled) {
+      console.log(`Webhooks disabled in settings. Skipping dispatch for event: ${event}`);
+      return;
+    }
+    
+    // Get all active webhooks that are listening for this event
+    const webhooks = await storage.getWebhooks();
+    const relevantWebhooks = webhooks.filter(webhook => 
+      webhook.active && 
+      webhook.events && 
+      (webhook.events.includes(event) || webhook.events.includes('all'))
+    );
+    
+    if (relevantWebhooks.length === 0) {
+      console.log(`No webhooks configured for event: ${event}`);
+      return;
+    }
+    
+    console.log(`Dispatching webhook event ${event} to ${relevantWebhooks.length} endpoints`);
+    
+    // Prepare data for webhook
+    const payload = {
+      event,
+      timestamp: new Date().toISOString(),
+      data,
+      visitor: visitor ? {
+        id: visitor.id,
+        fullName: visitor.fullName,
+        email: visitor.email,
+        phoneNumber: visitor.phoneNumber,
+        verified: visitor.verified,
+        visitCount: visitor.visitCount,
+        isOnsite: visitor.isOnsite
+      } : undefined
+    };
+    
+    // Send the webhook requests in parallel
+    const webhookPromises = relevantWebhooks.map(async webhook => {
+      try {
+        // Add HMAC signature if a secret key is provided
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json'
+        };
+        
+        if (webhook.secretKey) {
+          const crypto = require('crypto');
+          const hmac = crypto.createHmac('sha256', webhook.secretKey);
+          hmac.update(JSON.stringify(payload));
+          const signature = hmac.digest('hex');
+          headers['X-VMS-Signature'] = signature;
+        }
+        
+        headers['X-VMS-Event'] = event;
+        
+        // Send the webhook
+        const response = await fetch(webhook.url, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(payload)
+        });
+        
+        const success = response.ok;
+        console.log(`Webhook ${webhook.id} to ${webhook.url} ${success ? 'succeeded' : 'failed'} with status ${response.status}`);
+        
+        // Record the outcome
+        await storage.recordWebhookCall(webhook.id, success);
+        
+        return { webhookId: webhook.id, success, statusCode: response.status };
+      } catch (error) {
+        console.error(`Error dispatching webhook ${webhook.id} to ${webhook.url}:`, error);
+        await storage.recordWebhookCall(webhook.id, false);
+        return { webhookId: webhook.id, success: false, error: error.message };
+      }
+    });
+    
+    const results = await Promise.all(webhookPromises);
+    console.log(`Webhook dispatch complete for event ${event}:`, results);
+    
+  } catch (error) {
+    console.error(`Error in webhook dispatch for event ${event}:`, error);
+  }
+};
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server first (to be used by WebSocket server)
   const httpServer = createServer(app);
@@ -2338,6 +2426,230 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
       ],
       authentication: "API Key required in X-API-Key header"
     });
+  });
+
+  // Webhook management routes
+  // Get all webhooks
+  app.get("/api/admin/webhooks", ensureAuthenticated, async (req, res) => {
+    try {
+      const webhooks = await storage.getWebhooks();
+      res.status(200).json(webhooks);
+    } catch (error) {
+      console.error("Error fetching webhooks:", error);
+      res.status(500).json({ message: "Failed to fetch webhooks" });
+    }
+  });
+  
+  // Get a single webhook by ID
+  app.get("/api/admin/webhooks/:id", ensureAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid webhook ID" });
+      }
+      
+      const webhook = await storage.getWebhook(id);
+      if (!webhook) {
+        return res.status(404).json({ message: "Webhook not found" });
+      }
+      
+      res.status(200).json(webhook);
+    } catch (error) {
+      console.error(`Error fetching webhook:`, error);
+      res.status(500).json({ message: "Failed to fetch webhook" });
+    }
+  });
+  
+  // Create a new webhook
+  app.post("/api/admin/webhooks", ensureAuthenticated, async (req, res) => {
+    try {
+      // Validate the request body against the schema
+      const webhookData = insertWebhookSchema.parse(req.body);
+      
+      // Add admin ID
+      const data: InsertWebhook = {
+        ...webhookData,
+        createdById: req.user?.id || null
+      };
+      
+      // Create the webhook
+      const webhook = await storage.createWebhook(data);
+      
+      // Log the action
+      await storage.createSystemLog({
+        action: "CREATE_WEBHOOK",
+        details: `Created webhook for URL: ${webhook.url}`,
+        userId: req.user?.id || null,
+        affectedRecords: 1
+      });
+      
+      res.status(201).json(webhook);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return handleZodError(error, res);
+      }
+      console.error("Error creating webhook:", error);
+      res.status(500).json({ message: "Failed to create webhook" });
+    }
+  });
+  
+  // Update a webhook
+  app.patch("/api/admin/webhooks/:id", ensureAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid webhook ID" });
+      }
+      
+      // Check if webhook exists
+      const existingWebhook = await storage.getWebhook(id);
+      if (!existingWebhook) {
+        return res.status(404).json({ message: "Webhook not found" });
+      }
+      
+      // Validate the request body against the schema
+      const updateData = updateWebhookSchema.parse({
+        id,
+        ...req.body
+      });
+      
+      // Update the webhook
+      const updatedWebhook = await storage.updateWebhook(updateData);
+      if (!updatedWebhook) {
+        return res.status(500).json({ message: "Failed to update webhook" });
+      }
+      
+      // Log the action
+      await storage.createSystemLog({
+        action: "UPDATE_WEBHOOK",
+        details: `Updated webhook ID: ${id}`,
+        userId: req.user?.id || null,
+        affectedRecords: 1
+      });
+      
+      res.status(200).json(updatedWebhook);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return handleZodError(error, res);
+      }
+      console.error(`Error updating webhook:`, error);
+      res.status(500).json({ message: "Failed to update webhook" });
+    }
+  });
+  
+  // Delete a webhook
+  app.delete("/api/admin/webhooks/:id", ensureAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid webhook ID" });
+      }
+      
+      // Check if webhook exists
+      const existingWebhook = await storage.getWebhook(id);
+      if (!existingWebhook) {
+        return res.status(404).json({ message: "Webhook not found" });
+      }
+      
+      // Delete the webhook
+      const success = await storage.deleteWebhook(id);
+      if (!success) {
+        return res.status(500).json({ message: "Failed to delete webhook" });
+      }
+      
+      // Log the action
+      await storage.createSystemLog({
+        action: "DELETE_WEBHOOK",
+        details: `Deleted webhook ID: ${id}`,
+        userId: req.user?.id || null,
+        affectedRecords: 1
+      });
+      
+      res.status(200).json({ message: "Webhook deleted successfully" });
+    } catch (error) {
+      console.error(`Error deleting webhook:`, error);
+      res.status(500).json({ message: "Failed to delete webhook" });
+    }
+  });
+  
+  // Toggle webhook active status
+  app.post("/api/admin/webhooks/:id/toggle", ensureAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid webhook ID" });
+      }
+      
+      // Check if webhook exists
+      const existingWebhook = await storage.getWebhook(id);
+      if (!existingWebhook) {
+        return res.status(404).json({ message: "Webhook not found" });
+      }
+      
+      // Toggle the active status
+      const updateData: UpdateWebhook = {
+        id,
+        url: existingWebhook.url,
+        description: existingWebhook.description,
+        secretKey: existingWebhook.secretKey,
+        events: existingWebhook.events || [],
+        active: !existingWebhook.active
+      };
+      
+      // Update the webhook
+      const updatedWebhook = await storage.updateWebhook(updateData);
+      if (!updatedWebhook) {
+        return res.status(500).json({ message: "Failed to toggle webhook status" });
+      }
+      
+      // Log the action
+      await storage.createSystemLog({
+        action: "TOGGLE_WEBHOOK",
+        details: `Changed webhook ID ${id} status to ${updatedWebhook.active ? 'active' : 'inactive'}`,
+        userId: req.user?.id || null,
+        affectedRecords: 1
+      });
+      
+      res.status(200).json(updatedWebhook);
+    } catch (error) {
+      console.error(`Error toggling webhook status:`, error);
+      res.status(500).json({ message: "Failed to toggle webhook status" });
+    }
+  });
+  
+  // Reset webhook failure count
+  app.post("/api/admin/webhooks/:id/reset", ensureAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid webhook ID" });
+      }
+      
+      // Check if webhook exists
+      const existingWebhook = await storage.getWebhook(id);
+      if (!existingWebhook) {
+        return res.status(404).json({ message: "Webhook not found" });
+      }
+      
+      // Record a successful call to reset the failure count
+      await storage.recordWebhookCall(id, true);
+      
+      // Get the updated webhook
+      const updatedWebhook = await storage.getWebhook(id);
+      
+      // Log the action
+      await storage.createSystemLog({
+        action: "RESET_WEBHOOK_FAILURES",
+        details: `Reset failure count for webhook ID: ${id}`,
+        userId: req.user?.id || null,
+        affectedRecords: 1
+      });
+      
+      res.status(200).json(updatedWebhook);
+    } catch (error) {
+      console.error(`Error resetting webhook failure count:`, error);
+      res.status(500).json({ message: "Failed to reset webhook failure count" });
+    }
   });
 
   // Return the existing httpServer that was initialized at the beginning of the function
