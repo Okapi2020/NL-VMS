@@ -1,0 +1,35 @@
+Current Import Issues:
+Initial Import Success but Subsequent Skipping:
+Your logs show "Import completed: 99 imported, 1 skipped, 0 errors" followed by "Import completed: 0 imported, 100 skipped, 0 errors"
+This suggests the system is correctly identifying already imported visitors, but it might not be detecting changes to existing visitors
+Onsite Status Not Updating:
+The logs show "Total users processed: 0, Marked as onsite: 0, Marked as offsite: 0"
+This indicates that either no visitors have active visits in the VMS system, or there's an issue with matching imported users to VMS visitors
+Improvements for the VMS Side:
+API Consistency and Documentation:
+Ensure the VMS API returns consistent data structures for all endpoints
+Provide clear documentation on what fields are available and their formats
+Include sample responses for each endpoint to help with integration
+Real-time Change Notifications:
+Implement webhooks that can notify your system immediately when a visitor checks in/out
+This would be more efficient than polling the API every minute
+Bulk Data Endpoints:
+Add endpoints that return only changed data since a timestamp
+This would reduce the amount of data transferred and processing required
+Visitor Identification:
+Ensure each visitor has a unique, permanent ID that doesn't change
+Include a "last_modified" timestamp for each visitor to detect changes
+Provide a way to match visitors across systems (email, phone, or other unique identifiers)
+Status Tracking Improvements:
+Add a clear "is_onsite" boolean field to visitor data
+Include timestamps for check-in/check-out events
+Provide a way to query only visitors who are currently onsite
+Search Optimization:
+Improve search capabilities in the API to support partial matches, case-insensitive searches
+Add support for searching by multiple fields simultaneously (name, phone, email)
+Specific Discussion Points for Your VMS Developer:
+"We need a way to efficiently detect changes to visitor data. Could you add a 'last_modified' timestamp to each visitor record?"
+"Our system needs to know immediately when visitors check in or out. Could you implement webhooks that notify our system of these events?"
+"The search functionality seems limited. Could you enhance it to support partial matches and case-insensitive searches?"
+"We're currently polling your API every minute for onsite status. Is there a more efficient way to get this information only when it changes?"
+"The API responses sometimes have inconsistent data structures. Could you ensure all endpoints return consistent JSON formats with all expected fields, even if they're null?"

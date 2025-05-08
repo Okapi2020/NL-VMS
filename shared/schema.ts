@@ -31,6 +31,10 @@ export const visitors = pgTable("visitors", {
   deleted: boolean("deleted").default(false).notNull(),
   visitCount: integer("visit_count").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  isOnsite: boolean("is_onsite").default(false).notNull(),
+  lastVisitId: integer("last_visit_id"),
+  externalId: varchar("external_id", { length: 255 }),
 });
 
 export const visitorsRelations = relations(visitors, ({ many }) => ({
@@ -56,6 +60,10 @@ export const visits = pgTable("visits", {
   checkInTime: timestamp("check_in_time").defaultNow().notNull(),
   checkOutTime: timestamp("check_out_time"),
   active: boolean("active").default(true).notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  notificationSent: boolean("notification_sent").default(false),
+  externalId: varchar("external_id", { length: 255 }),
+  syncStatus: varchar("sync_status", { length: 50 }).default("pending").notNull(),
 });
 
 export const visitsRelations = relations(visits, ({ one }) => ({
@@ -265,6 +273,12 @@ export const settings = pgTable("settings", {
   // API credentials settings
   apiKey: varchar("api_key", { length: 255 }).default("vms-dev-api-key-2025").notNull(),
   apiEnabled: boolean("api_enabled").default(false).notNull(),
+  // Webhook settings
+  webhooksEnabled: boolean("webhooks_enabled").default(false).notNull(),
+  maxWebhookRetries: integer("max_webhook_retries").default(3).notNull(),
+  // API extension settings
+  syncCheckIntervalMinutes: integer("sync_check_interval_minutes").default(15).notNull(),
+  enablePartialSearch: boolean("enable_partial_search").default(true).notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
@@ -280,6 +294,10 @@ export const insertSettingsSchema = createInsertSchema(settings).pick({
   theme: true, // Include the legacy theme field as well
   apiKey: true,
   apiEnabled: true,
+  webhooksEnabled: true,
+  maxWebhookRetries: true,
+  syncCheckIntervalMinutes: true,
+  enablePartialSearch: true,
 });
 
 export const updateSettingsSchema = z.object({
@@ -304,6 +322,12 @@ export const updateSettingsSchema = z.object({
   // API settings
   apiKey: z.string().min(10, "API key must be at least 10 characters").optional(),
   apiEnabled: z.boolean().optional(),
+  // Webhook settings
+  webhooksEnabled: z.boolean().optional(),
+  maxWebhookRetries: z.number().min(1, "Min retries is 1").max(10, "Max retries is 10").optional(),
+  // API extension settings
+  syncCheckIntervalMinutes: z.number().min(5, "Min interval is 5 minutes").max(1440, "Max interval is 1 day").optional(),
+  enablePartialSearch: z.boolean().optional(),
 });
 
 export type Settings = typeof settings.$inferSelect;
@@ -381,3 +405,39 @@ export const updateVisitorReportSchema = z.object({
 export type VisitorReport = typeof visitorReports.$inferSelect;
 export type InsertVisitorReport = z.infer<typeof insertVisitorReportSchema>;
 export type UpdateVisitorReport = z.infer<typeof updateVisitorReportSchema>;
+
+// Webhook configuration for external notifications
+export const webhooks = pgTable("webhooks", {
+  id: serial("id").primaryKey(),
+  url: varchar("url", { length: 255 }).notNull(),
+  description: text("description"),
+  secretKey: varchar("secret_key", { length: 255 }),
+  events: varchar("events", { length: 255 }).array(),
+  active: boolean("active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastCalledAt: timestamp("last_called_at"),
+  failCount: integer("fail_count").default(0).notNull(),
+  createdById: integer("created_by_id").references(() => admins.id),
+});
+
+export const insertWebhookSchema = createInsertSchema(webhooks).pick({
+  url: true,
+  description: true,
+  secretKey: true,
+  events: true,
+  active: true,
+  createdById: true,
+});
+
+export const updateWebhookSchema = z.object({
+  id: z.number(),
+  url: z.string().url("Please enter a valid URL"),
+  description: z.string().optional(),
+  secretKey: z.string().optional(),
+  events: z.array(z.string()),
+  active: z.boolean(),
+});
+
+export type Webhook = typeof webhooks.$inferSelect;
+export type InsertWebhook = z.infer<typeof insertWebhookSchema>;
+export type UpdateWebhook = z.infer<typeof updateWebhookSchema>;
