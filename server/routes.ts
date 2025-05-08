@@ -12,6 +12,7 @@ import {
   insertWebhookSchema,
   updateWebhookSchema,
   type Visitor,
+  type Visit,
   type UpdateAdminLanguage,
   type UpdateVisitPartner,
   type InsertWebhook,
@@ -176,7 +177,8 @@ const dispatchWebhooks = async (event: string, data: any, visitor?: Visitor) => 
       } catch (error) {
         console.error(`Error dispatching webhook ${webhook.id} to ${webhook.url}:`, error);
         await storage.recordWebhookCall(webhook.id, false);
-        return { webhookId: webhook.id, success: false, error: error.message };
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { webhookId: webhook.id, success: false, error: errorMessage };
       }
     });
     
@@ -184,7 +186,8 @@ const dispatchWebhooks = async (event: string, data: any, visitor?: Visitor) => 
     console.log(`Webhook dispatch complete for event ${event}:`, results);
     
   } catch (error) {
-    console.error(`Error in webhook dispatch for event ${event}:`, error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`Error in webhook dispatch for event ${event}:`, errorMessage);
   }
 };
 
@@ -590,18 +593,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }) || visitor;
       
       // Broadcast the check-in notification via WebSocket
-      if (global.broadcastCheckIn) {
+      if (global.broadcastCheckIn && updatedVisitor) {
         global.broadcastCheckIn(updatedVisitor);
       }
       
       // Send webhook notification for check-in event
-      dispatchWebhooks('visitor.checkin', {
-        visitId: visit.id,
-        checkInTime: visit.checkInTime,
-        purpose: 'Returning visitor - direct check-in',
-        visitType: 'Returning visitor',
-        visitCount: updatedVisitor.visitCount
-      }, updatedVisitor);
+      if (updatedVisitor) {
+        dispatchWebhooks('visitor.checkin', {
+          visitId: visit.id,
+          checkInTime: visit.checkInTime,
+          purpose: 'Returning visitor - direct check-in',
+          visitType: 'Returning visitor',
+          visitCount: updatedVisitor.visitCount
+        }, updatedVisitor);
+      }
       
       res.status(201).json({
         visitor: updatedVisitor,
