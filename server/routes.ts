@@ -9,9 +9,13 @@ import {
   updateVisitorSchema,
   updateAdminLanguageSchema,
   updateVisitPartnerSchema,
+  insertWebhookSchema,
+  updateWebhookSchema,
   type Visitor,
   type UpdateAdminLanguage,
-  type UpdateVisitPartner
+  type UpdateVisitPartner,
+  type InsertWebhook,
+  type UpdateWebhook
 } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
