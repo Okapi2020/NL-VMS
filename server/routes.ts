@@ -500,13 +500,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         purpose: formData.purpose || null,
       });
       
+      // Mark visitor as on-site
+      const updatedVisitor = await storage.updateVisitor(visitor.id, { 
+        isOnsite: true,
+        lastVisitId: visit.id 
+      }) || visitor;
+      
       // Broadcast the check-in notification via WebSocket
       if (global.broadcastCheckIn) {
-        global.broadcastCheckIn(visitor, formData.purpose || undefined);
+        global.broadcastCheckIn(updatedVisitor, formData.purpose || undefined);
       }
       
+      // Send webhook notification for check-in event
+      dispatchWebhooks('visitor.checkin', {
+        visitId: visit.id,
+        checkInTime: visit.checkInTime,
+        purpose: formData.purpose || 'Not specified',
+        visitType: isReturningVisitor ? 'Returning visitor' : 'New visitor',
+        visitCount: updatedVisitor.visitCount
+      }, updatedVisitor);
+      
       res.status(201).json({ 
-        visitor, 
+        visitor: updatedVisitor, 
         visit,
         isReturningVisitor 
       });
@@ -550,9 +565,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Increment visit count for returning visitor
-      const updatedVisitor = await storage.incrementVisitCount(visitor.id);
-      if (updatedVisitor) {
-        visitor = updatedVisitor;
+      const incrementedVisitor = await storage.incrementVisitCount(visitor.id);
+      if (incrementedVisitor) {
+        visitor = incrementedVisitor;
       }
       
       // Log the returning visitor for admin awareness
@@ -568,13 +583,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         purpose: null, // No purpose needed for returning visitors with direct check-in
       });
       
+      // Mark visitor as on-site
+      const updatedVisitor = await storage.updateVisitor(visitor.id, { 
+        isOnsite: true,
+        lastVisitId: visit.id 
+      }) || visitor;
+      
       // Broadcast the check-in notification via WebSocket
       if (global.broadcastCheckIn) {
-        global.broadcastCheckIn(visitor);
+        global.broadcastCheckIn(updatedVisitor);
       }
       
+      // Send webhook notification for check-in event
+      dispatchWebhooks('visitor.checkin', {
+        visitId: visit.id,
+        checkInTime: visit.checkInTime,
+        purpose: 'Returning visitor - direct check-in',
+        visitType: 'Returning visitor',
+        visitCount: updatedVisitor.visitCount
+      }, updatedVisitor);
+      
       res.status(201).json({
-        visitor,
+        visitor: updatedVisitor,
         visit,
         isReturningVisitor: true
       });
@@ -608,6 +638,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         checkOutTime: new Date(),
         active: false,
       });
+      
+      if (updatedVisit) {
+        // Get visitor data for the webhook
+        const visitor = await storage.getVisitor(visit.visitorId);
+        
+        if (visitor) {
+          // Mark visitor as no longer on-site
+          const updatedVisitor = await storage.updateVisitor(visitor.id, { 
+            isOnsite: false 
+          }) || visitor;
+          
+          // Send webhook notification for check-out event
+          dispatchWebhooks('visitor.checkout', {
+            visitId: updatedVisit.id,
+            checkInTime: updatedVisit.checkInTime,
+            checkOutTime: updatedVisit.checkOutTime,
+            duration: updatedVisit.checkOutTime 
+              ? Math.floor((updatedVisit.checkOutTime.getTime() - updatedVisit.checkInTime.getTime()) / 1000 / 60) 
+              : 0, // Duration in minutes
+            purpose: updatedVisit.purpose || 'Not specified'
+          }, updatedVisitor);
+        }
+      }
       
       res.status(200).json(updatedVisit);
     } catch (error) {
@@ -699,6 +752,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!updatedVisit) {
         return res.status(404).json({ message: "Visit not found" });
+      }
+      
+      // Get visitor data for the webhook
+      const visitor = await storage.getVisitor(originalVisit.visitorId);
+      
+      if (visitor) {
+        // Mark visitor as no longer on-site
+        const updatedVisitor = await storage.updateVisitor(visitor.id, { isOnsite: false }) || visitor;
+        
+        // Send webhook notification for admin check-out event
+        dispatchWebhooks('visitor.checkout', {
+          visitId: updatedVisit.id,
+          checkInTime: updatedVisit.checkInTime,
+          checkOutTime: updatedVisit.checkOutTime,
+          duration: updatedVisit.checkOutTime 
+            ? Math.floor((updatedVisit.checkOutTime.getTime() - updatedVisit.checkInTime.getTime()) / 1000 / 60) 
+            : 0, // Duration in minutes
+          purpose: updatedVisit.purpose || 'Not specified',
+          checkoutBy: 'admin'
+        }, updatedVisitor);
       }
       
       // If the visit has a partner, also check out the partner visit
