@@ -3257,6 +3257,47 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
     }
   });
   
+  // Test endpoint to trigger a webhook manually for testing
+  app.post("/api/webhooks/test/:event/:visitorId", webhookAuthMiddleware, async (req, res) => {
+    try {
+      const { event, visitorId } = req.params;
+      
+      // Validate event type
+      const validEvents = ["visitor.checkin", "visitor.checkout", "visitor.update", "visitor.verify"];
+      if (!validEvents.includes(event)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid event type. Must be one of: " + validEvents.join(", ")
+        });
+      }
+      
+      // Get the visitor
+      const visitor = await storage.getVisitor(parseInt(visitorId));
+      if (!visitor) {
+        return res.status(404).json({
+          success: false,
+          message: "Visitor not found"
+        });
+      }
+      
+      // Dispatch webhook
+      console.log(`Manually dispatching webhook event ${event} for visitor ${visitorId}`);
+      await dispatchWebhooks(event, { test: true, manual: true }, visitor);
+      
+      return res.status(200).json({ 
+        success: true, 
+        message: `Webhook event ${event} dispatched for visitor ${visitorId}` 
+      });
+    } catch (error) {
+      console.error("Error dispatching test webhook:", error);
+      return res.status(500).json({ 
+        success: false, 
+        message: "Error dispatching webhook", 
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
   // API endpoint documentation
   app.get("/api/external", apiKeyMiddleware, (req, res) => {
     res.json({
@@ -3323,6 +3364,15 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
           parameters: [
             { name: "id", type: "number", description: "Webhook ID" },
             { name: "limit", type: "number", description: "Maximum number of delivery records to return", required: false }
+          ]
+        },
+        { 
+          path: "/api/webhooks/test/:event/:visitorId", 
+          method: "POST", 
+          description: "Test endpoint to manually trigger a webhook event",
+          parameters: [
+            { name: "event", type: "string", description: "Event type (visitor.checkin, visitor.checkout, visitor.update, visitor.verify)", required: true },
+            { name: "visitorId", type: "number", description: "ID of visitor to use for the test webhook", required: true }
           ]
         },
         { 
