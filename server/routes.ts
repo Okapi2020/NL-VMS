@@ -496,7 +496,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         visitorTheme: req.body.visitorTheme,
         defaultLanguage: req.body.defaultLanguage,
         apiEnabled: req.body.apiEnabled,
-        hasApiKey: !!req.body.apiKey
+        hasApiKey: !!req.body.apiKey,
+        webhooksEnabled: req.body.webhooksEnabled
       });
       
       // Update settings
@@ -513,7 +514,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         defaultLanguage: req.body.defaultLanguage || "en", // Default language to English if not provided
         // API settings
         apiKey: req.body.apiKey,
-        apiEnabled: req.body.apiEnabled !== undefined ? req.body.apiEnabled : false
+        apiEnabled: req.body.apiEnabled !== undefined ? req.body.apiEnabled : false,
+        // Webhook settings
+        webhooksEnabled: req.body.webhooksEnabled !== undefined ? req.body.webhooksEnabled : false
       });
       
       if (!updatedSettings) {
