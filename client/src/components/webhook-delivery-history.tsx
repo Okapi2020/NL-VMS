@@ -52,7 +52,7 @@ export function WebhookDeliveryHistory({ webhookId }: WebhookDeliveryHistoryProp
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedDelivery, setSelectedDelivery] = useState<WebhookDelivery | null>(null);
   
-  const { data, isLoading, isError, refetch } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery<{ success: boolean, message: string, data: { deliveries: WebhookDelivery[] } }>({
     queryKey: ['/api/admin/webhooks', webhookId, 'deliveries', limit],
     enabled: webhookId > 0,
     refetchInterval: 30000, // Refresh every 30 seconds

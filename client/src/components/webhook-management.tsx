@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { WebhookDeliveryHistory } from "./webhook-delivery-history";
 
 import {
   Card,
@@ -1027,60 +1028,11 @@ export function WebhookManagement() {
 
               <h3 className="text-lg font-medium mb-2">Delivery History</h3>
               
-              {!webhookDetails.deliveries || webhookDetails.deliveries.length === 0 ? (
-                <div className="text-center py-6 border rounded-md bg-muted/20">
-                  <p className="text-muted-foreground">No delivery history available</p>
+              {/* Use the enhanced WebhookDeliveryHistory component */}
+              {webhookDetails.webhook?.id && (
+                <div className="mt-4">
+                  <WebhookDeliveryHistory webhookId={webhookDetails.webhook.id} />
                 </div>
-              ) : (
-                <ScrollArea className="h-[250px] rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Event</TableHead>
-                        <TableHead>Time</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Response</TableHead>
-                        <TableHead>Retries</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {webhookDetails.deliveries.map((delivery) => (
-                        <TableRow key={delivery.id}>
-                          <TableCell>
-                            <Badge variant="outline">
-                              {delivery.event}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{formatDate(delivery.timestamp)}</TableCell>
-                          <TableCell>{getDeliveryStatusBadge(delivery.status)}</TableCell>
-                          <TableCell>
-                            {delivery.responseCode ? (
-                              <span className={`text-sm ${
-                                delivery.responseCode >= 200 && delivery.responseCode < 300 
-                                  ? "text-green-600" 
-                                  : "text-red-600"
-                              }`}>
-                                {delivery.responseCode}
-                              </span>
-                            ) : "—"}
-                          </TableCell>
-                          <TableCell>
-                            {delivery.retryCount > 0 ? (
-                              <span className="text-sm">
-                                {delivery.retryCount}
-                                {delivery.nextRetryAt && (
-                                  <span className="text-xs text-muted-foreground ml-1">
-                                    (Next: {formatDate(delivery.nextRetryAt)})
-                                  </span>
-                                )}
-                              </span>
-                            ) : "—"}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </ScrollArea>
               )}
 
               <DialogFooter className="mt-4">
