@@ -3184,13 +3184,13 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
       description: "API for integrating with the Visitor Management System",
       endpoints: [
         { 
-          path: "/api/external/webhooks", 
+          path: "/api/webhooks", 
           method: "GET", 
           description: "List all registered webhooks",
           parameters: []
         },
         { 
-          path: "/api/external/webhooks/:id", 
+          path: "/api/webhooks/:id", 
           method: "GET", 
           description: "Get details of a specific webhook",
           parameters: [
@@ -3198,7 +3198,7 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
           ]
         },
         { 
-          path: "/api/external/webhooks", 
+          path: "/api/webhooks", 
           method: "POST", 
           description: "Register a new webhook",
           parameters: [
@@ -3209,7 +3209,7 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
           ]
         },
         { 
-          path: "/api/external/webhooks/:id", 
+          path: "/api/webhooks/:id", 
           method: "PATCH", 
           description: "Update an existing webhook",
           parameters: [
@@ -3220,7 +3220,7 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
           ]
         },
         { 
-          path: "/api/external/webhooks/:id", 
+          path: "/api/webhooks/:id", 
           method: "DELETE", 
           description: "Delete a webhook",
           parameters: [
@@ -3228,7 +3228,7 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
           ]
         },
         { 
-          path: "/api/external/webhooks/:id/reset", 
+          path: "/api/webhooks/:id/reset", 
           method: "POST", 
           description: "Reset webhook failure count",
           parameters: [
