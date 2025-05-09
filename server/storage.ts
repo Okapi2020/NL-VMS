@@ -1248,9 +1248,24 @@ export class DatabaseStorage implements IStorage {
   
   async deleteWebhook(id: number): Promise<boolean> {
     try {
+      // First, delete all webhook deliveries associated with this webhook
+      console.log(`Deleting webhook deliveries for webhook ID ${id}`);
+      try {
+        await db
+          .delete(webhookDeliveries)
+          .where(eq(webhookDeliveries.webhookId, id));
+        console.log(`Successfully deleted webhook deliveries for webhook ID ${id}`);
+      } catch (deliveryError) {
+        console.error(`Error deleting webhook deliveries for webhook ID ${id}:`, deliveryError);
+        // Continue with webhook deletion even if delivery deletion fails
+      }
+      
+      // Now delete the webhook itself
+      console.log(`Deleting webhook with ID ${id}`);
       await db
         .delete(webhooks)
         .where(eq(webhooks.id, id));
+      console.log(`Successfully deleted webhook with ID ${id}`);
       
       // Create a system log about this action
       await this.createSystemLog({
