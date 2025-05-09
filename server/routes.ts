@@ -2490,11 +2490,15 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
       
       res.json({
         success: true,
+        message: "Webhooks retrieved successfully",
         data: formattedWebhooks
       });
     } catch (error) {
       console.error("Failed to fetch webhooks:", error);
-      return res.status(500).json({ error: "Failed to fetch webhooks" });
+      return res.status(500).json({ 
+        success: false, 
+        message: "Failed to fetch webhooks" 
+      });
     }
   });
 
@@ -2509,13 +2513,19 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
-        return res.status(400).json({ error: "Invalid webhook ID" });
+        return res.status(400).json({ 
+          success: false, 
+          message: "Invalid webhook ID" 
+        });
       }
 
       // Get the webhook from storage
       const webhook = await storage.getWebhook(id);
       if (!webhook) {
-        return res.status(404).json({ error: "Webhook not found" });
+        return res.status(404).json({ 
+          success: false, 
+          message: "Webhook not found" 
+        });
       }
 
       // Format the webhook to include status
@@ -2529,11 +2539,15 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
       // Return the webhook data
       res.json({
         success: true,
+        message: "Webhook retrieved successfully",
         data: formattedWebhook
       });
     } catch (error) {
       console.error("Failed to fetch webhook:", error);
-      return res.status(500).json({ error: "Failed to fetch webhook" });
+      return res.status(500).json({ 
+        success: false, 
+        message: "Failed to fetch webhook" 
+      });
     }
   });
 
@@ -2551,8 +2565,8 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
       // Basic validation
       if (!url || !secret || !events || !Array.isArray(events) || events.length === 0) {
         return res.status(400).json({ 
-          error: "Invalid webhook data",
-          details: "url, secret, and at least one event are required" 
+          success: false,
+          message: "Invalid webhook data. URL, secret, and at least one event are required."
         });
       }
 
@@ -2608,13 +2622,19 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
-        return res.status(400).json({ error: "Invalid webhook ID" });
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid webhook ID" 
+        });
       }
 
       // Check if webhook exists
       const existingWebhook = await storage.getWebhook(id);
       if (!existingWebhook) {
-        return res.status(404).json({ error: "Webhook not found" });
+        return res.status(404).json({ 
+          success: false,
+          message: "Webhook not found" 
+        });
       }
 
       const { url, secret, description, events } = req.body;
