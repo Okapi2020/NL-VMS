@@ -3236,7 +3236,7 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
           ]
         },
         { 
-          path: "/api/external/webhooks/:id/deliveries", 
+          path: "/api/webhooks/:id/deliveries", 
           method: "GET", 
           description: "Get webhook delivery history",
           parameters: [
