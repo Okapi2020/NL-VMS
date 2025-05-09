@@ -54,6 +54,13 @@ export function WebhookDeliveryHistory({ webhookId }: WebhookDeliveryHistoryProp
   
   const { data, isLoading, isError, refetch } = useQuery<{ success: boolean, message: string, data: { deliveries: WebhookDelivery[] } }>({
     queryKey: ['/api/admin/webhooks', webhookId, 'deliveries', limit],
+    queryFn: async () => {
+      const res = await fetch(`/api/admin/webhooks/${webhookId}/deliveries?limit=${limit}`);
+      if (!res.ok) {
+        throw new Error('Failed to fetch webhook deliveries');
+      }
+      return res.json();
+    },
     enabled: webhookId > 0,
     refetchInterval: 30000, // Refresh every 30 seconds
   });
@@ -70,7 +77,7 @@ export function WebhookDeliveryHistory({ webhookId }: WebhookDeliveryHistoryProp
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
       case 'delivered':
-        return <Badge className="bg-green-500">Delivered</Badge>;
+        return <Badge className="bg-green-500 text-white">Delivered</Badge>;
       case 'failed':
         return <Badge variant="destructive">Failed</Badge>;
       case 'pending':

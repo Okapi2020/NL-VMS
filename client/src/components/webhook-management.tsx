@@ -249,11 +249,16 @@ export function WebhookManagement() {
   const updateWebhookMutation = useMutation({
     mutationFn: async (data: WebhookFormValues & { id: number }) => {
       const { id, ...webhookData } = data;
-      // If secret is empty, remove it (don't update)
-      if (!webhookData.secret) {
-        delete webhookData.secret;
-      }
-      const res = await apiRequest("PATCH", `/api/external/webhooks/${id}`, webhookData);
+      // If secret is empty, create new object without it
+      const dataToSend = webhookData.secret 
+        ? webhookData 
+        : { 
+            url: webhookData.url, 
+            description: webhookData.description, 
+            events: webhookData.events 
+          };
+      
+      const res = await apiRequest("PATCH", `/api/external/webhooks/${id}`, dataToSend);
       return res.json();
     },
     onSuccess: () => {
@@ -339,7 +344,7 @@ export function WebhookManagement() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "active":
-        return <Badge variant="success">Active</Badge>;
+        return <Badge className="bg-green-500 text-white">Active</Badge>;
       case "failing":
         return <Badge variant="destructive">Failing</Badge>;
       case "disabled":
@@ -352,7 +357,7 @@ export function WebhookManagement() {
   const getDeliveryStatusBadge = (status: string) => {
     switch (status) {
       case "delivered":
-        return <Badge variant="success">Delivered</Badge>;
+        return <Badge className="bg-green-500 text-white">Delivered</Badge>;
       case "failed":
         return <Badge variant="destructive">Failed</Badge>;
       case "pending":
