@@ -78,11 +78,12 @@ Retrieves a paginated list of visitors with optional filtering.
 | verified | boolean | No | Filter by verification status (`true` or `false`) |
 | sortBy | string | No | Field to sort by (`id`, `name`, `visits`) |
 | sortOrder | string | No | Sort order (`asc` or `desc`) |
+| modifiedSince | string | No | Filter for visitors modified after this date (ISO 8601 format) |
 
 **Example Request:**
 
 ```bash
-curl -X GET "https://your-visitor-system.replit.app/api/external/visitors?page=1&limit=10&name=John&verified=true&sortBy=name&sortOrder=asc" \
+curl -X GET "https://your-visitor-system.replit.app/api/external/visitors?page=1&limit=10&name=John&verified=true&sortBy=name&sortOrder=asc&modifiedSince=2025-05-01T00:00:00Z" \
   -H "X-API-Key: your-api-key-here" \
   -H "Accept: application/json"
 ```
@@ -245,7 +246,7 @@ Retrieves a paginated list of visits with optional filtering.
 **Example Request:**
 
 ```bash
-curl -X GET "https://your-visitor-system.replit.app/api/external/visits?page=1&limit=10&status=active&dateFrom=2025-04-01T00:00:00Z&dateTo=2025-04-30T23:59:59Z" \
+curl -X GET "https://your-visitor-system.replit.app/api/external/visits?page=1&limit=10&status=active&dateFrom=2025-04-01T00:00:00Z&dateTo=2025-04-30T23:59:59Z&modifiedSince=2025-04-15T00:00:00Z" \
   -H "X-API-Key: your-api-key-here" \
   -H "Accept: application/json"
 ```
