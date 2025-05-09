@@ -55,6 +55,23 @@ export async function migrateDatabase() {
       );
     `);
     
+    // Create webhook_deliveries table if it doesn't exist
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS webhook_deliveries (
+        id SERIAL PRIMARY KEY,
+        webhook_id INTEGER NOT NULL REFERENCES webhooks(id),
+        event VARCHAR(100) NOT NULL,
+        payload TEXT NOT NULL,
+        status VARCHAR(20) DEFAULT 'pending' NOT NULL,
+        response_code INTEGER,
+        response_body TEXT,
+        error_message TEXT,
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        retry_count INTEGER DEFAULT 0 NOT NULL,
+        next_retry_at TIMESTAMP
+      );
+    `);
+    
     // Add triggers to update the updated_at column automatically
     await db.execute(sql`
       CREATE OR REPLACE FUNCTION update_timestamp_column()
