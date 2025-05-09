@@ -1096,16 +1096,40 @@ export class DatabaseStorage implements IStorage {
       // Get the visitor IDs from active visits
       const visitorIds = activeVisits.map(visit => visit.visitorId);
       
+      // Handle the case with no visitor IDs (should never happen with valid data)
+      if (visitorIds.length === 0) {
+        return [];
+      }
+      
       // Get all visitors that are currently onsite
-      let query = db
-        .select()
-        .from(visitors)
-        .where(
-          and(
-            sql`${visitors.id} IN (${visitorIds.join(',')})`,
-            eq(visitors.deleted, false)
-          )
-        );
+      // Using separate queries for each ID to avoid SQL injection issues
+      let query;
+      
+      if (visitorIds.length === 1) {
+        // Simple case with just one visitor
+        query = db
+          .select()
+          .from(visitors)
+          .where(
+            and(
+              eq(visitors.id, visitorIds[0]),
+              eq(visitors.deleted, false)
+            )
+          );
+      } else {
+        // Multiple visitors case - build a query with OR conditions for each ID
+        const conditions = visitorIds.map(id => eq(visitors.id, id));
+        
+        query = db
+          .select()
+          .from(visitors)
+          .where(
+            and(
+              sql`(${conditions.reduce((acc, condition) => sql`${acc} OR ${condition}`)})`,
+              eq(visitors.deleted, false)
+            )
+          );
+      }
       
       // Add sorting
       if (sortBy && sortOrder) {
@@ -1152,16 +1176,39 @@ export class DatabaseStorage implements IStorage {
       // Get the visitor IDs from active visits
       const visitorIds = activeVisits.map(visit => visit.visitorId);
       
+      // Handle the case with no visitor IDs (should never happen with valid data)
+      if (visitorIds.length === 0) {
+        return 0;
+      }
+      
       // Count all visitors that are currently onsite
-      const result = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(visitors)
-        .where(
-          and(
-            sql`${visitors.id} IN (${visitorIds.join(',')})`,
-            eq(visitors.deleted, false)
-          )
-        );
+      let result;
+      
+      if (visitorIds.length === 1) {
+        // Simple case with just one visitor
+        result = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(visitors)
+          .where(
+            and(
+              eq(visitors.id, visitorIds[0]),
+              eq(visitors.deleted, false)
+            )
+          );
+      } else {
+        // Multiple visitors case - build a query with OR conditions for each ID
+        const conditions = visitorIds.map(id => eq(visitors.id, id));
+        
+        result = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(visitors)
+          .where(
+            and(
+              sql`(${conditions.reduce((acc, condition) => sql`${acc} OR ${condition}`)})`,
+              eq(visitors.deleted, false)
+            )
+          );
+      }
       
       return result[0]?.count || 0;
     } catch (error) {
@@ -1413,10 +1460,40 @@ export class DatabaseStorage implements IStorage {
       
       // Get all visitors for further analysis
       const visitorIds = Array.from(uniqueVisitorIds);
-      const allVisitors = await db
-        .select()
-        .from(visitors)
-        .where(sql`${visitors.id} IN (${visitorIds.join(',')})`);
+      
+      // If no visitor IDs, return early with empty stats
+      if (visitorIds.length === 0) {
+        return {
+          totalVisits: 0,
+          uniqueVisitors: 0,
+          averageDuration: 0,
+          visitsByDay: [],
+          visitsByPurpose: [],
+          visitsByMunicipality: [],
+          visitsByGender: [],
+          verifiedPercentage: 0
+        };
+      }
+      
+      // Build a safe query for visitor IDs
+      let allVisitors;
+      if (visitorIds.length === 1) {
+        // Simple case with just one visitor
+        allVisitors = await db
+          .select()
+          .from(visitors)
+          .where(eq(visitors.id, visitorIds[0]));
+      } else {
+        // Multiple visitors - use individual equality checks
+        const conditions = visitorIds.map(id => eq(visitors.id, id));
+        
+        allVisitors = await db
+          .select()
+          .from(visitors)
+          .where(sql`(${conditions.reduce((acc, condition, index) => 
+            index === 0 ? condition : sql`${acc} OR ${condition}`
+          )})`);
+      }
       
       // Count by purpose
       const purposeCount = new Map<string, number>();
