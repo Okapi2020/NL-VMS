@@ -17,9 +17,12 @@ import {
 } from "@shared/schema";
 import {
   webhooks,
+  webhookDeliveries,
   type Webhook,
   type InsertWebhook,
-  type UpdateWebhook
+  type UpdateWebhook,
+  type WebhookDelivery,
+  type InsertWebhookDelivery
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull } from "drizzle-orm";
@@ -67,7 +70,17 @@ export interface IStorage {
   createWebhook(webhook: InsertWebhook): Promise<Webhook>;
   updateWebhook(webhook: UpdateWebhook): Promise<Webhook | undefined>;
   deleteWebhook(id: number): Promise<boolean>;
-  recordWebhookCall(id: number, success: boolean): Promise<boolean>;
+  recordWebhookCall(id: number, success: boolean, responseData?: { 
+    event: string, 
+    payload: string,
+    responseCode?: number, 
+    responseBody?: string, 
+    errorMessage?: string 
+  }): Promise<boolean>;
+  
+  // Webhook delivery methods
+  createWebhookDelivery(data: InsertWebhookDelivery): Promise<WebhookDelivery>;
+  getWebhookDeliveries(webhookId: number, limit?: number): Promise<WebhookDelivery[]>;
   
   // External API methods
   getAllVisitorsWithFilters(options: {
@@ -1253,7 +1266,13 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
-  async recordWebhookCall(id: number, success: boolean): Promise<boolean> {
+  async recordWebhookCall(id: number, success: boolean, responseData?: { 
+    event: string,
+    payload: string,
+    responseCode?: number, 
+    responseBody?: string, 
+    errorMessage?: string 
+  }): Promise<boolean> {
     try {
       if (success) {
         // Reset fail count and update last called time
@@ -1297,6 +1316,22 @@ export class DatabaseStorage implements IStorage {
             });
           }
         }
+      }
+      // If responseData is provided, create a delivery record
+      if (responseData) {
+        await db
+          .insert(webhookDeliveries)
+          .values({
+            webhookId: id,
+            event: responseData.event,
+            payload: responseData.payload,
+            status: success ? "delivered" : "failed",
+            responseCode: responseData.responseCode,
+            responseBody: responseData.responseBody,
+            errorMessage: responseData.errorMessage,
+            retryCount: 0,
+            nextRetryAt: null
+          });
       }
       
       return true;
@@ -1429,6 +1464,34 @@ export class DatabaseStorage implements IStorage {
         visitsByGender: [],
         verifiedPercentage: 0
       };
+    }
+  }
+
+  // Webhook delivery methods
+  async createWebhookDelivery(data: InsertWebhookDelivery): Promise<WebhookDelivery> {
+    try {
+      const [delivery] = await db
+        .insert(webhookDeliveries)
+        .values(data)
+        .returning();
+      return delivery;
+    } catch (error) {
+      console.error('Error creating webhook delivery:', error);
+      throw error;
+    }
+  }
+  
+  async getWebhookDeliveries(webhookId: number, limit: number = 50): Promise<WebhookDelivery[]> {
+    try {
+      return await db
+        .select()
+        .from(webhookDeliveries)
+        .where(eq(webhookDeliveries.webhookId, webhookId))
+        .orderBy(desc(webhookDeliveries.timestamp))
+        .limit(limit);
+    } catch (error) {
+      console.error(`Error getting webhook deliveries for webhook ID ${webhookId}:`, error);
+      return [];
     }
   }
 }

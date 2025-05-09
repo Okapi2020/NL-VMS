@@ -420,6 +420,21 @@ export const webhooks = pgTable("webhooks", {
   createdById: integer("created_by_id").references(() => admins.id),
 });
 
+// Webhook delivery tracking
+export const webhookDeliveries = pgTable("webhook_deliveries", {
+  id: serial("id").primaryKey(),
+  webhookId: integer("webhook_id").notNull().references(() => webhooks.id),
+  event: varchar("event", { length: 100 }).notNull(),
+  payload: text("payload").notNull(),
+  status: varchar("status", { length: 20 }).default("pending").notNull(), // pending, delivered, failed
+  responseCode: integer("response_code"),
+  responseBody: text("response_body"),
+  errorMessage: text("error_message"),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  retryCount: integer("retry_count").default(0).notNull(),
+  nextRetryAt: timestamp("next_retry_at"),
+});
+
 export const insertWebhookSchema = createInsertSchema(webhooks).pick({
   url: true,
   description: true,
@@ -441,3 +456,18 @@ export const updateWebhookSchema = z.object({
 export type Webhook = typeof webhooks.$inferSelect;
 export type InsertWebhook = z.infer<typeof insertWebhookSchema>;
 export type UpdateWebhook = z.infer<typeof updateWebhookSchema>;
+
+export const insertWebhookDeliverySchema = createInsertSchema(webhookDeliveries).pick({
+  webhookId: true,
+  event: true,
+  payload: true,
+  status: true,
+  responseCode: true,
+  responseBody: true,
+  errorMessage: true,
+  retryCount: true,
+  nextRetryAt: true,
+});
+
+export type WebhookDelivery = typeof webhookDeliveries.$inferSelect;
+export type InsertWebhookDelivery = z.infer<typeof insertWebhookDeliverySchema>;
