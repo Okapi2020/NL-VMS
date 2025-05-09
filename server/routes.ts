@@ -197,10 +197,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Set up WebSocket server for real-time notifications FIRST
   // This ensures the broadcastCheckIn function is available before routes are registered
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  const wss = new WebSocketServer({ 
+    server: httpServer, 
+    path: '/ws',
+    // Set ping interval to 30 seconds to keep connections alive
+    clientTracking: true
+  });
   
   // Track connected clients
   const clients = new Set<WebSocket>();
+  
+  // Connection check interval (ping-pong to keep connections alive)
+  const pingInterval = setInterval(() => {
+    wss.clients.forEach((ws) => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.ping();
+      }
+    });
+  }, 30000); // Send ping every 30 seconds
   
   wss.on('connection', (ws) => {
     console.log('WebSocket client connected');
@@ -212,15 +226,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       message: 'Connected to visitor management system notifications' 
     }));
     
+    // Set up ping handler
+    ws.on('pong', () => {
+      // Connection is alive, can track last activity time here if needed
+    });
+    
     // Handle client disconnect
-    ws.on('close', () => {
-      console.log('WebSocket client disconnected');
+    ws.on('close', (code, reason) => {
+      console.log(`WebSocket client disconnected: Code ${code}${reason ? ', Reason: ' + reason : ''}`);
       clients.delete(ws);
     });
     
     // Handle client messages
     ws.on('message', (message) => {
       console.log('Received message from client:', message.toString());
+      
+      // Echo back heartbeat message to confirm connection is alive
+      try {
+        const data = JSON.parse(message.toString());
+        if (data.type === 'heartbeat') {
+          ws.send(JSON.stringify({ type: 'heartbeat_ack', timestamp: new Date().toISOString() }));
+        }
+      } catch (e) {
+        // Non-JSON message, ignore it
+      }
+    });
+    
+    // Handle errors
+    ws.on('error', (error) => {
+      console.error('WebSocket error:', error);
+      clients.delete(ws);
     });
   });
   
@@ -2730,6 +2765,30 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
     }
   });
 
+  // Add server cleanup on application shutdown
+  const cleanup = () => {
+    console.log('Closing WebSocket server and connections...');
+    
+    // Clear the ping interval
+    if (pingInterval) {
+      clearInterval(pingInterval);
+    }
+    
+    // Close all WebSocket connections gracefully
+    wss.clients.forEach((client) => {
+      client.terminate();
+    });
+    
+    // Close the WebSocket server
+    wss.close(() => {
+      console.log('WebSocket server closed.');
+    });
+  };
+  
+  // Handle process termination signals
+  process.on('SIGINT', cleanup);
+  process.on('SIGTERM', cleanup);
+  
   // Return the existing httpServer that was initialized at the beginning of the function
   return httpServer;
 }
