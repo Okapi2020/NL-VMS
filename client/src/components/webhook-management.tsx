@@ -332,6 +332,30 @@ export function WebhookManagement() {
       });
     }
   });
+  
+  // Toggle webhook active status mutation
+  const toggleWebhookStatusMutation = useMutation({
+    mutationFn: async ({ id, active }: { id: number, active: boolean }) => {
+      const res = await apiRequest("PATCH", `/api/webhooks/${id}`, { active });
+      return res.json();
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/webhooks"] });
+      toast({
+        title: variables.active ? "Webhook enabled" : "Webhook disabled",
+        description: variables.active 
+          ? "The webhook is now active and will receive notifications" 
+          : "The webhook is now disabled and will not receive notifications",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update webhook status",
+        description: error.message || "An error occurred",
+        variant: "destructive",
+      });
+    }
+  });
 
   // Form submission handlers
   const onCreateSubmit = (data: WebhookFormValues) => {
@@ -734,6 +758,29 @@ export function WebhookManagement() {
 
                     <FormField
                       control={editForm.control}
+                      name="active"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>
+                              Active
+                            </FormLabel>
+                            <FormDescription>
+                              When enabled, this webhook will receive event notifications. Disable to temporarily stop notifications.
+                            </FormDescription>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={editForm.control}
                       name="events"
                       render={() => (
                         <FormItem>
@@ -862,12 +909,33 @@ export function WebhookManagement() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {getStatusBadge(webhook.status)}
-                        {webhook.failureCount > 0 && (
-                          <span className="ml-2 text-xs text-muted-foreground">
-                            ({webhook.failureCount} failed)
-                          </span>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {getStatusBadge(webhook.status)}
+                          {webhook.failureCount > 0 && (
+                            <span className="text-xs text-muted-foreground">
+                              ({webhook.failureCount} failed)
+                            </span>
+                          )}
+                          <Button
+                            size="sm"
+                            variant={webhook.status === "disabled" ? "outline" : "ghost"}
+                            className="h-7 px-2 ml-1"
+                            onClick={() => toggleWebhookStatusMutation.mutate({
+                              id: webhook.id,
+                              active: webhook.status === "disabled"
+                            })}
+                            disabled={toggleWebhookStatusMutation.isPending}
+                            title={webhook.status === "disabled" ? "Enable webhook" : "Disable webhook"}
+                          >
+                            {toggleWebhookStatusMutation.isPending ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : webhook.status === "disabled" ? (
+                              "Enable"
+                            ) : (
+                              "Disable"
+                            )}
+                          </Button>
+                        </div>
                       </TableCell>
                       <TableCell>
                         {webhook.lastTriggeredAt ? formatDate(webhook.lastTriggeredAt) : "Never"}
@@ -990,6 +1058,24 @@ export function WebhookManagement() {
                         )}
                       </Button>
                     )}
+                    <Button
+                      size="sm"
+                      variant={webhookDetails.webhook.status === "disabled" ? "outline" : "secondary"}
+                      className="ml-2"
+                      onClick={() => toggleWebhookStatusMutation.mutate({
+                        id: webhookDetails.webhook.id,
+                        active: webhookDetails.webhook.status === "disabled"
+                      })}
+                      disabled={toggleWebhookStatusMutation.isPending}
+                    >
+                      {toggleWebhookStatusMutation.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : webhookDetails.webhook.status === "disabled" ? (
+                        "Enable"
+                      ) : (
+                        "Disable"
+                      )}
+                    </Button>
                   </div>
                 </div>
               </div>
