@@ -224,6 +224,33 @@ const dispatchWebhooks = async (event: string, data: any, visitor?: Visitor) => 
   }
 };
 
+// Test endpoint to trigger a webhook manually
+const testDispatchWebhook = async (event: string, visitorId: number, res: Response) => {
+  try {
+    // Get the visitor
+    const visitor = await storage.getVisitor(visitorId);
+    if (!visitor) {
+      return res.status(404).json({ success: false, message: "Visitor not found" });
+    }
+    
+    // Dispatch webhook
+    console.log(`Manually dispatching webhook event ${event} for visitor ${visitorId}`);
+    await dispatchWebhooks(event, { test: true, manual: true }, visitor);
+    
+    return res.status(200).json({ 
+      success: true, 
+      message: `Webhook event ${event} dispatched for visitor ${visitorId}` 
+    });
+  } catch (error) {
+    console.error("Error dispatching test webhook:", error);
+    return res.status(500).json({ 
+      success: false, 
+      message: "Error dispatching webhook", 
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
+};
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server first (to be used by WebSocket server)
   const httpServer = createServer(app);
