@@ -2469,13 +2469,57 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
 
   // Webhook API endpoints
   // Get all webhooks
-  app.get("/api/external/webhooks", async (req, res, next) => {
+  // Create middleware function to validate API key
+  const apiKeyMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+    const apiKey = req.headers['x-api-key'];
+    
     try {
-      await validateApiKey(req, res, next);
+      // Get settings from database
+      const settings = await storage.getSettings();
+      
+      if (!settings) {
+        console.error("Settings not found when validating API key");
+        return res.status(500).json({ 
+          success: false,
+          message: 'Server error: Cannot validate API key' 
+        });
+      }
+      
+      // Check if API is enabled
+      if (!settings.apiEnabled) {
+        return res.status(403).json({ 
+          success: false,
+          message: 'Forbidden: API access is disabled' 
+        });
+      }
+      
+      // Validate the API key
+      if (apiKey === settings.apiKey) {
+        return next();
+      }
+      
+      // In development mode, also accept a default key for testing
+      const isDevelopment = process.env.NODE_ENV !== 'production';
+      const devApiKey = process.env.EXTERNAL_API_KEY || 'vms-dev-api-key-2025';
+      
+      if (isDevelopment && apiKey === devApiKey) {
+        return next();
+      }
+      
+      return res.status(401).json({ 
+        success: false,
+        message: 'Unauthorized: Invalid API key' 
+      });
     } catch (error) {
-      return; // Error response already sent by middleware
+      console.error("Error in API key validation:", error);
+      return res.status(500).json({ 
+        success: false,
+        message: 'Internal server error during authentication' 
+      });
     }
+  };
 
+  app.get("/api/external/webhooks", apiKeyMiddleware, async (req, res) => {
     try {
       // Use the storage layer to get actual webhooks
       const webhooks = await storage.getWebhooks();
@@ -2488,7 +2532,7 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
           : "inactive"
       }));
       
-      res.json({
+      return res.json({
         success: true,
         message: "Webhooks retrieved successfully",
         data: formattedWebhooks
@@ -2503,13 +2547,7 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
   });
 
   // Get a specific webhook
-  app.get("/api/external/webhooks/:id", async (req, res, next) => {
-    try {
-      await validateApiKey(req, res, next);
-    } catch (error) {
-      return; // Error response already sent by middleware
-    }
-
+  app.get("/api/external/webhooks/:id", apiKeyMiddleware, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -2537,7 +2575,7 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
       };
 
       // Return the webhook data
-      res.json({
+      return res.json({
         success: true,
         message: "Webhook retrieved successfully",
         data: formattedWebhook
@@ -2552,13 +2590,7 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
   });
 
   // Create a new webhook
-  app.post("/api/external/webhooks", async (req, res, next) => {
-    try {
-      await validateApiKey(req, res, next);
-    } catch (error) {
-      return; // Error response already sent by middleware
-    }
-
+  app.post("/api/external/webhooks", apiKeyMiddleware, async (req, res) => {
     try {
       const { url, secret, description, events } = req.body;
 
@@ -2597,7 +2629,7 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
         status: webhook.active ? "active" : "inactive"
       };
 
-      res.status(201).json({
+      return res.status(201).json({
         success: true,
         message: "Webhook created successfully",
         data: formattedWebhook
@@ -2607,18 +2639,15 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
       if (error instanceof ZodError) {
         return handleZodError(error, res);
       }
-      return res.status(500).json({ error: "Failed to create webhook" });
+      return res.status(500).json({ 
+        success: false, 
+        message: "Failed to create webhook" 
+      });
     }
   });
 
   // Update a webhook
-  app.patch("/api/external/webhooks/:id", async (req, res, next) => {
-    try {
-      await validateApiKey(req, res, next);
-    } catch (error) {
-      return; // Error response already sent by middleware
-    }
-
+  app.patch("/api/external/webhooks/:id", apiKeyMiddleware, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -2653,7 +2682,10 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
       // Update the webhook
       const updatedWebhook = await storage.updateWebhook(updateData);
       if (!updatedWebhook) {
-        return res.status(500).json({ error: "Failed to update webhook" });
+        return res.status(500).json({ 
+          success: false, 
+          message: "Failed to update webhook" 
+        });
       }
 
       // Log the action
@@ -2672,7 +2704,7 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
           : "inactive"
       };
 
-      res.json({
+      return res.json({
         success: true,
         message: "Webhook updated successfully",
         data: formattedWebhook
@@ -2682,18 +2714,15 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
       if (error instanceof ZodError) {
         return handleZodError(error, res);
       }
-      return res.status(500).json({ error: "Failed to update webhook" });
+      return res.status(500).json({ 
+        success: false, 
+        message: "Failed to update webhook" 
+      });
     }
   });
 
   // Delete a webhook
-  app.delete("/api/external/webhooks/:id", async (req, res, next) => {
-    try {
-      await validateApiKey(req, res, next);
-    } catch (error) {
-      return; // Error response already sent by middleware
-    }
-
+  app.delete("/api/external/webhooks/:id", apiKeyMiddleware, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -2729,7 +2758,7 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
         affectedRecords: 1
       });
 
-      res.json({ success: true, message: "Webhook deleted successfully" });
+      return res.json({ success: true, message: "Webhook deleted successfully" });
     } catch (error) {
       console.error("Failed to delete webhook:", error);
       return res.status(500).json({ 
@@ -2740,13 +2769,7 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
   });
 
   // Reset webhook failures
-  app.post("/api/external/webhooks/:id/reset", async (req, res, next) => {
-    try {
-      await validateApiKey(req, res, next);
-    } catch (error) {
-      return; // Error response already sent by middleware
-    }
-
+  app.post("/api/external/webhooks/:id/reset", apiKeyMiddleware, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -2800,7 +2823,7 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
         status: resetWebhook.active ? "active" : "inactive"
       };
 
-      res.json({ 
+      return res.json({ 
         success: true, 
         message: "Webhook reset successfully",
         data: formattedWebhook
@@ -2815,13 +2838,7 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
   });
   
   // API endpoint documentation
-  app.get("/api/external", async (req, res, next) => {
-    try {
-      await validateApiKey(req, res, next);
-    } catch (error) {
-      return; // Error response already sent by middleware
-    }
-  }, (req, res) => {
+  app.get("/api/external", apiKeyMiddleware, (req, res) => {
     res.json({
       name: "Visitor Management System API",
       version: "1.0",
