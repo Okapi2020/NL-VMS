@@ -2281,10 +2281,15 @@ Route::get('/visits/history', [VisitController::class, 'history'])->name('visits
 ### Version 1.1 (2025-05-09)
 - Added WebSocket integration for real-time notifications with enhanced connection stability
 - Implemented webhook system for application-to-application integration
-- Added partial name search functionality for visitor lookups
+- Added dedicated visitor search endpoint with partial/exact name matching
 - Enhanced visitor endpoint with modifiedSince filtering for better change detection
-- Added onsite visitor filtering and dedicated endpoint for tracking current visitors
-- Improved error handling and request validation
+- Added isOnsite field to visitor records and dedicated endpoint for onsite visitors
+- Fixed SQL injection vulnerability in onsite visitors endpoint
+- Enhanced API responses to use consistent pagination format across all endpoints
+- Implemented comprehensive webhook delivery tracking for better visibility
+- Fixed statistics endpoint to properly return visitor metrics
+- Improved error handling with more descriptive messages
+- Standardized all API responses for consistent structure
 
 ### Version 1.2 (Planned)
 - Add bulk operations for visitor management
