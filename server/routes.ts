@@ -2897,6 +2897,15 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
           ]
         },
         { 
+          path: "/api/external/webhooks/:id/deliveries", 
+          method: "GET", 
+          description: "Get webhook delivery history",
+          parameters: [
+            { name: "id", type: "number", description: "Webhook ID" },
+            { name: "limit", type: "number", description: "Maximum number of delivery records to return", required: false }
+          ]
+        },
+        { 
           path: "/api/external/visitors", 
           method: "GET", 
           description: "Get all visitors with pagination and filtering",
@@ -3256,6 +3265,84 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
     } catch (error) {
       console.error(`Error resetting webhook failure count:`, error);
       res.status(500).json({ success: false, message: "Failed to reset webhook failure count" });
+    }
+  });
+
+  // Get webhook delivery history
+  app.get("/api/admin/webhooks/:id/deliveries", ensureAuthenticated, async (req, res) => {
+    try {
+      const webhookId = parseInt(req.params.id);
+      if (isNaN(webhookId)) {
+        return res.status(400).json({ success: false, message: "Invalid webhook ID" });
+      }
+
+      // Get the webhook first to validate it exists
+      const webhook = await storage.getWebhook(webhookId);
+      if (!webhook) {
+        return res.status(404).json({ success: false, message: "Webhook not found" });
+      }
+
+      // Get the limit from query params, default to 50
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+      
+      // Fetch the webhook deliveries
+      const deliveries = await storage.getWebhookDeliveries(webhookId, limit);
+      
+      res.status(200).json({
+        success: true,
+        message: "Webhook deliveries retrieved successfully",
+        data: {
+          webhook: {
+            id: webhook.id,
+            url: webhook.url,
+            description: webhook.description,
+            events: webhook.events
+          },
+          deliveries: deliveries
+        }
+      });
+    } catch (error) {
+      console.error(`Error getting webhook deliveries:`, error);
+      res.status(500).json({ success: false, message: "Failed to get webhook deliveries" });
+    }
+  });
+
+  // Add the same endpoint for external API with API key authentication
+  app.get("/api/external/webhooks/:id/deliveries", apiKeyMiddleware, async (req, res) => {
+    try {
+      const webhookId = parseInt(req.params.id);
+      if (isNaN(webhookId)) {
+        return res.status(400).json({ success: false, message: "Invalid webhook ID" });
+      }
+
+      // Get the webhook first to validate it exists
+      const webhook = await storage.getWebhook(webhookId);
+      if (!webhook) {
+        return res.status(404).json({ success: false, message: "Webhook not found" });
+      }
+
+      // Get the limit from query params, default to 50
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+      
+      // Fetch the webhook deliveries
+      const deliveries = await storage.getWebhookDeliveries(webhookId, limit);
+      
+      res.status(200).json({
+        success: true,
+        message: "Webhook deliveries retrieved successfully",
+        data: {
+          webhook: {
+            id: webhook.id,
+            url: webhook.url,
+            description: webhook.description,
+            events: webhook.events
+          },
+          deliveries: deliveries
+        }
+      });
+    } catch (error) {
+      console.error(`Error getting webhook deliveries:`, error);
+      res.status(500).json({ success: false, message: "Failed to get webhook deliveries" });
     }
   });
 
