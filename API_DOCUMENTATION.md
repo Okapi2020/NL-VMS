@@ -10,21 +10,26 @@ This document provides comprehensive information about the Visitor Management Sy
    - [Get All Visitors](#get-all-visitors)
    - [Get Visitor by ID](#get-visitor-by-id)
    - [Get All Visits](#get-all-visits)
+   - [Get Onsite Visitors](#get-onsite-visitors)
    - [Get Statistics](#get-statistics)
+   - [Webhook Management](#webhook-management)
    - [API Documentation](#api-documentation)
 4. [Data Models](#data-models)
 5. [Error Handling](#error-handling)
 6. [Pagination](#pagination)
 7. [Rate Limiting](#rate-limiting)
-8. [Laravel Integration](#laravel-integration)
+8. [Real-time Notifications](#real-time-notifications)
+   - [WebSocket Integration](#websocket-integration)
+   - [Webhook Configuration](#webhook-configuration)
+9. [Laravel Integration](#laravel-integration)
    - [Environment Setup](#environment-setup)
    - [Service Class Implementation](#service-class-implementation)
    - [Controller Examples](#controller-examples)
    - [Blade Templates](#blade-templates)
-9. [Best Practices](#best-practices)
-10. [Security Considerations](#security-considerations)
-11. [Troubleshooting](#troubleshooting)
-12. [Changelog](#changelog)
+10. [Best Practices](#best-practices)
+11. [Security Considerations](#security-considerations)
+12. [Troubleshooting](#troubleshooting)
+13. [Changelog](#changelog)
 
 ## Overview
 
@@ -165,6 +170,7 @@ Retrieves a paginated list of visits with optional filtering.
 | dateFrom | string | No | Filter visits after this date (ISO 8601 format) |
 | dateTo | string | No | Filter visits before this date (ISO 8601 format) |
 | visitorId | integer | No | Filter by visitor ID |
+| modifiedSince | string | No | Only return visits modified after this timestamp (ISO 8601 format) |
 
 **Example Request:**
 
@@ -186,8 +192,73 @@ curl -X GET "https://your-visitor-system.replit.app/api/external/visits?page=1&l
         "purpose": "Business Meeting",
         "partnerId": null,
         "active": true,
+        "isOnsite": true,
         "checkInTime": "2025-04-17T09:15:30Z",
-        "checkOutTime": null
+        "checkOutTime": null,
+        "updatedAt": "2025-04-17T09:15:30Z",
+        "syncStatus": "synced"
+      },
+      "visitor": {
+        "id": 123,
+        "fullName": "John Smith",
+        "yearOfBirth": 1985,
+        "sex": "Masculin",
+        "email": "john.smith@example.com",
+        "phoneNumber": "243812345678",
+        "municipality": "Kinshasa",
+        "visitCount": 5,
+        "verified": true,
+        "deleted": false,
+        "updatedAt": "2025-04-15T09:22:18Z"
+      }
+    },
+    // More visits...
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 56
+  }
+}
+```
+
+### Get Onsite Visitors
+
+Retrieves a list of visitors who are currently on the premises.
+
+**Endpoint:** `GET /api/external/visitors/onsite`
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| page | integer | No | Page number for pagination (default: 1) |
+| limit | integer | No | Number of records per page (default: 100) |
+
+**Example Request:**
+
+```bash
+curl -X GET "https://your-visitor-system.replit.app/api/external/visitors/onsite?page=1&limit=20" \
+  -H "X-API-Key: your-api-key-here" \
+  -H "Accept: application/json"
+```
+
+**Example Response:**
+
+```json
+{
+  "data": [
+    {
+      "visit": {
+        "id": 456,
+        "visitorId": 123,
+        "purpose": "Business Meeting",
+        "partnerId": null,
+        "active": true,
+        "isOnsite": true,
+        "checkInTime": "2025-05-09T09:15:30Z",
+        "checkOutTime": null,
+        "updatedAt": "2025-05-09T09:15:30Z"
       },
       "visitor": {
         "id": 123,
@@ -202,13 +273,244 @@ curl -X GET "https://your-visitor-system.replit.app/api/external/visits?page=1&l
         "deleted": false
       }
     },
-    // More visits...
+    // More onsite visitors...
   ],
-  "pagination": {
+  "meta": {
+    "total": 12,
     "page": 1,
-    "limit": 10,
-    "total": 56
+    "limit": 20
   }
+}
+```
+
+### Webhook Management
+
+A set of endpoints for managing webhook subscriptions for real-time notifications.
+
+#### Create Webhook
+
+Creates a new webhook subscription.
+
+**Endpoint:** `POST /api/external/webhooks`
+
+**Request Body:**
+
+```json
+{
+  "url": "https://your-application.com/api/vms-webhook",
+  "secret": "your-webhook-secret",
+  "description": "Production webhook for visitor notifications",
+  "events": ["visitor.checkin", "visitor.checkout", "visitor.partner"]
+}
+```
+
+**Example Request:**
+
+```bash
+curl -X POST "https://your-visitor-system.replit.app/api/external/webhooks" \
+  -H "X-API-Key: your-api-key-here" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+    "url": "https://your-application.com/api/vms-webhook",
+    "secret": "your-webhook-secret",
+    "description": "Production webhook for visitor notifications",
+    "events": ["visitor.checkin", "visitor.checkout", "visitor.partner"]
+  }'
+```
+
+**Example Response:**
+
+```json
+{
+  "id": 1,
+  "url": "https://your-application.com/api/vms-webhook",
+  "description": "Production webhook for visitor notifications",
+  "events": ["visitor.checkin", "visitor.checkout", "visitor.partner"],
+  "createdAt": "2025-05-09T14:22:36Z",
+  "updatedAt": "2025-05-09T14:22:36Z",
+  "failureCount": 0,
+  "lastTriggeredAt": null,
+  "status": "active"
+}
+```
+
+#### List Webhooks
+
+Retrieves all webhook subscriptions.
+
+**Endpoint:** `GET /api/external/webhooks`
+
+**Example Request:**
+
+```bash
+curl -X GET "https://your-visitor-system.replit.app/api/external/webhooks" \
+  -H "X-API-Key: your-api-key-here" \
+  -H "Accept: application/json"
+```
+
+**Example Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "url": "https://your-application.com/api/vms-webhook",
+      "description": "Production webhook for visitor notifications",
+      "events": ["visitor.checkin", "visitor.checkout", "visitor.partner"],
+      "createdAt": "2025-05-09T14:22:36Z",
+      "updatedAt": "2025-05-09T14:22:36Z",
+      "failureCount": 0,
+      "lastTriggeredAt": "2025-05-09T15:30:25Z",
+      "status": "active"
+    },
+    // More webhooks...
+  ]
+}
+```
+
+#### Get Webhook Details
+
+Retrieves details for a specific webhook subscription.
+
+**Endpoint:** `GET /api/external/webhooks/{id}`
+
+**Example Request:**
+
+```bash
+curl -X GET "https://your-visitor-system.replit.app/api/external/webhooks/1" \
+  -H "X-API-Key: your-api-key-here" \
+  -H "Accept: application/json"
+```
+
+**Example Response:**
+
+```json
+{
+  "id": 1,
+  "url": "https://your-application.com/api/vms-webhook",
+  "description": "Production webhook for visitor notifications",
+  "events": ["visitor.checkin", "visitor.checkout", "visitor.partner"],
+  "createdAt": "2025-05-09T14:22:36Z",
+  "updatedAt": "2025-05-09T14:22:36Z",
+  "failureCount": 0,
+  "lastTriggeredAt": "2025-05-09T15:30:25Z",
+  "status": "active",
+  "deliveryHistory": [
+    {
+      "id": 123,
+      "event": "visitor.checkin",
+      "timestamp": "2025-05-09T15:30:25Z",
+      "status": "delivered",
+      "responseCode": 200
+    },
+    {
+      "id": 124,
+      "event": "visitor.checkout",
+      "timestamp": "2025-05-09T16:45:12Z",
+      "status": "delivered",
+      "responseCode": 200
+    }
+  ]
+}
+```
+
+#### Update Webhook
+
+Updates an existing webhook subscription.
+
+**Endpoint:** `PATCH /api/external/webhooks/{id}`
+
+**Request Body:**
+
+```json
+{
+  "url": "https://your-new-application.com/api/vms-webhook",
+  "description": "Updated webhook description",
+  "events": ["visitor.checkin", "visitor.checkout", "visitor.verified"]
+}
+```
+
+**Example Request:**
+
+```bash
+curl -X PATCH "https://your-visitor-system.replit.app/api/external/webhooks/1" \
+  -H "X-API-Key: your-api-key-here" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+    "url": "https://your-new-application.com/api/vms-webhook",
+    "description": "Updated webhook description",
+    "events": ["visitor.checkin", "visitor.checkout", "visitor.verified"]
+  }'
+```
+
+**Example Response:**
+
+```json
+{
+  "id": 1,
+  "url": "https://your-new-application.com/api/vms-webhook",
+  "description": "Updated webhook description",
+  "events": ["visitor.checkin", "visitor.checkout", "visitor.verified"],
+  "createdAt": "2025-05-09T14:22:36Z",
+  "updatedAt": "2025-05-09T17:15:10Z",
+  "failureCount": 0,
+  "lastTriggeredAt": "2025-05-09T15:30:25Z",
+  "status": "active"
+}
+```
+
+#### Delete Webhook
+
+Deletes a webhook subscription.
+
+**Endpoint:** `DELETE /api/external/webhooks/{id}`
+
+**Example Request:**
+
+```bash
+curl -X DELETE "https://your-visitor-system.replit.app/api/external/webhooks/1" \
+  -H "X-API-Key: your-api-key-here" \
+  -H "Accept: application/json"
+```
+
+**Example Response:**
+
+```json
+{
+  "message": "Webhook deleted successfully"
+}
+```
+
+#### Reset Webhook Failures
+
+Resets the failure count for a webhook that is in a failing state.
+
+**Endpoint:** `POST /api/external/webhooks/{id}/reset`
+
+**Example Request:**
+
+```bash
+curl -X POST "https://your-visitor-system.replit.app/api/external/webhooks/1/reset" \
+  -H "X-API-Key: your-api-key-here" \
+  -H "Accept: application/json"
+```
+
+**Example Response:**
+
+```json
+{
+  "id": 1,
+  "url": "https://your-application.com/api/vms-webhook",
+  "description": "Production webhook for visitor notifications",
+  "events": ["visitor.checkin", "visitor.checkout", "visitor.partner"],
+  "createdAt": "2025-05-09T14:22:36Z",
+  "updatedAt": "2025-05-09T18:05:22Z",
+  "failureCount": 0,
+  "lastTriggeredAt": "2025-05-09T15:30:25Z",
+  "status": "active"
 }
 ```
 
@@ -320,6 +622,7 @@ curl -X GET "https://your-visitor-system.replit.app/api/external" \
 | deleted | boolean | Soft deletion status |
 | createdAt | string | Creation timestamp (ISO 8601) |
 | updatedAt | string | Last update timestamp (ISO 8601) |
+| externalId | string | Optional identifier for external system integration |
 
 ### Visit
 
@@ -330,8 +633,42 @@ curl -X GET "https://your-visitor-system.replit.app/api/external" \
 | purpose | string | Purpose of the visit (optional) |
 | partnerId | integer | Reference to a partner visitor (optional) |
 | active | boolean | Whether the visit is currently active |
+| isOnsite | boolean | Whether the visitor is physically on the premises |
 | checkInTime | string | Check-in timestamp (ISO 8601) |
 | checkOutTime | string | Check-out timestamp (ISO 8601, null if still active) |
+| updatedAt | string | Last update timestamp (ISO 8601) |
+| notificationSent | boolean | Whether notifications have been sent for this visit |
+| syncStatus | string | Synchronization status with external systems ("pending", "synced", "failed") |
+
+### Webhook
+
+| Field | Type | Description |
+|-------|------|-------------|
+| id | integer | Unique identifier |
+| url | string | The endpoint URL that will receive webhook events |
+| secret | string | Secret key for signing webhook payloads (stored securely) |
+| description | string | Human-readable description of the webhook |
+| events | string[] | Array of event types this webhook subscribes to |
+| createdAt | string | Creation timestamp (ISO 8601) |
+| updatedAt | string | Last update timestamp (ISO 8601) |
+| failureCount | integer | Number of consecutive failed delivery attempts |
+| lastTriggeredAt | string | Timestamp of the last webhook trigger (ISO 8601) |
+| status | string | Current status ("active", "failing", "disabled") |
+
+### WebhookDelivery
+
+| Field | Type | Description |
+|-------|------|-------------|
+| id | integer | Unique identifier |
+| webhookId | integer | Reference to the webhook |
+| event | string | The event type that triggered this delivery |
+| payload | object | JSON payload sent to the webhook endpoint |
+| timestamp | string | Delivery attempt timestamp (ISO 8601) |
+| status | string | Delivery status ("pending", "delivered", "failed") |
+| responseCode | integer | HTTP response code from the webhook endpoint |
+| responseBody | string | Response body from the webhook endpoint (truncated) |
+| retryCount | integer | Number of retry attempts |
+| nextRetryAt | string | Timestamp for the next retry attempt (ISO 8601) |
 
 ## Error Handling
 
@@ -380,6 +717,204 @@ To ensure system stability, the API implements rate limiting:
 - 5,000 requests per day per API key
 
 The API will return a `429 Too Many Requests` status code if you exceed these limits.
+
+## Real-time Notifications
+
+The Visitor Management System provides two mechanisms for real-time updates: WebSocket connections and webhooks. These allow your application to be notified immediately when events occur in the system.
+
+### WebSocket Integration
+
+WebSockets provide a persistent connection between your client application and the VMS server, allowing for real-time notification delivery without polling.
+
+**Connection URL:** `wss://your-visitor-system.replit.app/ws`
+
+**Connection Process:**
+
+1. Establish a standard WebSocket connection to the server URL
+2. The server will send a confirmation message upon successful connection
+3. The client should implement heartbeat mechanisms to maintain the connection
+4. Handle reconnection for disconnected sessions
+
+**Example Client Implementation (JavaScript):**
+
+```javascript
+// Create WebSocket connection
+const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+const wsUrl = `${protocol}//${window.location.host}/ws`;
+const socket = new WebSocket(wsUrl);
+
+// Connection opened
+socket.addEventListener('open', (event) => {
+  console.log('Connected to VMS notification server');
+});
+
+// Listen for messages
+socket.addEventListener('message', (event) => {
+  const data = JSON.parse(event.data);
+  
+  // Handle different message types
+  switch(data.type) {
+    case 'connection':
+      console.log('Connection established:', data.message);
+      break;
+    case 'check-in':
+      console.log('New visitor check-in:', data.visitor.fullName);
+      // Update UI or trigger notification
+      break;
+    case 'check-out':
+      console.log('Visitor check-out:', data.visitor.fullName);
+      // Update UI or trigger notification
+      break;
+    case 'partner-update':
+      console.log(`Partner ${data.action}:`, data.visitor.fullName);
+      // Update UI or trigger notification
+      break;
+    case 'heartbeat_ack':
+      // Connection is alive
+      break;
+  }
+});
+
+// Handle disconnection and implement reconnection
+socket.addEventListener('close', (event) => {
+  console.log('Connection closed. Reconnecting...');
+  // Implement reconnection logic with exponential backoff
+});
+
+// Implement heartbeat to keep connection alive
+setInterval(() => {
+  if (socket.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify({ type: 'heartbeat', timestamp: new Date().toISOString() }));
+  }
+}, 15000);
+```
+
+**Message Types:**
+
+| Type | Description | Payload |
+|------|-------------|---------|
+| `connection` | Initial connection confirmation | `{ message: string }` |
+| `check-in` | Visitor has checked in | `{ visitor: { id, fullName, phoneNumber, verified }, purpose: string, timestamp: string }` |
+| `check-out` | Visitor has checked out | `{ visitor: { id, fullName, phoneNumber, verified }, timestamp: string }` |
+| `partner-update` | Visitor partner status changed | `{ action: 'linked'/'unlinked', visitor: {...}, partner: {...}, timestamp: string }` |
+| `heartbeat_ack` | Heartbeat acknowledgment | `{ timestamp: string }` |
+
+**Best Practices:**
+- Implement reconnection with exponential backoff
+- Send regular heartbeats to keep the connection alive
+- Handle graceful disconnections
+- Add error handling and logging
+
+### Webhook Configuration
+
+Webhooks allow the VMS to send HTTP requests to your application when specific events occur, making it suitable for server-to-server communication.
+
+**Endpoint:** `POST /api/external/webhooks`
+
+**Authentication:** API key required in header (same as other API endpoints)
+
+**Request Body:**
+
+```json
+{
+  "url": "https://your-application.com/api/vms-webhook",
+  "secret": "your-webhook-secret",
+  "description": "Production webhook for visitor notifications",
+  "events": ["visitor.checkin", "visitor.checkout", "visitor.partner"]
+}
+```
+
+**Fields:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| url | string | Yes | The URL that will receive webhook notifications |
+| secret | string | Yes | A secret key used to sign webhook payloads |
+| description | string | No | A human-readable description of the webhook |
+| events | array | Yes | Event types to subscribe to |
+
+**Available Events:**
+
+- `visitor.checkin` - Triggered when a visitor checks in
+- `visitor.checkout` - Triggered when a visitor checks out
+- `visitor.partner` - Triggered when visitor partners are linked/unlinked
+- `visitor.updated` - Triggered when a visitor's information is updated
+- `visitor.verified` - Triggered when a visitor's verification status changes
+
+**Managing Webhooks:**
+
+- **Create webhook:** `POST /api/external/webhooks`
+- **List webhooks:** `GET /api/external/webhooks`
+- **Get webhook details:** `GET /api/external/webhooks/{id}`
+- **Update webhook:** `PATCH /api/external/webhooks/{id}`
+- **Delete webhook:** `DELETE /api/external/webhooks/{id}`
+- **Reset failures:** `POST /api/external/webhooks/{id}/reset`
+
+**Webhook Payloads:**
+
+Each webhook delivery includes:
+
+1. A JSON payload with event details
+2. HTTP headers with metadata
+3. A signature for verifying authenticity
+
+**Example Webhook Payload for `visitor.checkin`:**
+
+```json
+{
+  "event": "visitor.checkin",
+  "timestamp": "2025-05-09T14:28:43.271Z",
+  "data": {
+    "visit": {
+      "id": 1234,
+      "visitorId": 5678,
+      "purpose": "Business Meeting",
+      "checkInTime": "2025-05-09T14:28:43.271Z",
+      "active": true
+    },
+    "visitor": {
+      "id": 5678,
+      "fullName": "Jane Smith",
+      "yearOfBirth": 1988,
+      "sex": "Feminin",
+      "phoneNumber": "243912345678",
+      "municipality": "Kinshasa",
+      "verified": true
+    }
+  }
+}
+```
+
+**Webhook Security:**
+
+To verify webhook authenticity, the VMS includes a signature in the `X-VMS-Signature` header. Verify it using:
+
+```php
+$payload = file_get_contents('php://input');
+$signature = $_SERVER['HTTP_X_VMS_SIGNATURE'];
+$secret = 'your-webhook-secret';
+
+$expectedSignature = hash_hmac('sha256', $payload, $secret);
+
+if (hash_equals($expectedSignature, $signature)) {
+  // Webhook is valid, process it
+} else {
+  // Invalid signature, reject the webhook
+  http_response_code(403);
+  exit;
+}
+```
+
+**Handling Failures:**
+
+The VMS will retry failed webhook deliveries with exponential backoff:
+- 1st retry: 30 seconds
+- 2nd retry: 5 minutes
+- 3rd retry: 30 minutes
+- 4th retry: 2 hours
+- 5th retry: 6 hours
+
+After 5 failed attempts, the webhook will be marked as failing and requires manual reset.
 
 ## Laravel Integration
 
@@ -1607,8 +2142,16 @@ Route::get('/visits/history', [VisitController::class, 'history'])->name('visits
 - Implemented API key authentication
 - Added comprehensive documentation
 
-### Version 1.1 (Planned)
-- Add search functionality across all visitor fields
-- Implement webhook notifications for real-time updates
+### Version 1.1 (2025-05-09)
+- Added WebSocket integration for real-time notifications with enhanced connection stability
+- Implemented webhook system for application-to-application integration
+- Added partial name search functionality for visitor lookups
+- Enhanced visitor endpoint with modifiedSince filtering for better change detection
+- Added onsite visitor filtering and dedicated endpoint for tracking current visitors
+- Improved error handling and request validation
+
+### Version 1.2 (Planned)
 - Add bulk operations for visitor management
-- Expand statistics capabilities
+- Expand statistics capabilities with advanced filtering
+- Implement visitor check-in/check-out via API
+- Add webhook event history and analytics
