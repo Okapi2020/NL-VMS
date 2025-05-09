@@ -2477,8 +2477,8 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
     }
 
     try {
-      // Placeholder data for now
-      const webhooks = []; // This would be populated from storage in a real implementation
+      // Use the storage layer to get actual webhooks
+      const webhooks = await storage.getWebhooks();
       res.json({
         success: true,
         data: webhooks
@@ -2503,20 +2503,13 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
         return res.status(400).json({ error: "Invalid webhook ID" });
       }
 
-      // Placeholder response for now
-      const webhook = {
-        id: id,
-        url: "https://example.com/webhook",
-        description: "Example webhook",
-        events: ["visitor.checkin", "visitor.checkout"],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        failureCount: 0,
-        lastTriggeredAt: null,
-        status: "active",
-        deliveryHistory: []
-      };
+      // Get the webhook from storage
+      const webhook = await storage.getWebhook(id);
+      if (!webhook) {
+        return res.status(404).json({ error: "Webhook not found" });
+      }
 
+      // Return the webhook data
       res.json(webhook);
     } catch (error) {
       console.error("Failed to fetch webhook:", error);
@@ -2543,22 +2536,33 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
         });
       }
 
-      // Placeholder response for now
-      const webhook = {
-        id: Date.now(), // Use timestamp as a mock ID
+      // Create data object for webhook
+      const webhookData: InsertWebhook = {
         url,
+        secretKey: secret,
         description: description || null,
         events,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        failureCount: 0,
-        lastTriggeredAt: null,
-        status: "active"
+        createdById: null, // External API doesn't have user context
+        active: true
       };
+
+      // Create the webhook in storage
+      const webhook = await storage.createWebhook(webhookData);
+
+      // Log the creation
+      await storage.createSystemLog({
+        action: "CREATE_WEBHOOK",
+        details: `Created webhook for URL: ${webhook.url} via external API`,
+        userId: null,
+        affectedRecords: 1
+      });
 
       res.status(201).json(webhook);
     } catch (error) {
       console.error("Failed to create webhook:", error);
+      if (error instanceof ZodError) {
+        return handleZodError(error, res);
+      }
       return res.status(500).json({ error: "Failed to create webhook" });
     }
   });
@@ -2577,24 +2581,45 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
         return res.status(400).json({ error: "Invalid webhook ID" });
       }
 
-      const { url, secret, description, events } = req.body;
+      // Check if webhook exists
+      const existingWebhook = await storage.getWebhook(id);
+      if (!existingWebhook) {
+        return res.status(404).json({ error: "Webhook not found" });
+      }
 
-      // Placeholder response
-      const webhook = {
+      const { url, secret, description, events } = req.body;
+      
+      // Create update data
+      const updateData: UpdateWebhook = {
         id,
-        url: url || "https://example.com/webhook",
-        description: description || "Updated webhook",
-        events: events || ["visitor.checkin"],
-        createdAt: new Date(Date.now() - 86400000).toISOString(), // yesterday
-        updatedAt: new Date().toISOString(),
-        failureCount: 0,
-        lastTriggeredAt: null,
-        status: "active"
+        url: url || existingWebhook.url,
+        secretKey: secret || existingWebhook.secretKey,
+        description: description !== undefined ? description : existingWebhook.description,
+        events: events || existingWebhook.events || [],
+        // Keep existing values for other fields
+        active: existingWebhook.active
       };
 
-      res.json(webhook);
+      // Update the webhook
+      const updatedWebhook = await storage.updateWebhook(updateData);
+      if (!updatedWebhook) {
+        return res.status(500).json({ error: "Failed to update webhook" });
+      }
+
+      // Log the action
+      await storage.createSystemLog({
+        action: "UPDATE_WEBHOOK",
+        details: `Updated webhook ID: ${id} via external API`,
+        userId: null,
+        affectedRecords: 1
+      });
+
+      res.json(updatedWebhook);
     } catch (error) {
       console.error("Failed to update webhook:", error);
+      if (error instanceof ZodError) {
+        return handleZodError(error, res);
+      }
       return res.status(500).json({ error: "Failed to update webhook" });
     }
   });
@@ -2612,6 +2637,26 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid webhook ID" });
       }
+      
+      // Check if webhook exists
+      const existingWebhook = await storage.getWebhook(id);
+      if (!existingWebhook) {
+        return res.status(404).json({ error: "Webhook not found" });
+      }
+
+      // Delete the webhook
+      const success = await storage.deleteWebhook(id);
+      if (!success) {
+        return res.status(500).json({ error: "Failed to delete webhook" });
+      }
+
+      // Log the action
+      await storage.createSystemLog({
+        action: "DELETE_WEBHOOK",
+        details: `Deleted webhook ID: ${id} via external API`,
+        userId: null,
+        affectedRecords: 1
+      });
 
       res.json({ success: true, message: "Webhook deleted successfully" });
     } catch (error) {
@@ -2633,14 +2678,46 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid webhook ID" });
       }
+      
+      // Check if webhook exists
+      const existingWebhook = await storage.getWebhook(id);
+      if (!existingWebhook) {
+        return res.status(404).json({ error: "Webhook not found" });
+      }
+      
+      // Create update data to reset the webhook
+      const updateData: UpdateWebhook = {
+        id,
+        failureCount: 0,
+        active: true,
+        // Keep existing values for other fields
+        url: existingWebhook.url,
+        secretKey: existingWebhook.secretKey,
+        description: existingWebhook.description,
+        events: existingWebhook.events || []
+      };
+      
+      // Update the webhook
+      const resetWebhook = await storage.updateWebhook(updateData);
+      if (!resetWebhook) {
+        return res.status(500).json({ error: "Failed to reset webhook" });
+      }
+      
+      // Log the action
+      await storage.createSystemLog({
+        action: "RESET_WEBHOOK",
+        details: `Reset webhook failures for ID: ${id} via external API`,
+        userId: null,
+        affectedRecords: 1
+      });
 
       res.json({ 
         success: true, 
         message: "Webhook reset successfully",
         webhook: {
-          id,
-          status: "active",
-          failureCount: 0
+          id: resetWebhook.id,
+          status: resetWebhook.active ? "active" : "inactive",
+          failureCount: resetWebhook.failureCount
         }
       });
     } catch (error) {
