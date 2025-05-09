@@ -2403,6 +2403,58 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
     }
   });
   
+  // Search for visitors by name
+  app.get("/api/external/visitors/search", async (req, res, next) => {
+    try {
+      await validateApiKey(req, res, next);
+    } catch (error) {
+      return; // Error response already sent by middleware
+    }
+  }, async (req, res) => {
+    try {
+      console.log("External API: Search request received with query:", req.query);
+      const name = req.query.name as string;
+      
+      if (!name || name.trim() === '') {
+        return res.status(400).json({ error: "Search query parameter 'name' is required" });
+      }
+
+      // Get settings to check if partial search is enabled
+      const settings = await storage.getSettings();
+      const enablePartialSearch = settings?.enablePartialSearch || false;
+      
+      // Get pagination parameters
+      const page = parseInt(req.query.page as string || '1');
+      const limit = parseInt(req.query.limit as string || '100');
+      
+      // Get visitors with filters
+      const visitors = await storage.getAllVisitorsWithFilters({
+        page,
+        limit,
+        name,
+        searchPartial: enablePartialSearch,
+      });
+      
+      // Get total count for pagination
+      const total = await storage.getVisitorCount({
+        name,
+      });
+      
+      return res.json({
+        data: visitors,
+        pagination: {
+          page,
+          limit,
+          total: String(total),
+          totalPages: Math.ceil(total / limit)
+        }
+      });
+    } catch (error) {
+      console.error("Error in search endpoint:", error);
+      return res.status(500).json({ error: "Failed to search visitors" });
+    }
+  });
+
   // Get a specific visitor by ID
   app.get("/api/external/visitors/:id", async (req, res, next) => {
     try {
