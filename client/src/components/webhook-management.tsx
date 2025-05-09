@@ -199,13 +199,16 @@ export function WebhookManagement() {
   });
 
   // Edit webhook form
-  const editForm = useForm<WebhookFormValues>({
-    resolver: zodResolver(webhookSchema),
+  const editForm = useForm<WebhookFormValues & { active: boolean }>({
+    resolver: zodResolver(webhookSchema.extend({
+      active: z.boolean().optional()
+    })),
     defaultValues: {
       url: editingWebhook?.url || "",
       secret: "", // We don't send back the secret
       description: editingWebhook?.description || "",
-      events: editingWebhook?.events || []
+      events: editingWebhook?.events || [],
+      active: editingWebhook?.status === "active" || editingWebhook?.status === "failing" || false
     }
   });
 
@@ -216,7 +219,8 @@ export function WebhookManagement() {
         url: editingWebhook.url,
         secret: "", // We don't send back the secret
         description: editingWebhook.description || "",
-        events: editingWebhook.events
+        events: editingWebhook.events,
+        active: editingWebhook.status === "active" || editingWebhook.status === "failing"
       });
     }
   }, [editingWebhook, editForm]);
@@ -334,15 +338,12 @@ export function WebhookManagement() {
     createWebhookMutation.mutate(data);
   };
 
-  const onEditSubmit = (data: WebhookFormValues) => {
+  const onEditSubmit = (data: WebhookFormValues & { active?: boolean }) => {
     if (!editingWebhook) return;
     
-    // Include the active status if available from the editing webhook
-    const active = editingWebhook.status === 'active' || editingWebhook.status === 'failing';
-    
+    // Use the active status from the form data
     updateWebhookMutation.mutate({
       id: editingWebhook.id,
-      active,
       ...data
     });
   };
