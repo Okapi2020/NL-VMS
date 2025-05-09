@@ -73,75 +73,88 @@ export function useWebSocket(url: string) {
   const connect = useCallback(() => {
     // Close any existing connection
     if (webSocketRef.current) {
-      webSocketRef.current.close();
+      try {
+        webSocketRef.current.close();
+      } catch (err) {
+        console.error('Error closing existing WebSocket:', err);
+      }
     }
 
     // Create new connection
     try {
       console.log('Establishing WebSocket connection to:', url);
-      const ws = new WebSocket(url);
-      webSocketRef.current = ws;
-
-      // Connection established
-      ws.onopen = () => {
-        console.log('WebSocket connected successfully');
-        setIsConnected(true);
-        setError(null);
-        startHeartbeat();
-      };
-
-      // Message handler
-      ws.onmessage = (event) => {
-        try {
-          const parsedData = JSON.parse(event.data);
-          setLastMessage(parsedData);
-          setMessages((prev) => [...prev, parsedData]);
-          
-          // Reset missed heartbeats when we get a heartbeat_ack
-          if (parsedData.type === 'heartbeat_ack') {
-            console.log('Received heartbeat acknowledgment');
-            missedHeartbeatsRef.current = 0;
+      
+      // Create a promise wrapper to handle potential connection issues
+      const connectWithTimeout = () => {
+        return new Promise((resolve, reject) => {
+          try {
+            const ws = new WebSocket(url);
+            
+            // Set connection timeout
+            const connectionTimeout = setTimeout(() => {
+              reject(new Error('WebSocket connection timeout'));
+              ws.close();
+            }, 10000); // 10 second timeout
+            
+            ws.onopen = () => {
+              clearTimeout(connectionTimeout);
+              resolve(ws);
+            };
+            
+            ws.onerror = (err) => {
+              clearTimeout(connectionTimeout);
+              reject(err);
+            };
+          } catch (err) {
+            reject(err);
           }
-        } catch (err) {
-          console.error('Failed to parse WebSocket message:', err);
-        }
+        });
       };
-
-      // Error handler
-      ws.onerror = (event) => {
-        console.error('WebSocket error:', event);
-        setError(event);
-      };
-
-      // Connection closed handler
-      ws.onclose = (event) => {
-        console.log(`WebSocket disconnected: Code ${event.code}${event.reason ? ', Reason: ' + event.reason : ''}`);
-        setIsConnected(false);
-        
-        // Clear heartbeat interval
-        if (heartbeatIntervalRef.current) {
-          clearInterval(heartbeatIntervalRef.current);
-          heartbeatIntervalRef.current = null;
-        }
-        
-        // Attempt to reconnect unless it was a normal closure
-        if (event.code !== 1000) {
-          if (reconnectTimeoutRef.current) {
-            clearTimeout(reconnectTimeoutRef.current);
-          }
+      
+      // Handle connection with timeout protection
+      connectWithTimeout()
+        .then((ws) => {
+          webSocketRef.current = ws as WebSocket;
           
-          // Use exponential backoff for reconnection
-          const delay = Math.min(5000 + missedHeartbeatsRef.current * 1000, 30000);
-          console.log(`Scheduling reconnection in ${delay}ms`);
+          // Connection established
+          ws.onopen = () => {
+            console.log('WebSocket connected successfully');
+            setIsConnected(true);
+            setError(null);
+            startHeartbeat();
+          };
           
+          // Message handler
+          ws.onmessage = (event) => {
+            try {
+              const parsedData = JSON.parse(event.data);
+              setLastMessage(parsedData);
+              setMessages((prev) => [...prev, parsedData]);
+              
+              // Reset missed heartbeats when we get a heartbeat_ack
+              if (parsedData.type === 'heartbeat_ack') {
+                console.log('Received heartbeat acknowledgment');
+                missedHeartbeatsRef.current = 0;
+              }
+            } catch (err) {
+              console.error('Failed to parse WebSocket message:', err);
+            }
+          };
+          
+          // Add additional handlers after successful connection
+          setupWebSocketHandlers(ws as WebSocket);
+        })
+        .catch((err) => {
+          console.error('WebSocket connection failed:', err);
+          setError(err as Event);
+          // Schedule reconnection attempt
           reconnectTimeoutRef.current = setTimeout(() => {
-            console.log('Attempting to reconnect WebSocket...');
+            console.log('Attempting to reconnect after connection timeout...');
             connect();
-          }, delay); 
-        }
-      };
+          }, 5000);
+        });
     } catch (err) {
-      console.error('Error creating WebSocket connection:', err);
+      console.error('Error initiating WebSocket connection:', err);
       setError(err as Event);
       
       // Schedule reconnection attempt
@@ -151,6 +164,41 @@ export function useWebSocket(url: string) {
       }, 5000);
     }
   }, [url, startHeartbeat]);
+  
+  // Setup WebSocket event handlers to separate function for clarity
+  const setupWebSocketHandlers = useCallback((ws: WebSocket) => {
+    // Message handler is set in the connection promise
+    
+    // Error handler is already set in the promise
+    
+    // Connection closed handler
+    ws.onclose = (event) => {
+      console.log(`WebSocket disconnected: Code ${event.code}${event.reason ? ', Reason: ' + event.reason : ''}`);
+      setIsConnected(false);
+      
+      // Clear heartbeat interval
+      if (heartbeatIntervalRef.current) {
+        clearInterval(heartbeatIntervalRef.current);
+        heartbeatIntervalRef.current = null;
+      }
+      
+      // Attempt to reconnect unless it was a normal closure
+      if (event.code !== 1000) {
+        if (reconnectTimeoutRef.current) {
+          clearTimeout(reconnectTimeoutRef.current);
+        }
+        
+        // Use exponential backoff for reconnection
+        const delay = Math.min(5000 + missedHeartbeatsRef.current * 1000, 30000);
+        console.log(`Scheduling reconnection in ${delay}ms`);
+        
+        reconnectTimeoutRef.current = setTimeout(() => {
+          console.log('Attempting to reconnect WebSocket...');
+          connect();
+        }, delay); 
+      }
+    };
+  }, [connect]);
 
   // Cleanup on unmount
   useEffect(() => {
