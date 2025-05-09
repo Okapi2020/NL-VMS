@@ -814,20 +814,66 @@ Webhooks allow the VMS to send HTTP requests to your application when specific e
 To fully utilize the VMS integration with webhooks:
 
 1. **Register a Webhook**: Use the webhook management page in the admin dashboard to register a webhook with the VMS API.
-   - Navigate to "Settings" > "Integrations" > "Webhooks"
-   - Click "Add New Webhook"
-   - Enter your endpoint URL, secret key, and select the events you want to subscribe to
-   - Save the webhook to start receiving notifications
+   - Navigate to "Admin Dashboard" > "Settings"
+   - Select the "Webhooks" tab
+   - Click "Create New Webhook" button
+   - Fill in the following required information:
+     * **Webhook URL**: The endpoint in your application that will receive webhook notifications (must be publicly accessible)
+     * **Secret Key**: A secure string used to verify webhook signatures (keep this confidential)
+     * **Events to Subscribe**: Select one or more events that should trigger notifications (visitor.checkin, visitor.checkout, etc.)
+     * **Description** (optional): A human-readable description to help identify the webhook's purpose
 
 2. **Implement a Webhook Endpoint**: Create an endpoint in your application that can receive and process webhook requests.
-   - The endpoint should be publicly accessible
-   - Verify the webhook signature using your secret
-   - Process the webhook payload based on the event type
+   - The endpoint must be accessible from the internet (not localhost)
+   - Set up your endpoint to process POST requests with JSON payloads
+   - Implement signature verification using the HMAC-SHA256 algorithm:
+     ```php
+     // Example signature verification in PHP
+     $payload = file_get_contents('php://input');
+     $signature = $_SERVER['HTTP_X_VMS_SIGNATURE'];
+     $secret = 'your-webhook-secret';
+     
+     $expectedSignature = hash_hmac('sha256', $payload, $secret);
+     
+     if (hash_equals($expectedSignature, $signature)) {
+       // Signature is valid, process the webhook
+       $data = json_decode($payload, true);
+       // Handle different event types
+       switch ($data['event']) {
+         case 'visitor.checkin':
+           // Process visitor check-in
+           break;
+         case 'visitor.checkout':
+           // Process visitor check-out
+           break;
+         // Handle other event types
+       }
+     } else {
+       // Invalid signature, reject the request
+       http_response_code(403);
+       exit("Invalid signature");
+     }
+     ```
 
-3. **Monitor Webhook Deliveries**: Use the webhook management dashboard to:
-   - View delivery status and history
-   - Troubleshoot failed deliveries
-   - Reset failing webhooks when necessary
+3. **Monitor Webhook Deliveries**: The webhook management UI provides tools to monitor and manage webhook deliveries:
+   - **View Webhook Status**: Active webhooks show a green badge, failing webhooks show a red badge
+   - **Delivery History**: Click "Details" on any webhook to view its delivery history
+   - **Troubleshooting**: Failed deliveries show response codes and error messages
+   - **Reset Failing Webhooks**: Use the "Reset" button to clear failure count and retry failed deliveries
+
+4. **Testing Your Webhook**: To ensure your webhook is working correctly:
+   - Create a test webhook pointing to a publicly accessible endpoint
+   - Use a tool like [Webhook.site](https://webhook.site/) for testing if you don't have a public endpoint
+   - Trigger events in the system (e.g., check in a visitor)
+   - Verify that your endpoint receives the webhook notifications
+   - Check that signature verification works correctly
+
+5. **Best Practices**:
+   - Make your webhook handler idempotent (able to process the same event multiple times without adverse effects)
+   - Implement appropriate error handling in your webhook endpoint
+   - Respond quickly to webhook requests (under 3 seconds) to avoid timeouts
+   - Set up monitoring for your webhook endpoint
+   - Regularly check the webhook management dashboard for failing webhooks
 
 **Endpoint:** `POST /api/external/webhooks`
 

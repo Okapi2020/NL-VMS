@@ -2466,6 +2466,188 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
       return res.status(500).json({ error: "Failed to fetch statistics" });
     }
   });
+
+  // Webhook API endpoints
+  // Get all webhooks
+  app.get("/api/external/webhooks", async (req, res, next) => {
+    try {
+      await validateApiKey(req, res, next);
+    } catch (error) {
+      return; // Error response already sent by middleware
+    }
+
+    try {
+      // Placeholder data for now
+      const webhooks = []; // This would be populated from storage in a real implementation
+      res.json({
+        success: true,
+        data: webhooks
+      });
+    } catch (error) {
+      console.error("Failed to fetch webhooks:", error);
+      return res.status(500).json({ error: "Failed to fetch webhooks" });
+    }
+  });
+
+  // Get a specific webhook
+  app.get("/api/external/webhooks/:id", async (req, res, next) => {
+    try {
+      await validateApiKey(req, res, next);
+    } catch (error) {
+      return; // Error response already sent by middleware
+    }
+
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid webhook ID" });
+      }
+
+      // Placeholder response for now
+      const webhook = {
+        id: id,
+        url: "https://example.com/webhook",
+        description: "Example webhook",
+        events: ["visitor.checkin", "visitor.checkout"],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        failureCount: 0,
+        lastTriggeredAt: null,
+        status: "active",
+        deliveryHistory: []
+      };
+
+      res.json(webhook);
+    } catch (error) {
+      console.error("Failed to fetch webhook:", error);
+      return res.status(500).json({ error: "Failed to fetch webhook" });
+    }
+  });
+
+  // Create a new webhook
+  app.post("/api/external/webhooks", async (req, res, next) => {
+    try {
+      await validateApiKey(req, res, next);
+    } catch (error) {
+      return; // Error response already sent by middleware
+    }
+
+    try {
+      const { url, secret, description, events } = req.body;
+
+      // Basic validation
+      if (!url || !secret || !events || !Array.isArray(events) || events.length === 0) {
+        return res.status(400).json({ 
+          error: "Invalid webhook data",
+          details: "url, secret, and at least one event are required" 
+        });
+      }
+
+      // Placeholder response for now
+      const webhook = {
+        id: Date.now(), // Use timestamp as a mock ID
+        url,
+        description: description || null,
+        events,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        failureCount: 0,
+        lastTriggeredAt: null,
+        status: "active"
+      };
+
+      res.status(201).json(webhook);
+    } catch (error) {
+      console.error("Failed to create webhook:", error);
+      return res.status(500).json({ error: "Failed to create webhook" });
+    }
+  });
+
+  // Update a webhook
+  app.patch("/api/external/webhooks/:id", async (req, res, next) => {
+    try {
+      await validateApiKey(req, res, next);
+    } catch (error) {
+      return; // Error response already sent by middleware
+    }
+
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid webhook ID" });
+      }
+
+      const { url, secret, description, events } = req.body;
+
+      // Placeholder response
+      const webhook = {
+        id,
+        url: url || "https://example.com/webhook",
+        description: description || "Updated webhook",
+        events: events || ["visitor.checkin"],
+        createdAt: new Date(Date.now() - 86400000).toISOString(), // yesterday
+        updatedAt: new Date().toISOString(),
+        failureCount: 0,
+        lastTriggeredAt: null,
+        status: "active"
+      };
+
+      res.json(webhook);
+    } catch (error) {
+      console.error("Failed to update webhook:", error);
+      return res.status(500).json({ error: "Failed to update webhook" });
+    }
+  });
+
+  // Delete a webhook
+  app.delete("/api/external/webhooks/:id", async (req, res, next) => {
+    try {
+      await validateApiKey(req, res, next);
+    } catch (error) {
+      return; // Error response already sent by middleware
+    }
+
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid webhook ID" });
+      }
+
+      res.json({ success: true, message: "Webhook deleted successfully" });
+    } catch (error) {
+      console.error("Failed to delete webhook:", error);
+      return res.status(500).json({ error: "Failed to delete webhook" });
+    }
+  });
+
+  // Reset webhook failures
+  app.post("/api/external/webhooks/:id/reset", async (req, res, next) => {
+    try {
+      await validateApiKey(req, res, next);
+    } catch (error) {
+      return; // Error response already sent by middleware
+    }
+
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid webhook ID" });
+      }
+
+      res.json({ 
+        success: true, 
+        message: "Webhook reset successfully",
+        webhook: {
+          id,
+          status: "active",
+          failureCount: 0
+        }
+      });
+    } catch (error) {
+      console.error("Failed to reset webhook:", error);
+      return res.status(500).json({ error: "Failed to reset webhook" });
+    }
+  });
   
   // API endpoint documentation
   app.get("/api/external", async (req, res, next) => {
@@ -2480,6 +2662,58 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
       version: "1.0",
       description: "API for integrating with the Visitor Management System",
       endpoints: [
+        { 
+          path: "/api/external/webhooks", 
+          method: "GET", 
+          description: "List all registered webhooks",
+          parameters: []
+        },
+        { 
+          path: "/api/external/webhooks/:id", 
+          method: "GET", 
+          description: "Get details of a specific webhook",
+          parameters: [
+            { name: "id", type: "number", description: "Webhook ID" }
+          ]
+        },
+        { 
+          path: "/api/external/webhooks", 
+          method: "POST", 
+          description: "Register a new webhook",
+          parameters: [
+            { name: "url", type: "string", description: "URL that will receive webhook notifications", required: true },
+            { name: "secret", type: "string", description: "Secret key used to sign webhook payloads", required: true },
+            { name: "description", type: "string", description: "Human-readable description of the webhook", required: false },
+            { name: "events", type: "array", description: "Events to subscribe to (e.g. visitor.checkin, visitor.checkout)", required: true }
+          ]
+        },
+        { 
+          path: "/api/external/webhooks/:id", 
+          method: "PATCH", 
+          description: "Update an existing webhook",
+          parameters: [
+            { name: "url", type: "string", description: "URL that will receive webhook notifications", required: false },
+            { name: "secret", type: "string", description: "Secret key used to sign webhook payloads", required: false },
+            { name: "description", type: "string", description: "Human-readable description of the webhook", required: false },
+            { name: "events", type: "array", description: "Events to subscribe to (e.g. visitor.checkin, visitor.checkout)", required: false }
+          ]
+        },
+        { 
+          path: "/api/external/webhooks/:id", 
+          method: "DELETE", 
+          description: "Delete a webhook",
+          parameters: [
+            { name: "id", type: "number", description: "Webhook ID" }
+          ]
+        },
+        { 
+          path: "/api/external/webhooks/:id/reset", 
+          method: "POST", 
+          description: "Reset webhook failure count",
+          parameters: [
+            { name: "id", type: "number", description: "Webhook ID" }
+          ]
+        },
         { 
           path: "/api/external/visitors", 
           method: "GET", 
