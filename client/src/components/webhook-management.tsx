@@ -26,7 +26,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, Trash2, RefreshCw, ExternalLink } from "lucide-react";
+import { Loader2, Trash2, RefreshCw, ExternalLink, Copy, Check, Eye, EyeOff } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -129,6 +129,8 @@ export function WebhookManagement() {
   const [editingWebhook, setEditingWebhook] = useState<Webhook | null>(null);
   const [selectedWebhook, setSelectedWebhook] = useState<Webhook | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [showSecret, setShowSecret] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Fetch webhooks
   const { data: webhooks, isLoading: isLoadingWebhooks } = useQuery<Webhook[]>({
@@ -367,6 +369,30 @@ export function WebhookManagement() {
       timeStyle: "short"
     }).format(date);
   };
+  
+  // Function to copy text to clipboard
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      toast({
+        title: "Copied!",
+        description: "Secret key copied to clipboard",
+      });
+      
+      // Reset the copied state after 2 seconds
+      setTimeout(() => {
+        setCopied(false);
+      }, 2000);
+    } catch (err) {
+      console.error("Failed to copy text: ", err);
+      toast({
+        title: "Failed to copy",
+        description: "Could not copy the secret key",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -418,9 +444,37 @@ export function WebhookManagement() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Secret Key</FormLabel>
-                          <FormControl>
-                            <Input type="password" placeholder="your-webhook-secret" {...field} />
-                          </FormControl>
+                          <div className="flex gap-2">
+                            <FormControl className="flex-1">
+                              <Input 
+                                type={showSecret ? "text" : "password"} 
+                                placeholder="your-webhook-secret" 
+                                {...field} 
+                              />
+                            </FormControl>
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="outline"
+                              onClick={() => setShowSecret(!showSecret)}
+                              className="h-10 w-10"
+                              title={showSecret ? "Hide secret" : "Show secret"}
+                            >
+                              {showSecret ? <Eye /> : <EyeOff />}
+                            </Button>
+                            {field.value && (
+                              <Button
+                                type="button"
+                                size="icon"
+                                variant="outline"
+                                onClick={() => copyToClipboard(field.value)}
+                                className="h-10 w-10"
+                                title="Copy secret to clipboard"
+                              >
+                                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                              </Button>
+                            )}
+                          </div>
                           <FormDescription>
                             A secret key used to sign webhook payloads for verification
                           </FormDescription>
