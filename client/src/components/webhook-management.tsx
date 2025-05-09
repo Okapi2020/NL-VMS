@@ -138,7 +138,7 @@ export function WebhookManagement() {
     queryKey: ["/api/webhooks"],
     queryFn: async () => {
       try {
-        const res = await fetch("/api/external/webhooks", {
+        const res = await fetch("/api/webhooks", {
           headers: {
             "Content-Type": "application/json",
           },
@@ -164,7 +164,7 @@ export function WebhookManagement() {
       if (!selectedWebhook) return { webhook: null, deliveries: [] };
       
       try {
-        const res = await fetch(`/api/external/webhooks/${selectedWebhook.id}`, {
+        const res = await fetch(`/api/webhooks/${selectedWebhook.id}`, {
           headers: {
             "Content-Type": "application/json",
           },
@@ -176,8 +176,8 @@ export function WebhookManagement() {
         
         const webhook = await res.json();
         return {
-          webhook,
-          deliveries: webhook.deliveryHistory || []
+          webhook: webhook.data?.webhook || null,
+          deliveries: webhook.data?.deliveries || []
         };
       } catch (error) {
         console.error("Error fetching webhook details:", error);
