@@ -809,6 +809,26 @@ setInterval(() => {
 
 Webhooks allow the VMS to send HTTP requests to your application when specific events occur, making it suitable for server-to-server communication.
 
+#### Getting Started with Webhooks
+
+To fully utilize the VMS integration with webhooks:
+
+1. **Register a Webhook**: Use the webhook management page in the admin dashboard to register a webhook with the VMS API.
+   - Navigate to "Settings" > "Integrations" > "Webhooks"
+   - Click "Add New Webhook"
+   - Enter your endpoint URL, secret key, and select the events you want to subscribe to
+   - Save the webhook to start receiving notifications
+
+2. **Implement a Webhook Endpoint**: Create an endpoint in your application that can receive and process webhook requests.
+   - The endpoint should be publicly accessible
+   - Verify the webhook signature using your secret
+   - Process the webhook payload based on the event type
+
+3. **Monitor Webhook Deliveries**: Use the webhook management dashboard to:
+   - View delivery status and history
+   - Troubleshoot failed deliveries
+   - Reset failing webhooks when necessary
+
 **Endpoint:** `POST /api/external/webhooks`
 
 **Authentication:** API key required in header (same as other API endpoints)
