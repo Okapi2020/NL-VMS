@@ -8,6 +8,7 @@ This document provides comprehensive information about the Visitor Management Sy
 2. [Authentication](#authentication)
 3. [API Endpoints](#api-endpoints)
    - [Get All Visitors](#get-all-visitors)
+   - [Search Visitors](#search-visitors)
    - [Get Visitor by ID](#get-visitor-by-id)
    - [Get All Visits](#get-all-visits)
    - [Get Onsite Visitors](#get-onsite-visitors)
@@ -30,6 +31,7 @@ This document provides comprehensive information about the Visitor Management Sy
 11. [Security Considerations](#security-considerations)
 12. [Troubleshooting](#troubleshooting)
 13. [Changelog](#changelog)
+   - [API Improvements](#api-improvements)
 
 ## Overview
 
@@ -111,6 +113,74 @@ curl -X GET "https://your-visitor-system.replit.app/api/external/visitors?page=1
     "limit": 10,
     "total": 243,
     "totalPages": 25
+  }
+}
+```
+
+### Search Visitors
+
+Searches for visitors by name with partial or exact matching.
+
+**Endpoint:** `GET /api/external/visitors/search`
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| name | string | Yes | The name or partial name to search for |
+| page | integer | No | Page number for pagination (default: 1) |
+| limit | integer | No | Number of records per page (default: 100) |
+
+**Example Request:**
+
+```bash
+curl -X GET "https://your-visitor-system.replit.app/api/external/visitors/search?name=Mic&page=1&limit=5" \
+  -H "X-API-Key: your-api-key-here" \
+  -H "Accept: application/json"
+```
+
+**Example Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": 1455,
+      "fullName": "Michael Smith",
+      "yearOfBirth": 1990,
+      "sex": "Masculin",
+      "email": "michael.smith@example.com",
+      "phoneNumber": "243999123456",
+      "municipality": "Gombe",
+      "visitCount": 3,
+      "verified": true,
+      "deleted": false,
+      "createdAt": "2025-05-01T09:30:00Z",
+      "updatedAt": "2025-05-09T10:15:30Z",
+      "isOnsite": true
+    },
+    {
+      "id": 1410,
+      "fullName": "Michelle Johnson",
+      "yearOfBirth": 1985,
+      "sex": "Feminin",
+      "email": "michelle.j@example.com",
+      "phoneNumber": "243998765432",
+      "municipality": "Ngaliema",
+      "visitCount": 1,
+      "verified": true,
+      "deleted": false,
+      "createdAt": "2025-04-28T14:22:10Z",
+      "updatedAt": "2025-05-08T11:45:22Z",
+      "isOnsite": false
+    },
+    // More visitors...
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 5,
+    "total": "14",
+    "totalPages": 3
   }
 }
 ```
