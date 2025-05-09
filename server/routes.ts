@@ -2479,9 +2479,18 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
     try {
       // Use the storage layer to get actual webhooks
       const webhooks = await storage.getWebhooks();
+      
+      // Format the response to include status field derived from active and failureCount
+      const formattedWebhooks = webhooks.map(webhook => ({
+        ...webhook,
+        status: webhook.active 
+          ? (webhook.failureCount > 3 ? "warning" : "active") 
+          : "inactive"
+      }));
+      
       res.json({
         success: true,
-        data: webhooks
+        data: formattedWebhooks
       });
     } catch (error) {
       console.error("Failed to fetch webhooks:", error);
@@ -2509,8 +2518,19 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
         return res.status(404).json({ error: "Webhook not found" });
       }
 
+      // Format the webhook to include status
+      const formattedWebhook = {
+        ...webhook,
+        status: webhook.active 
+          ? (webhook.failureCount > 3 ? "warning" : "active") 
+          : "inactive"
+      };
+
       // Return the webhook data
-      res.json(webhook);
+      res.json({
+        success: true,
+        data: formattedWebhook
+      });
     } catch (error) {
       console.error("Failed to fetch webhook:", error);
       return res.status(500).json({ error: "Failed to fetch webhook" });
@@ -2557,7 +2577,17 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
         affectedRecords: 1
       });
 
-      res.status(201).json(webhook);
+      // Format the webhook to include status
+      const formattedWebhook = {
+        ...webhook,
+        status: webhook.active ? "active" : "inactive"
+      };
+
+      res.status(201).json({
+        success: true,
+        message: "Webhook created successfully",
+        data: formattedWebhook
+      });
     } catch (error) {
       console.error("Failed to create webhook:", error);
       if (error instanceof ZodError) {
@@ -2614,7 +2644,19 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
         affectedRecords: 1
       });
 
-      res.json(updatedWebhook);
+      // Format the webhook to include status
+      const formattedWebhook = {
+        ...updatedWebhook,
+        status: updatedWebhook.active 
+          ? (updatedWebhook.failCount > 3 ? "warning" : "active") 
+          : "inactive"
+      };
+
+      res.json({
+        success: true,
+        message: "Webhook updated successfully",
+        data: formattedWebhook
+      });
     } catch (error) {
       console.error("Failed to update webhook:", error);
       if (error instanceof ZodError) {
@@ -2688,7 +2730,7 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
       // Create update data to reset the webhook
       const updateData: UpdateWebhook = {
         id,
-        failureCount: 0,
+        failCount: 0,
         active: true,
         // Keep existing values for other fields
         url: existingWebhook.url,
@@ -2711,14 +2753,16 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
         affectedRecords: 1
       });
 
+      // Format the webhook to include status
+      const formattedWebhook = {
+        ...resetWebhook,
+        status: resetWebhook.active ? "active" : "inactive"
+      };
+
       res.json({ 
         success: true, 
         message: "Webhook reset successfully",
-        webhook: {
-          id: resetWebhook.id,
-          status: resetWebhook.active ? "active" : "inactive",
-          failureCount: resetWebhook.failureCount
-        }
+        data: formattedWebhook
       });
     } catch (error) {
       console.error("Failed to reset webhook:", error);
