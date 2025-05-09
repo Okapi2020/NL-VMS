@@ -393,6 +393,25 @@ export function WebhookManagement() {
       });
     }
   };
+  
+  // Function to generate a random secret key
+  const generateSecretKey = () => {
+    // Generate a random string of 24 characters (letters, numbers, and some special chars)
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+';
+    const length = 24;
+    let result = '';
+    
+    // Create a Uint8Array with random values
+    const randomValues = new Uint8Array(length);
+    window.crypto.getRandomValues(randomValues);
+    
+    // Use the random values to select characters from our character set
+    for (let i = 0; i < length; i++) {
+      result += characters.charAt(randomValues[i] % characters.length);
+    }
+    
+    return result;
+  };
 
   return (
     <div className="space-y-6">
@@ -461,6 +480,19 @@ export function WebhookManagement() {
                               title={showSecret ? "Hide secret" : "Show secret"}
                             >
                               {showSecret ? <Eye /> : <EyeOff />}
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => {
+                                const secret = generateSecretKey();
+                                field.onChange(secret);
+                                setShowSecret(true);
+                              }}
+                              className="h-10 whitespace-nowrap"
+                              title="Generate a secure random secret key"
+                            >
+                              Generate
                             </Button>
                             {field.value && (
                               <Button
@@ -635,6 +667,19 @@ export function WebhookManagement() {
                               title={showSecret ? "Hide secret" : "Show secret"}
                             >
                               {showSecret ? <Eye /> : <EyeOff />}
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => {
+                                const secret = generateSecretKey();
+                                field.onChange(secret);
+                                setShowSecret(true);
+                              }}
+                              className="h-10 whitespace-nowrap"
+                              title="Generate a secure random secret key"
+                            >
+                              Generate
                             </Button>
                             {field.value && (
                               <Button
