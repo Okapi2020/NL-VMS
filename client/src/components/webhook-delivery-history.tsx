@@ -53,9 +53,9 @@ export function WebhookDeliveryHistory({ webhookId }: WebhookDeliveryHistoryProp
   const [selectedDelivery, setSelectedDelivery] = useState<WebhookDelivery | null>(null);
   
   const { data, isLoading, isError, refetch } = useQuery<{ success: boolean, message: string, data: { deliveries: WebhookDelivery[] } }>({
-    queryKey: ['/api/admin/webhooks', webhookId, 'deliveries', limit],
+    queryKey: ['/api/webhooks', webhookId, 'deliveries', limit],
     queryFn: async () => {
-      const res = await fetch(`/api/admin/webhooks/${webhookId}/deliveries?limit=${limit}`);
+      const res = await fetch(`/api/webhooks/${webhookId}/deliveries?limit=${limit}`);
       if (!res.ok) {
         throw new Error('Failed to fetch webhook deliveries');
       }

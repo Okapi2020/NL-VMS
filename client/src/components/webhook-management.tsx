@@ -224,7 +224,7 @@ export function WebhookManagement() {
   // Create webhook mutation
   const createWebhookMutation = useMutation({
     mutationFn: async (data: WebhookFormValues) => {
-      const res = await apiRequest("POST", "/api/external/webhooks", data);
+      const res = await apiRequest("POST", "/api/webhooks", data);
       return res.json();
     },
     onSuccess: () => {
@@ -258,7 +258,7 @@ export function WebhookManagement() {
             events: webhookData.events 
           };
       
-      const res = await apiRequest("PATCH", `/api/external/webhooks/${id}`, dataToSend);
+      const res = await apiRequest("PATCH", `/api/webhooks/${id}`, dataToSend);
       return res.json();
     },
     onSuccess: () => {
@@ -281,7 +281,7 @@ export function WebhookManagement() {
   // Delete webhook mutation
   const deleteWebhookMutation = useMutation({
     mutationFn: async (id: number) => {
-      const res = await apiRequest("DELETE", `/api/external/webhooks/${id}`);
+      const res = await apiRequest("DELETE", `/api/webhooks/${id}`);
       return res.json();
     },
     onSuccess: () => {
@@ -308,7 +308,7 @@ export function WebhookManagement() {
   // Reset webhook failures mutation
   const resetWebhookMutation = useMutation({
     mutationFn: async (id: number) => {
-      const res = await apiRequest("POST", `/api/external/webhooks/${id}/reset`);
+      const res = await apiRequest("POST", `/api/webhooks/${id}/reset`);
       return res.json();
     },
     onSuccess: () => {
