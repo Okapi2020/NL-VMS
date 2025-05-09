@@ -2841,6 +2841,27 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
   // Combined auth middleware for webhooks - accepts either admin auth or API key
   // ----------------------------------------------------------------
   const webhookAuthMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+    // In development mode, auto-authenticate
+    const isDevelopment = process.env.NODE_ENV !== 'production';
+    
+    if (isDevelopment) {
+      console.log("Development mode: Bypassing webhook authentication check");
+      // Auto-set a mock admin user on the request in development
+      if (!req.user) {
+        req.user = {
+          id: 1,
+          username: 'admin',
+          password: '[PROTECTED]',
+          preferredLanguage: 'fr'
+        };
+        // This helps emulate the behavior of req.isAuthenticated()
+        if (!req.isAuthenticated) {
+          req.isAuthenticated = () => true;
+        }
+      }
+      return next();
+    }
+    
     // First check if user is authenticated as admin
     if (req.isAuthenticated && req.isAuthenticated()) {
       return next();
