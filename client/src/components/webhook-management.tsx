@@ -618,13 +618,37 @@ export function WebhookManagement() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Secret Key (leave blank to keep existing)</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="password" 
-                              placeholder="••••••••••••••••" 
-                              {...field} 
-                            />
-                          </FormControl>
+                          <div className="flex gap-2">
+                            <FormControl className="flex-1">
+                              <Input 
+                                type={showSecret ? "text" : "password"} 
+                                placeholder="••••••••••••••••" 
+                                {...field} 
+                              />
+                            </FormControl>
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="outline"
+                              onClick={() => setShowSecret(!showSecret)}
+                              className="h-10 w-10"
+                              title={showSecret ? "Hide secret" : "Show secret"}
+                            >
+                              {showSecret ? <Eye /> : <EyeOff />}
+                            </Button>
+                            {field.value && (
+                              <Button
+                                type="button"
+                                size="icon"
+                                variant="outline"
+                                onClick={() => copyToClipboard(field.value)}
+                                className="h-10 w-10"
+                                title="Copy secret to clipboard"
+                              >
+                                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                              </Button>
+                            )}
+                          </div>
                           <FormDescription>
                             Only enter a new secret if you want to change it
                           </FormDescription>
