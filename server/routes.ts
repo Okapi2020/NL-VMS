@@ -2697,19 +2697,28 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
-        return res.status(400).json({ error: "Invalid webhook ID" });
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid webhook ID" 
+        });
       }
       
       // Check if webhook exists
       const existingWebhook = await storage.getWebhook(id);
       if (!existingWebhook) {
-        return res.status(404).json({ error: "Webhook not found" });
+        return res.status(404).json({ 
+          success: false,
+          message: "Webhook not found" 
+        });
       }
 
       // Delete the webhook
       const success = await storage.deleteWebhook(id);
       if (!success) {
-        return res.status(500).json({ error: "Failed to delete webhook" });
+        return res.status(500).json({ 
+          success: false,
+          message: "Failed to delete webhook" 
+        });
       }
 
       // Log the action
@@ -2723,7 +2732,10 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
       res.json({ success: true, message: "Webhook deleted successfully" });
     } catch (error) {
       console.error("Failed to delete webhook:", error);
-      return res.status(500).json({ error: "Failed to delete webhook" });
+      return res.status(500).json({ 
+        success: false,
+        message: "Failed to delete webhook" 
+      });
     }
   });
 
@@ -2738,13 +2750,19 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
-        return res.status(400).json({ error: "Invalid webhook ID" });
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid webhook ID" 
+        });
       }
       
       // Check if webhook exists
       const existingWebhook = await storage.getWebhook(id);
       if (!existingWebhook) {
-        return res.status(404).json({ error: "Webhook not found" });
+        return res.status(404).json({ 
+          success: false,
+          message: "Webhook not found" 
+        });
       }
       
       // Create update data to reset the webhook
@@ -2762,7 +2780,10 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
       // Update the webhook
       const resetWebhook = await storage.updateWebhook(updateData);
       if (!resetWebhook) {
-        return res.status(500).json({ error: "Failed to reset webhook" });
+        return res.status(500).json({ 
+          success: false,
+          message: "Failed to reset webhook" 
+        });
       }
       
       // Log the action
@@ -2786,7 +2807,10 @@ app.get("/api/admin/export-database", ensureAuthenticated, async (req, res) => {
       });
     } catch (error) {
       console.error("Failed to reset webhook:", error);
-      return res.status(500).json({ error: "Failed to reset webhook" });
+      return res.status(500).json({ 
+        success: false,
+        message: "Failed to reset webhook" 
+      });
     }
   });
   
