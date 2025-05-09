@@ -161,24 +161,57 @@ const dispatchWebhooks = async (event: string, data: any, visitor?: Visitor) => 
         headers['X-VMS-Event'] = event;
         
         // Send the webhook
+        const startTime = Date.now();
+        const payloadStr = JSON.stringify(payload);
+        
+        // Send the webhook
         const response = await fetch(webhook.url, {
           method: 'POST',
           headers,
-          body: JSON.stringify(payload)
+          body: payloadStr
         });
         
+        // Get the response as text for logging
+        const responseText = await response.text();
         const success = response.ok;
-        console.log(`Webhook ${webhook.id} to ${webhook.url} ${success ? 'succeeded' : 'failed'} with status ${response.status}`);
+        const duration = Date.now() - startTime;
         
-        // Record the outcome
-        await storage.recordWebhookCall(webhook.id, success);
+        console.log(`Webhook ${webhook.id} to ${webhook.url} ${success ? 'succeeded' : 'failed'} with status ${response.status} in ${duration}ms`);
         
-        return { webhookId: webhook.id, success, statusCode: response.status };
+        // Record the outcome with complete delivery data
+        await storage.recordWebhookCall(webhook.id, success, {
+          event,
+          payload: payloadStr,
+          responseCode: response.status,
+          responseBody: responseText.substring(0, 2000), // Limit response body size
+          errorMessage: success ? undefined : `HTTP error ${response.status}`
+        });
+        
+        return { 
+          webhookId: webhook.id, 
+          success, 
+          statusCode: response.status,
+          duration
+        };
       } catch (error) {
         console.error(`Error dispatching webhook ${webhook.id} to ${webhook.url}:`, error);
-        await storage.recordWebhookCall(webhook.id, false);
         const errorMessage = error instanceof Error ? error.message : String(error);
-        return { webhookId: webhook.id, success: false, error: errorMessage };
+        
+        // Record the failure with as much information as possible
+        const payloadStr = JSON.stringify(payload);
+        await storage.recordWebhookCall(webhook.id, false, {
+          event,
+          payload: payloadStr,
+          responseCode: 0, // No response code for network/connection errors
+          responseBody: undefined,
+          errorMessage: errorMessage
+        });
+        
+        return { 
+          webhookId: webhook.id, 
+          success: false, 
+          error: errorMessage 
+        };
       }
     });
     
