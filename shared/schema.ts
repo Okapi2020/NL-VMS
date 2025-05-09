@@ -450,7 +450,7 @@ export const updateWebhookSchema = z.object({
   description: z.string().optional(),
   secretKey: z.string().optional(),
   events: z.array(z.string()),
-  active: z.boolean(),
+  active: z.boolean().optional(), // Make active optional in updates
 });
 
 export type Webhook = typeof webhooks.$inferSelect;

@@ -247,15 +247,16 @@ export function WebhookManagement() {
 
   // Update webhook mutation
   const updateWebhookMutation = useMutation({
-    mutationFn: async (data: WebhookFormValues & { id: number }) => {
-      const { id, ...webhookData } = data;
+    mutationFn: async (data: WebhookFormValues & { id: number, active?: boolean }) => {
+      const { id, active, ...webhookData } = data;
       // If secret is empty, create new object without it
       const dataToSend = webhookData.secret 
-        ? webhookData 
+        ? { ...webhookData, active } 
         : { 
             url: webhookData.url, 
             description: webhookData.description, 
-            events: webhookData.events 
+            events: webhookData.events,
+            active: active !== undefined ? active : true // Default to active if not provided
           };
       
       const res = await apiRequest("PATCH", `/api/webhooks/${id}`, dataToSend);
@@ -335,8 +336,13 @@ export function WebhookManagement() {
 
   const onEditSubmit = (data: WebhookFormValues) => {
     if (!editingWebhook) return;
+    
+    // Include the active status if available from the editing webhook
+    const active = editingWebhook.status === 'active' || editingWebhook.status === 'failing';
+    
     updateWebhookMutation.mutate({
       id: editingWebhook.id,
+      active,
       ...data
     });
   };
