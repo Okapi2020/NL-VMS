@@ -9,10 +9,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, Moon, Sun, Laptop, SunDim, Key, Shield } from "lucide-react";
+import { Loader2, Upload, Moon, Sun, Laptop, SunDim, Key, Shield, Webhook } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
+import { WebhookManagement } from "@/components/webhook-management";
 
 // Settings schema for the form
 const settingsSchema = z.object({
@@ -246,8 +248,16 @@ export function AdminSettings() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <Tabs defaultValue="general" className="mb-6">
+          <TabsList>
+            <TabsTrigger value="general">General</TabsTrigger>
+            <TabsTrigger value="api">API & Integrations</TabsTrigger>
+            <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="general">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="border rounded-lg p-4 bg-card shadow-sm mb-6">
               <h3 className="text-lg font-medium mb-2">Application Name Settings</h3>
 
@@ -781,6 +791,108 @@ export function AdminSettings() {
             </div> {/* Closing div */}
           </form>
         </Form>
+          </TabsContent>
+          
+          <TabsContent value="api">
+            <div className="space-y-6">
+              <div className="border rounded-lg p-4 bg-card shadow-sm">
+                <h3 className="text-lg font-medium mb-2">API Settings</h3>
+                <p className="text-muted-foreground mb-4">
+                  Configure API access for external integrations with your Visitor Management System.
+                </p>
+                
+                <Form {...form}>
+                  <form className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="apiEnabled"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                          <div className="space-y-0.5">
+                            <FormLabel>Enable External API</FormLabel>
+                            <FormDescription>
+                              Allow external systems to integrate with your VMS through the API
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="apiKey"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>API Key</FormLabel>
+                          <div className="flex items-center space-x-2">
+                            <FormControl>
+                              <Input 
+                                type="text" 
+                                value={field.value || ""} 
+                                onChange={field.onChange}
+                                className="font-mono"
+                                readOnly
+                              />
+                            </FormControl>
+                            <Button 
+                              type="button" 
+                              variant="outline"
+                              onClick={() => {
+                                // Generate a new API key
+                                const newKey = "vms-" + 
+                                  Math.random().toString(36).substring(2, 10) + 
+                                  "-" + 
+                                  Math.random().toString(36).substring(2, 10) + 
+                                  "-" + 
+                                  Date.now().toString(36);
+                                
+                                form.setValue("apiKey", newKey);
+                              }}
+                            >
+                              <Key className="mr-2 h-4 w-4" />
+                              Regenerate
+                            </Button>
+                          </div>
+                          <FormDescription>
+                            This key is required to authenticate API requests. Keep it secure.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <div className="pt-4 flex justify-end">
+                      <Button 
+                        type="submit" 
+                        onClick={form.handleSubmit(onSubmit)}
+                        disabled={updateSettingsMutation.isPending}
+                      >
+                        {updateSettingsMutation.isPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          "Save API Settings"
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="webhooks">
+            <WebhookManagement />
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );
